@@ -29,6 +29,8 @@ export { describeGaps, missingGlyphs } from '~/render/coverage.ts';
 export { renderPage } from '~/render/document.ts';
 export { setFontDirectory } from '~/render/fonts.ts';
 export { imageSize } from '~/render/probe.ts';
+export { redactImage, isRedacted } from '~/render/redact.ts';
+export type { RedactOptions, RedactResult } from '~/render/redact.ts';
 export type { Palette } from '~/theme/palette.ts';
 export {
   check as checkPalette,

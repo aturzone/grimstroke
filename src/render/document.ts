@@ -13,6 +13,7 @@ import { describeGaps, missingGlyphs } from '~/render/coverage.ts';
 import { STYLESHEET } from '~/render/css.ts';
 import { DEFAULT_BODY, DEFAULT_MONO, FACES, facePath } from '~/render/fonts.ts';
 import { imageSize } from '~/render/probe.ts';
+import { isRedacted } from '~/render/redact.ts';
 import { escapeHtml, inline, label } from '~/text/inline.ts';
 import { contrast, DEFAULT_PALETTE, type Palette, palette, textOn } from '~/theme/palette.ts';
 import type { Block, ImageSource, Mark, PageSpec, RenderedPage, ZoomSpec } from '~/types.ts';
@@ -305,6 +306,16 @@ function plate(image: ImageSource, ctx: Ctx, zoom: ZoomSpec | undefined): string
     } catch (error) {
       ctx.warnings.push(error instanceof Error ? error.message : String(error));
     }
+  }
+
+  // Drawing a bar over pixels that are still there is the failure nobody
+  // notices until it is public.
+  const covering = (image.marks ?? []).some((m) => m.kind === 'redact');
+  if (covering && !image.src.startsWith('data:') && !isRedacted(image.src)) {
+    ctx.warnings.push(
+      `${image.src} has a censor bar drawn on it but the pixels underneath are ` +
+        'still there. Run redactImage() first, or grimstroke redact.',
+    );
   }
 
   const caption = image.caption

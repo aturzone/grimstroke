@@ -10,6 +10,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { exportPages } from '~/export/playwright.ts';
 import { renderPage } from '~/render/document.ts';
+import { redactImage } from '~/render/redact.ts';
 import { check as checkPalette, PALETTES, palette } from '~/theme/palette.ts';
 import type { NotebookSpec, PageSpec } from '~/types.ts';
 
@@ -21,9 +22,13 @@ const USAGE = `grimstroke ${VERSION} — a notebook for agents
   grimstroke render <spec.json> [options]   write a PNG per page
   grimstroke html   <spec.json> [options]   write the HTML instead, and open no browser
   grimstroke check  <spec.json>             report anything that would render wrong
+  grimstroke redact <in.png> <out.png> --region src:x,y,w,h ...
+                                            destroy those pixels, permanently
   grimstroke palettes                       list the palettes
 
 Options
+  --region REF     for redact; repeat. src:x,y,w,h | pct:... | css:...
+  --bleed N        grow each region by N px (default 2, and err this way)
   --out DIR        where to write        (default: alongside the spec)
   --engine NAME    firefox | chromium | webkit
   --dpr N          device pixel ratio    (2 for a page to be looked at closely)
@@ -35,6 +40,8 @@ The spec is one page or a notebook:
 `;
 
 interface Options {
+  regions?: string[];
+  bleed?: number | undefined;
   out?: string | undefined;
   engine?: 'firefox' | 'chromium' | 'webkit' | undefined;
   dpr?: number | undefined;
@@ -45,7 +52,11 @@ function parse(argv: string[]): { verb: string; file?: string; options: Options 
   const positional: string[] = [];
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (arg === '--out') options.out = argv[++i];
+    if (arg === '--region') {
+      const value = argv[++i];
+      if (value !== undefined) options.regions = [...(options.regions ?? []), value];
+    } else if (arg === '--bleed') options.bleed = Number(argv[++i]);
+    else if (arg === '--out') options.out = argv[++i];
     else if (arg === '--engine') options.engine = argv[++i] as Options['engine'];
     else if (arg === '--dpr') options.dpr = Number(argv[++i]);
     else if (arg !== undefined) positional.push(arg);
@@ -104,6 +115,27 @@ async function main(argv: string[]): Promise<number> {
       );
       for (const problem of problems) process.stdout.write(`       ${problem}\n`);
     }
+    return 0;
+  }
+
+  if (verb === 'redact') {
+    const [, , target] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+    if (!file || !target) {
+      process.stderr.write(`redact needs an input and an output file\n\n${USAGE}`);
+      return 2;
+    }
+    if (!options.regions?.length) {
+      process.stderr.write('redact needs at least one --region\n');
+      return 2;
+    }
+    const result = redactImage(file, target, options.regions, {
+      ...(options.bleed === undefined ? {} : { bleed: options.bleed }),
+    });
+    process.stdout.write(
+      `wrote ${result.out}  ${result.width}x${result.height}  ` +
+        `${result.regions.length} region(s) destroyed\n` +
+        '  those pixels are gone from this copy; the original still has them\n',
+    );
     return 0;
   }
 
