@@ -1,0 +1,6 @@
+node_modules/
+dist/
+coverage/
+
+# Look-sheets are for looking at, not for diffing. They are not a baseline.
+tools/looksheet/

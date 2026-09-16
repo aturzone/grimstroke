@@ -1,0 +1,51 @@
+{
+  "name": "grimstroke",
+  "version": "0.0.1",
+  "description": "A notebook for agents: pages an agent writes, draws and annotates on, exported as images.",
+  "license": "MPL-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./render": "./dist/render.js"
+  },
+  "bin": {
+    "grimstroke": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "assets"
+  ],
+  "scripts": {
+    "build": "node --import ./tools/register.mjs build.ts",
+    "build:dev": "node --import ./tools/register.mjs build.ts --dev",
+    "watch": "node --import ./tools/register.mjs build.ts --dev --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "look": "node --import ./tools/register.mjs tools/looksheet.ts",
+    "check": "pnpm typecheck && pnpm lint && pnpm test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.0",
+    "@types/node": "^24.10.0",
+    "esbuild": "^0.25.10",
+    "playwright": "^1.62.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "peerDependencies": {
+    "playwright": ">=1.40"
+  },
+  "peerDependenciesMeta": {
+    "playwright": {
+      "optional": true
+    }
+  }
+}

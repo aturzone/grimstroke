@@ -1,0 +1,28 @@
+# The vendored faces. Nothing is resolved from the system: a system font makes
+# output machine-dependent, and evidence that renders differently on another
+# laptop is not evidence.
+#
+# `grimstroke doctor` checks each sha256 against this file.
+
+[face.Estedad]
+files = ["Estedad-Regular.ttf", "Estedad-Bold.ttf"]
+scripts = ["arabic", "latin"]
+licence = "SIL OFL 1.1"
+licence_file = "OFL-Estedad.txt"
+source = "https://github.com/aminabedi68/Estedad"
+note = "The Persian face. Covers Arabic script and a Persian-optimised Latin."
+
+[face."JetBrains Mono"]
+files = ["JetBrainsMono-Regular.ttf", "JetBrainsMono-Bold.ttf"]
+scripts = ["latin", "greek", "cyrillic"]
+licence = "SIL OFL 1.1"
+licence_file = "OFL-JetBrainsMono.txt"
+source = "https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304"
+version = "2.304"
+note = "Latin body and all technical strings. The design language is monospace-forward, so this IS the Latin body face, not just a code face."
+
+[sha256]
+"Estedad-Bold.ttf" = "398f032e3ac3a8e556a5d1efaefefc0e3b394c14dd91a9b6e6ca1ff96b28c40d"
+"Estedad-Regular.ttf" = "21813d003960f2003c370fc217d524d6d10d9918fa18e2fd0dbb8c7d28bc7df8"
+"JetBrainsMono-Bold.ttf" = "5590990c82e097397517f275f430af4546e1c45cff408bde4255dad142479dcb"
+"JetBrainsMono-Regular.ttf" = "a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f"

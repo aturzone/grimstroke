@@ -1,0 +1,7 @@
+# pnpm requires explicit approval for dependency build scripts.
+# esbuild's postinstall installs and validates its native binary, which is needed,
+# and it is a first-tier tool with a documented install script.
+allowBuilds:
+  esbuild: true
+
+verifyDepsBeforeRun: false
