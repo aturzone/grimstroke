@@ -23,8 +23,6 @@ import { page } from '~/draw/doc/page/build.ts';
 import { FRAMES } from '~/draw/look/frame.ts';
 import { PAPERS } from '~/draw/look/grid.ts';
 import { PALETTES } from '~/draw/look/palette.ts';
-import { DEFAULT_FACE } from '~/draw/material/face/model.ts';
-import { CATALOGUE } from '~/draw/material/face/parts.ts';
 import { exportPages } from '~/host/export.ts';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -238,47 +236,45 @@ function everyBook(): Array<{ page: RenderedPage; out: string }> {
 }
 
 /**
- * Every part of a character, in one art style, with a profile card at the end.
+ * The profile card, with a drawn portrait and without one, on a board.
  *
  * Laid out on a board and drawn by the board's own renderer, so what is looked at is exactly
- * what a board, a card and a cover show. It is how the pixel style was found to have twenty
- * parts that drew nothing and a face two columns off centre.
+ * what a board, a card and a cover show.
  */
-function everyFace(style: 'ink' | 'pixel'): RenderedPage {
-  const b = board(`faces-${style}`, { palette: 'studio', paper: 'blank' });
-  let x = 0;
-  let y = 0;
-  for (const [slot, parts] of Object.entries(CATALOGUE)) {
-    b.label(slot, { at: [0, y], size: [120] }, { tone: 'ink', hand: false });
-    x = 140;
-    for (const one of parts) {
-      b.place(
-        {
-          kind: 'face',
-          character: {
-            id: `${style}-${slot}-${one.id}`,
-            style,
-            tilt: 0,
-            parts: { ...DEFAULT_FACE.parts, [slot]: one.id },
-          },
-        },
-        { at: [x, y], size: [96] },
-      );
-      x += 104;
-    }
-    y += 124;
-  }
-  const person = {
-    id: `${style}-card`,
+function everyProfile(): RenderedPage {
+  const b = board('profiles', { palette: 'studio', paper: 'blank' });
+  const face = [
+    'M150 70 C 90 70, 70 130, 80 190 C 90 260, 130 300, 150 300 C 170 300, 210 260, 220 190 C 230 130, 210 70, 150 70',
+    'M118 170 C 122 164, 130 164, 134 170',
+    'M166 170 C 170 164, 178 164, 182 170',
+    'M130 240 C 140 252, 160 252, 170 240',
+    'M60 400 C 70 330, 110 310, 150 312 C 190 310, 230 330, 240 400',
+  ];
+  const drawn = {
     name: 'Rio Tanaka',
     role: 'design lead',
     bio: 'Draws the boxes. Owns the palette.',
     details: [{ label: 'team', value: 'platform' }],
-    style,
-    parts: { ...DEFAULT_FACE.parts, hair: 'wave', outfit: 'hoodie', glasses: 'round' },
-    palette: { accent: '#00b3a8', cloth: '#c0392f', hair: '#6b4423' },
+    accent: '#00b3a8',
+    portrait: {
+      paper: '#dfe9f3',
+      strokes: [
+        {
+          d: 'M40 80 L 260 80 L 260 150 L 40 150 Z',
+          colour: '#ffd23f',
+          tool: 'highlighter' as const,
+          fill: true,
+        },
+        ...face.map((d) => ({ d, colour: '#14110e', weight: 4, tool: 'pen' as const })),
+      ],
+    },
   };
-  b.place({ kind: 'profile', character: person }, { at: [140, y + 20], size: [300] });
+  b.place({ kind: 'profile', profile: drawn }, { at: [0, 0], size: [300] });
+  b.place({ kind: 'profile', profile: { name: 'me' } }, { at: [340, 0], size: [300] });
+  b.place(
+    { kind: 'profile', profile: { ...drawn, name: 'رضا', role: 'طراح' } },
+    { at: [680, 0], size: [300] },
+  );
   return b.render();
 }
 
@@ -295,8 +291,7 @@ async function main(): Promise<void> {
   jobs.push({ page: everyHand(), out: join(OUT, 'hand.png') });
   jobs.push(...everyPaper());
   jobs.push(...everyBook());
-  jobs.push({ page: everyFace('ink'), out: join(OUT, 'faces-ink.png') });
-  jobs.push({ page: everyFace('pixel'), out: join(OUT, 'faces-pixel.png') });
+  jobs.push({ page: everyProfile(), out: join(OUT, 'profiles.png') });
 
   const results = await exportPages(jobs, { engine: 'firefox' });
   for (const result of results) {

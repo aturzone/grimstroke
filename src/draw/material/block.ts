@@ -2,8 +2,8 @@
  * A block, as HTML: the one switch every document draws its materials through.
  *
  * The materials themselves live beside it -- words.ts for text, plate/ for pictures, note/
- * and face/ for the two that are objects in their own right. A page stacks them in a column,
- * a board scatters them across a plane and a notebook binds them into leaves, but the markup
+ * for the sticky note and profile/ for the card. A page stacks them in a column, a board
+ * scatters them across a plane and a notebook binds them into leaves, but the markup
  * is identical in all three, and so is the guarantee that comes with it -- most importantly
  * that a picture is never altered by the thing it is mounted in.
  *
@@ -11,12 +11,11 @@
  */
 
 import type { Surface } from '~/draw/doc/surface.ts';
-import { renderProfile } from '~/draw/material/face/profile.ts';
-import { renderFace } from '~/draw/material/face/render.ts';
 import type { Block, NoteInk } from '~/draw/material/model.ts';
 import type { NoteStyle } from '~/draw/material/note/model.ts';
 import { renderNote } from '~/draw/material/note/render.ts';
 import { plate, renderCompare } from '~/draw/material/plate/render.ts';
+import { renderProfile } from '~/draw/material/profile/render.ts';
 import {
   renderBullets,
   renderCode,
@@ -65,13 +64,8 @@ export function renderBlock(block: Block, ctx: Surface, place: BlockPlacement = 
       return renderCompare(block.images, block.syncMarks ?? true, ctx);
     case 'note':
       return renderSticky(block, ctx, place);
-    case 'face':
-      return renderFace(block.character, {
-        ...(place.size?.[0] === undefined ? {} : { size: place.size[0] }),
-        ...(block.badge ? { badge: true } : {}),
-      });
     case 'profile':
-      return renderProfile(block.character);
+      return renderProfile(block.profile);
     case 'divider':
       return '<hr class="block">';
     case 'spacer':

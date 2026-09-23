@@ -1,19 +1,25 @@
 /**
- * The profile page: one character's card, large, and what can be done with it.
+ * The profile page: draw yourself, say who you are, and put the card somewhere.
  *
- * Pure. The card is drawn by the same renderProfile that draws it on a board and on a cover,
- * so the card on this page is the card you get anywhere else.
+ * Pure. The portrait on the easel and the card beside it are drawn by the same renderPortrait
+ * and renderProfile that draw them on a board and on a cover, so what is here is what you get
+ * anywhere else.
+ *
+ * The easel is a 3:4 frame -- the shape of an ID photo -- with the board's own pens. It is the
+ * one place the app draws strokes on the page itself before the server has them, which is the
+ * same exception the board makes for a stroke still being drawn.
  */
 
+import { detailRow } from '~/draw/chrome/detail.ts';
 import { icon } from '~/draw/chrome/icons.ts';
-import { button, heading, item } from '~/draw/chrome/parts.ts';
+import { button, heading, kbd } from '~/draw/chrome/parts.ts';
 import { helpDialog, searchDialog, topBar } from '~/draw/chrome/top.ts';
 import { renderHead } from '~/draw/doc/head.ts';
 import type { RenderedPage } from '~/draw/doc/model.ts';
 import { surface } from '~/draw/doc/surface.ts';
-import type { Character } from '~/draw/material/face/model.ts';
-import { renderProfile } from '~/draw/material/face/profile.ts';
 import { halftoneDefs } from '~/draw/material/note/render.ts';
+import { ACCENTS, PAPERS, type Profile } from '~/draw/material/profile/model.ts';
+import { renderPortrait, renderProfile } from '~/draw/material/profile/render.ts';
 import { escapeHtml } from '~/draw/type/text.ts';
 
 export interface ProfilePageOptions {
@@ -22,61 +28,156 @@ export interface ProfilePageOptions {
   live?: { scripts?: string[] } | undefined;
 }
 
+/** The pens on the easel: the board's, less the ones that place things. */
+const PENS: ReadonlyArray<readonly [string, string, string]> = [
+  ['pen', 'Pen', 'P'],
+  ['pencil', 'Pencil', 'N'],
+  ['marker', 'Marker', 'M'],
+  ['highlighter', 'Highlighter', 'G'],
+  ['eraser', 'Eraser', 'E'],
+];
+
+/** Inks for a face: the board's, and the tones a face is actually made of. */
+const INKS: readonly string[] = [
+  '#14110e',
+  '#5a3a22',
+  '#8a5a35',
+  '#c98b5b',
+  '#f1c9a0',
+  '#ffffff',
+  '#c0392b',
+  '#ff2e63',
+  '#e07b00',
+  '#ffd23f',
+  '#15654f',
+  '#1f3fd0',
+  '#8e44ad',
+  '#7b8794',
+];
+
+const SIZES: ReadonlyArray<readonly [string, number]> = [
+  ['fine', 0.6],
+  ['medium', 1],
+  ['bold', 2],
+];
+
+function swatch(gs: string, colour: string, pressed: boolean, label: string): string {
+  return (
+    `<button type="button" class="gs-swatch" data-gs="${gs}" data-gs-value="${escapeHtml(colour)}" ` +
+    `style="--swatch:${escapeHtml(colour)}" aria-label="${escapeHtml(label)}" aria-pressed="${pressed}"></button>`
+  );
+}
+
 export function renderProfilePage(
-  character: Character,
+  profile: Profile,
   options: ProfilePageOptions = {},
 ): RenderedPage {
   const ctx = surface('profile', { palette: 'studio' });
   const head = renderHead(ctx, 'ltr', { paper: 'blank', grain: 0.7 });
-  const name = character.name || character.id;
-  const studio = `/face?id=${encodeURIComponent(character.id)}`;
   const books = (options.books ?? [])
     .map((b) => `<option value="${escapeHtml(b.id)}">${escapeHtml(b.title)}</option>`)
     .join('');
+  const paper = profile.portrait?.paper ?? PAPERS[0];
+
+  const pens = PENS.map(
+    ([id, label, key], i) =>
+      `<button type="button" class="gs-btn gs-btn-icon" data-gs="pen" data-gs-tool="${id}" ` +
+      `aria-label="${label}" aria-pressed="${i === 0}" aria-keyshortcuts="${key.toLowerCase()}">` +
+      `${icon(id as 'pen')}` +
+      `<span class="gs-tip" role="presentation">${label} ${kbd(key)}</span></button>`,
+  ).join('');
+  const sizes = SIZES.map(
+    ([name, scale]) =>
+      `<button type="button" class="gs-btn gs-chip-btn" data-gs="size" data-gs-value="${scale}" ` +
+      `aria-pressed="${scale === 1}">${name}</button>`,
+  ).join('');
+  const inks = INKS.map((c, i) => swatch('ink', c, i === 0, `ink ${c}`)).join('');
+  const papers = PAPERS.map((c) => swatch('paper', c, c === paper, `photo paper ${c}`)).join('');
+  const accents = ACCENTS.map((c) =>
+    swatch('accent', c, c === (profile.accent ?? ACCENTS[0]), `card colour ${c}`),
+  ).join('');
+  const details = (profile.details ?? []).map((d) => detailRow(d.label, d.value)).join('');
 
   const actions =
-    `<a class="gs-btn" href="${studio}" data-gs="profile-edit">${icon('face')}<span class="gs-btn-text">edit</span></a>` +
-    button({ gs: 'profile-print', label: 'print the card', icon: 'export', text: 'print' });
-  const html = [
-    '<!doctype html>',
-    '<html lang="en" dir="ltr" data-script="latin" data-uppercase="on">',
-    head,
-    '<body class="on-studio">',
-    halftoneDefs(),
-    topBar({
-      place: 'studio',
-      title: name,
-      back: { href: studio, label: 'the studio' },
-      actions,
-      compact:
-        item({ gs: 'profile-edit', text: 'edit in the studio', icon: 'face', href: studio }) +
-        item({ gs: 'profile-print', text: 'print the card', icon: 'export' }),
-    }),
-    '<main class="pf-page">',
-    `<div class="pf-stage" data-gs="profile-stage">${renderProfile(character)}</div>`,
-    '<aside class="pf-panel gs-card">',
-    heading('on the board'),
+    button({ gs: 'undo', label: 'undo', icon: 'undo', key: 'mod+Z' }) +
+    button({ gs: 'redo', label: 'redo', icon: 'redo', key: 'mod+Shift+Z' }) +
     button({
       gs: 'profile-place',
       label: 'put the card on the board',
       icon: 'board',
-      text: 'put the card on the board',
+      text: 'put on board',
+    });
+
+  const html = [
+    '<!doctype html>',
+    '<html lang="en" dir="ltr" data-script="latin" data-uppercase="on">',
+    head,
+    '<body class="on-profile">',
+    halftoneDefs(),
+    topBar({ place: 'profile', title: profile.name || 'me', saved: true, actions }),
+    '<main class="pf-page">',
+
+    // ---- the easel
+    '<section class="pf-easel" aria-label="your portrait">',
+    '<div class="pf-frame">',
+    `<div class="pf-canvas" data-gs="canvas">${renderPortrait(profile.portrait, 'draw yourself here', true)}</div>`,
+    '</div>',
+    '<div class="pf-tools gs-card" role="toolbar" aria-label="pens">',
+    `<div class="pf-pens">${pens}</div>`,
+    `<div class="pf-sizes gs-chip-row" role="group" aria-label="size">${sizes}</div>`,
+    `<div class="pf-inks" role="group" aria-label="ink">${inks}</div>`,
+    '<div class="pf-paper-row">',
+    `<span class="pf-label">photo paper</span><div class="pf-papers" role="group" aria-label="photo paper">${papers}</div>`,
+    button({
+      gs: 'clear',
+      label: 'start again',
+      icon: 'trash',
+      text: 'start again',
+      tone: 'gs-btn-danger',
     }),
+    '</div>',
+    '</div>',
+    '</section>',
+
+    // ---- who, and the card
+    '<aside class="pf-side">',
+    '<section class="pf-who gs-card" aria-label="who">',
+    heading('who'),
+    `<label class="pf-field"><span>name</span><input class="gs-field" data-gs="name" dir="auto" ` +
+      `value="${escapeHtml(profile.name ?? '')}" placeholder="your name" maxlength="60" autocomplete="off"></label>`,
+    `<label class="pf-field"><span>role</span><input class="gs-field" data-gs="role" dir="auto" ` +
+      `value="${escapeHtml(profile.role ?? '')}" placeholder="what you are here for" maxlength="60" autocomplete="off"></label>`,
+    `<label class="pf-field"><span>about</span><textarea class="gs-field" data-gs="bio" dir="auto" rows="2" ` +
+      `maxlength="240" placeholder="a sentence, in your own words">${escapeHtml(profile.bio ?? '')}</textarea></label>`,
+    `<div class="pf-details" data-gs="details">${details}</div>`,
+    button({
+      gs: 'detail-add',
+      label: 'add a line',
+      icon: 'plus',
+      text: 'add a line',
+      tone: 'pf-add',
+    }),
+    `<div class="pf-accent-row"><span class="pf-label">card colour</span><div class="pf-accents">${accents}</div></div>`,
+    '</section>',
+    `<section class="pf-card-stage" aria-label="the card"><div data-gs="card">${renderProfile(profile, { flat: true })}</div></section>`,
+    '<section class="pf-place gs-card" aria-label="use the card">',
     heading('on a notebook'),
     books
-      ? `<select class="gs-field" data-gs="profile-book" aria-label="which notebook">${books}</select>` +
+      ? `<div class="pf-cover-row"><select class="gs-field" data-gs="profile-book" aria-label="which notebook">${books}</select>` +
         button({
           gs: 'profile-cover',
           label: 'use as its cover',
           icon: 'cover',
-          text: 'use as its cover',
-        })
+          text: 'use as cover',
+        }) +
+        '</div>'
       : '<p class="pf-note">There are no notebooks yet. Make one on the shelf and come back.</p>',
-    '<p class="pf-note">The card goes on by value: it stays as it is now, whatever happens to ' +
-      'the character later. A notebook is a record, and its cover is part of it.</p>',
+    '<p class="pf-note">The card goes on by value: it stays as it is now, whatever you draw ' +
+      'next. A notebook is a record, and its cover is part of it.</p>',
+    '</section>',
     '</aside>',
     '</main>',
-    `<script type="application/json" data-gs="face-data">${JSON.stringify(character).replace(/</g, '\\u003c')}</script>`,
+    `<script type="application/json" data-gs="profile-data">${JSON.stringify(profile).replace(/</g, '\\u003c')}</script>`,
     searchDialog(),
     helpDialog(),
     ...(options.live?.scripts ?? []).map(
@@ -86,11 +187,11 @@ export function renderProfilePage(
     '</html>',
   ].join('\n');
   return {
-    id: `profile-${character.id}`,
+    id: 'profile',
     html: `${html}\n`,
     assets: ctx.assets,
-    width: 480,
-    selector: '.profile',
+    width: 1200,
+    selector: '.pf-page',
     warnings: ctx.warnings,
     autofit: true,
   };

@@ -24,9 +24,8 @@ import { textOn } from '~/draw/look/colour.ts';
 import { ruling } from '~/draw/look/grid.ts';
 import { Rng } from '~/draw/look/rng.ts';
 import { renderBlock } from '~/draw/material/block.ts';
-import { renderProfile } from '~/draw/material/face/profile.ts';
-import { renderFace } from '~/draw/material/face/render.ts';
 import { halftoneDefs } from '~/draw/material/note/render.ts';
+import { renderPortrait, renderProfile } from '~/draw/material/profile/render.ts';
 import { ARABIC, textOfAll } from '~/draw/material/read.ts';
 import { escapeHtml, inline, label } from '~/draw/type/text.ts';
 
@@ -66,7 +65,7 @@ export function renderCover(spec: BookSpec, ctx: Surface): string {
     .join(';');
   const stickers = (cover.stickers ?? []).map((s) => renderSticker(s, ctx)).join('');
   const person = cover.profile
-    ? `<div class="cover-profile">${renderProfile(cover.profile, { chrome: false })}</div>`
+    ? `<div class="cover-profile">${renderProfile(cover.profile)}</div>`
     : '';
   return (
     `<div class="cover cover-${material}${cover.profile ? ' has-profile' : ''}" style="${vars}">` +
@@ -92,8 +91,8 @@ function renderSticker(sticker: Sticker, ctx: Surface): string {
   const body =
     sticker.kind === 'picture'
       ? `<img src="${escapeHtml(servedPath(sticker.src ?? '', ctx))}" alt="" draggable="false">`
-      : sticker.kind === 'face' && sticker.character
-        ? renderFace({ ...sticker.character, tilt: 0 }, { badge: true, chrome: false, size: 120 })
+      : sticker.kind === 'portrait'
+        ? `<span class="sticker-photo">${renderPortrait(sticker.portrait, '')}</span>`
         : sticker.kind === 'shape'
           ? `<span class="shape shape-${sticker.shape ?? 'circle'}"></span>`
           : `<span class="sticker-text">${inline(sticker.text ?? '', {

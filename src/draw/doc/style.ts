@@ -27,9 +27,9 @@ import { BOOK_SCALE, COVER, FLIP, PAGES, SHELF, SPREAD } from '~/draw/doc/book/c
 import { DESK, RESET, SCRIPT } from '~/draw/doc/css.ts';
 import { PAGE_LAYOUT, PAGE_SHEET } from '~/draw/doc/page/css.ts';
 import { BLOCKS, CODE, TAPE } from '~/draw/material/css.ts';
-import { FACE, PROFILE } from '~/draw/material/face/css.ts';
 import { NOTE } from '~/draw/material/note/css.ts';
 import { MOUNT, PLATE, PLATE_LAYER, REDACT } from '~/draw/material/plate/css.ts';
+import { PORTRAIT, PROFILE } from '~/draw/material/profile/css.ts';
 
 /** Layout, written in logical properties so a page mirrors with no branch. */
 export const BASE = [RESET, PAGE_LAYOUT, BLOCKS, PLATE, CODE, MOUNT].join('');
@@ -58,7 +58,7 @@ export const LIVE = [
   PRINT,
 ].join('');
 
-export { BOARD, FACE, NOTE, SCRIPT };
+export { BOARD, NOTE, SCRIPT };
 
 /** Every piece on its own, so a test can hold each one to balanced braces. */
 export const PIECES: Readonly<Record<string, string>> = {
@@ -73,7 +73,7 @@ export const PIECES: Readonly<Record<string, string>> = {
   TAPE,
   REDACT,
   NOTE,
-  FACE,
+  PORTRAIT,
   PROFILE,
   BOARD,
   DESK,
@@ -100,4 +100,6 @@ export const PIECES: Readonly<Record<string, string>> = {
   SCRIPT,
 };
 
-export const STYLESHEET = [BASE, ZINE, NOTE, FACE, PROFILE, BOARD, BOOK, LIVE, SCRIPT].join('\n');
+export const STYLESHEET = [BASE, ZINE, NOTE, PORTRAIT, PROFILE, BOARD, BOOK, LIVE, SCRIPT].join(
+  '\n',
+);

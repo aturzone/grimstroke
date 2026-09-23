@@ -14,17 +14,17 @@ import { icon } from '~/draw/chrome/icons.ts';
 import { item, kbd, menu, RULE } from '~/draw/chrome/parts.ts';
 import { escapeHtml } from '~/draw/type/text.ts';
 
-export type Place = 'board' | 'shelf' | 'studio';
+export type Place = 'board' | 'shelf' | 'profile';
 
 const PLACES: ReadonlyArray<{
   place: Place;
   href: string;
   text: string;
-  icon: 'board' | 'book' | 'face';
+  icon: 'board' | 'book' | 'profile';
 }> = [
   { place: 'board', href: '/', text: 'board', icon: 'board' },
   { place: 'shelf', href: '/shelf', text: 'notebooks', icon: 'book' },
-  { place: 'studio', href: '/face', text: 'studio', icon: 'face' },
+  { place: 'profile', href: '/profile', text: 'profile', icon: 'profile' },
 ];
 
 export interface TopOptions {

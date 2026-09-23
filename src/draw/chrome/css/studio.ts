@@ -1,159 +1,117 @@
 /**
- * The character studio, and the profile page beside it.
+ * The profile page: the easel, who you are, and the card.
  *
  * Part of the one stylesheet, assembled in draw/doc/style.ts. It is CSS in a template
  * literal, so it CANNOT CONTAIN A BACKTICK -- not even in a comment. That has closed the
  * string and broken the build four times.
  */
 
-/** The studio: a big face on a card, the knobs beside it, every choice as a row of faces. */
-export const STUDIO = `/* ---- the studio ----
+/** The easel and the card beside it. */
+export const STUDIO = `/* ---- the profile page ----
 
-   A big face on a card, the knobs beside it, and every choice as a row of whole faces. The
-   page is chrome, so every class is gs- or fs- prefixed and none of it inherits from a
-   document class. */
+   A photo booth on the desk: the 3:4 frame large on the left with the pens under it, and on
+   the right who you are and the card that comes out of it. The page is chrome, so every class
+   is gs- or pf- prefixed and none of it inherits from a document class. */
 
-body.on-studio {
+body.on-profile {
   min-height: 100vh;
   background: var(--desk);
   color: var(--paper);
   padding-block-start: 76px;
 }
-.fs-studio {
-  display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
-  gap: 28px;
-  align-items: start;
-  padding: 16px 28px 40px;
-}
-.fs-stage { position: sticky; inset-block-start: 76px; display: grid; gap: 14px; max-height: calc(100vh - 88px); overflow: auto; padding: 2px 8px 8px 2px; scrollbar-width: thin; }
-.fs-card { display: grid; justify-items: center; gap: 10px; padding: 18px 18px 10px; }
-.fs-face .face-art { width: 100%; max-width: 300px; height: auto; }
-.fs-styles { justify-content: center; }
-
-.fs-panel { padding: 12px 14px 14px; }
-.fs-panel h3, .fs-slot h3, .fs-shelf h3 {
-  margin: 0 0 10px;
-  font: 700 var(--gs-t1) / 1.4 var(--mono-font);
-  letter-spacing: 0.12em;
-  color: var(--gs-soft);
-}
-.fs-slot h3, .fs-shelf h3 { color: color-mix(in oklab, var(--paper) 72%, var(--desk)); }
-.fs-field { display: grid; gap: 4px; margin-block-end: 9px; font-size: var(--gs-t1); color: var(--gs-soft); }
-.fs-field .gs-field { width: 100%; color: var(--gs-ink); font-size: var(--gs-t2); }
-.fs-details { display: grid; gap: 6px; margin-block-end: 8px; }
-.fs-detail { display: grid; grid-template-columns: 34% 1fr auto; gap: 6px; align-items: center; }
-.fs-detail .gs-field { width: 100%; min-width: 0; padding: 5px 7px; font-size: var(--gs-t1); }
-.fs-add { border: 1.5px dashed var(--gs-faint); width: 100%; }
-.fs-row {
-  display: grid;
-  grid-template-columns: 58px 1fr 42px;
-  align-items: center;
-  gap: 10px;
-  min-height: 28px;
-  font-family: var(--mono-font);
-  font-size: var(--gs-t2);
-}
-.fs-row span { color: var(--gs-soft); }
-.fs-row input[type='color'] {
-  grid-column: 2 / 4;
-  width: 100%;
-  height: 24px;
-  padding: 0;
-  border: 1.5px solid var(--gs-line);
-  border-radius: 2px;
-  background: none;
-  cursor: pointer;
-}
-.fs-row input[type='range'] { width: 100%; accent-color: var(--gs-ink); }
-.fs-row output { text-align: end; color: var(--gs-soft); font-variant-numeric: tabular-nums; }
-
-.fs-presets { margin-block-start: 10px; display: grid; gap: 6px; }
-.fs-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
-.fs-swatch {
-  all: unset;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  border: 1.5px solid var(--gs-line);
-  border-radius: 2px;
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
-  transition: transform var(--gs-fast) var(--gs-ease);
-}
-.fs-swatch:hover { transform: translate(-1px, -1px) rotate(-4deg); }
-.fs-swatch:focus-visible { outline: 2.5px solid var(--gs-ink); outline-offset: 2px; }
-
-.fs-parts { display: grid; gap: 20px; }
-.fs-cells { display: flex; flex-wrap: wrap; gap: 8px; }
-/* A thumbnail is a whole face, so the frame around it has to be quiet or the row reads as a
-   grid of boxes rather than as a row of people. */
-.fs-cell {
-  all: unset;
-  cursor: pointer;
-  padding: 3px;
-  background: color-mix(in oklab, var(--paper) 90%, var(--desk));
-  border: 2px solid transparent;
-  border-radius: 2px;
-  line-height: 0;
-  transition: transform var(--gs-fast) var(--gs-ease), border-color var(--gs-fast) linear;
-}
-.fs-cell:hover { border-color: color-mix(in oklab, var(--paper) 50%, transparent); transform: translateY(-2px); }
-.fs-cell[aria-pressed='true'] { border-color: var(--accent); background: var(--paper); box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35); }
-.fs-cell:focus-visible { outline: 2.5px solid var(--paper); outline-offset: 2px; }
-
-.fs-shelf { padding: 18px 28px 38px; border-block-start: 2px solid color-mix(in oklab, var(--paper) 16%, transparent); }
-.fs-shelf-row { display: flex; flex-wrap: wrap; gap: 12px; }
-.fs-saved {
-  all: unset;
-  cursor: pointer;
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  width: 78px;
-  padding: 8px 6px 6px;
-  background: var(--mat-paper);
-  border: 1.5px solid var(--mat-ink);
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
-  font: var(--gs-t1) / 1.2 var(--mono-font);
-  color: var(--mat-ink);
-  text-align: center;
-  overflow-wrap: anywhere;
-  transition: transform var(--gs-fast) var(--gs-ease);
-}
-.fs-saved:hover { transform: rotate(-2deg) translateY(-2px); }
-.fs-saved[aria-current='true'] { background: var(--accent); color: var(--chip-text); }
-.fs-saved:focus-visible { outline: 2.5px solid var(--paper); outline-offset: 3px; }
-
-@media (max-width: 900px) {
-  .fs-studio { grid-template-columns: 1fr; padding-inline: 12px; }
-  .fs-stage { position: static; max-height: none; overflow: visible; }
-  .fs-card { justify-self: center; width: min(100%, 360px); }
-  .fs-shelf { padding-inline: 12px; }
-}
-@media (max-width: 520px) {
-  body.on-studio { padding-block-start: 64px; }
-}
-
-/* ---- the profile page ----
-
-   The card, large, on the desk, with what can be done with it beside it. */
 .pf-page {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 32px;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 28px;
   align-items: start;
-  max-width: 1100px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 20px 28px 48px;
+  padding: 16px 28px 48px;
 }
-.pf-stage { justify-self: center; width: min(100%, 420px); padding: 28px 18px 18px; }
-.pf-stage .profile { max-width: none; }
-.pf-panel { display: grid; gap: 4px; padding: 6px 0 12px; }
-.pf-panel .gs-menu-head { margin-block-start: 10px; }
-.pf-panel .gs-field { margin: 0 12px; width: calc(100% - 24px); }
-.pf-panel > .gs-btn { margin: 4px 12px 0; justify-content: flex-start; }
-.pf-note { padding: 4px 16px 0; color: var(--gs-soft); font-size: var(--gs-t1); line-height: 1.5; }
-@media (max-width: 860px) {
+.pf-easel { display: grid; justify-items: center; gap: 16px; }
+
+/* The frame: a mat of photo card round the drawing, taped to the desk, off true by a hair. */
+.pf-frame {
+  position: relative;
+  /* Short enough that the pens under it are on screen without scrolling. */
+  width: min(100%, calc((100vh - 360px) * 0.75), 460px);
+  min-width: min(100%, 260px);
+  padding: 14px 14px 40px;
+  background: #fbf8f0;
+  border: 1.5px solid #14110e;
+  box-shadow: 8px 9px 0 rgba(0, 0, 0, 0.4);
+  transform: rotate(-0.6deg);
+}
+.pf-frame::before, .pf-frame::after {
+  content: '';
+  position: absolute;
+  inset-block-start: -12px;
+  width: 92px;
+  height: 24px;
+  background: color-mix(in oklab, #f4efe0 86%, var(--accent));
+  opacity: 0.8;
+  border-inline: 1px solid rgba(0, 0, 0, 0.14);
+}
+.pf-frame::before { inset-inline-start: 18px; transform: rotate(-5deg); }
+.pf-frame::after { inset-inline-end: 18px; transform: rotate(4deg); }
+.pf-canvas {
+  border: 1.5px solid #14110e;
+  cursor: crosshair;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.pf-canvas[data-tool='eraser'] { cursor: cell; }
+.pf-canvas .portrait { background: #fff; }
+
+.pf-tools {
+  display: grid;
+  gap: 10px;
+  width: min(100%, 560px);
+  padding: 10px 12px;
+}
+.pf-pens { display: flex; gap: 3px; justify-content: center; }
+.pf-sizes { justify-content: center; padding: 0; }
+.pf-inks, .pf-papers, .pf-accents { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
+.pf-paper-row, .pf-accent-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.pf-paper-row .gs-btn { margin-inline-start: auto; }
+.pf-label {
+  color: var(--gs-soft);
+  font: 700 var(--gs-t1) / 1.4 var(--mono-font);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pf-side { display: grid; gap: 18px; position: sticky; inset-block-start: 76px; }
+.pf-who { padding: 4px 14px 14px; }
+.pf-who .gs-menu-head { padding-inline: 0; }
+.pf-field { display: grid; gap: 4px; margin-block-end: 9px; font-size: var(--gs-t1); color: var(--gs-soft); }
+.pf-field .gs-field { width: 100%; color: var(--gs-ink); font-size: var(--gs-t2); }
+.pf-details { display: grid; gap: 6px; margin-block-end: 8px; }
+.pf-detail { display: grid; grid-template-columns: 34% 1fr auto; gap: 6px; align-items: center; }
+.pf-detail .gs-field { width: 100%; min-width: 0; padding: 5px 7px; font-size: var(--gs-t1); }
+.pf-add { border: 1.5px dashed var(--gs-faint); width: 100%; margin-block-end: 12px; }
+.pf-accent-row { justify-content: space-between; }
+
+.pf-card-stage { justify-self: center; width: min(100%, 300px); padding: 12px 8px 4px; }
+.pf-card-stage .profile { max-width: none; }
+.pf-place { padding: 4px 0 12px; }
+.pf-cover-row { display: flex; gap: 6px; padding: 0 12px; }
+.pf-cover-row .gs-field { flex: 1; min-width: 0; margin: 0; }
+.pf-note { padding: 8px 16px 0; color: var(--gs-soft); font-size: var(--gs-t1); line-height: 1.5; }
+
+@media (max-width: 960px) {
   .pf-page { grid-template-columns: 1fr; padding-inline: 12px; }
+  .pf-side { position: static; }
+  .pf-frame { width: min(100%, 420px); }
+}
+@media (max-width: 520px) {
+  body.on-profile { padding-block-start: 64px; }
 }
 `;

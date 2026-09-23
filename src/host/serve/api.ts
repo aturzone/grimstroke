@@ -17,7 +17,8 @@ import { renderCover, renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { search } from '~/draw/doc/search.ts';
 import { surface } from '~/draw/doc/surface.ts';
 import { hashString } from '~/draw/look/rng.ts';
-import type { Character } from '~/draw/material/face/model.ts';
+import { type Profile, readProfile } from '~/draw/material/profile/model.ts';
+import { renderProfile } from '~/draw/material/profile/render.ts';
 import { exportPages } from '~/host/export.ts';
 import { type Ask, header, readBody, readRaw, send } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
@@ -27,68 +28,49 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
   const { req, res, url, path } = ask;
   const store = live.store;
 
-  if (path === '/api/face' && req.method === 'POST') {
-    const body = (await readBody(req)) as { character?: Character };
-    if (!body.character?.id) {
-      send(res, 400, { error: 'a character needs an id' });
-      return true;
-    }
-    await store.writeFace(body.character);
-    send(res, 200, { id: body.character.id });
+  /*
+   * The profile: the one person this workspace belongs to.
+   *
+   * GET reads it. POST with { profile } replaces it, and with { patch } changes only the fields
+   * named -- so an agent can set a role without having to send back a portrait it never
+   * looked at. A portrait is strokes in a 300 x 400 frame, the same SVG path shape as ink.
+   */
+  if (path === '/api/profile' && req.method !== 'POST') {
+    send(res, 200, { profile: await store.readProfile() });
     return true;
   }
 
-  if (path === '/api/face' && req.method === 'DELETE') {
-    const id = url.searchParams.get('id');
-    if (!id) {
-      send(res, 400, { error: 'which character?' });
+  if (path === '/api/profile' && req.method === 'POST') {
+    const body = (await readBody(req)) as { profile?: Profile; patch?: Partial<Profile> };
+    if (!body.profile && !body.patch) {
+      send(res, 400, { error: 'send { profile } to replace it, or { patch } to change fields' });
       return true;
     }
-    await store.removeFace(id);
-    send(res, 200, { id });
+    const next = readProfile(body.profile ?? { ...(await store.readProfile()), ...body.patch });
+    await store.writeProfile(next);
+    // The card, drawn here, so the page shows the card every other place will show.
+    send(res, 200, { profile: next, card: renderProfile(next, { flat: true }) });
     return true;
   }
 
-  if (path === '/api/faces') {
-    const list: Character[] = [];
-    for (const id of await store.listFaces()) {
-      const one = await store.readFace(id);
-      if (one) list.push(one);
-    }
-    send(res, 200, { faces: list });
-    return true;
-  }
-
-  /** Put a character onto the board, as an item like any other. */
-  if (path === '/api/face/place' && req.method === 'POST') {
-    const body = (await readBody(req)) as { character?: Character; board?: string; card?: boolean };
-    if (!body.character) {
-      send(res, 400, { error: 'no character' });
-      return true;
-    }
+  /** Put the profile card onto a board, as an item like any other, by value. */
+  if (path === '/api/profile/place' && req.method === 'POST') {
+    const body = (await readBody(req)) as { board?: string; at?: [number, number] };
     const spec = await live.board(body.board ?? ask.board);
-    // Somewhere visible rather than at the origin: the middle of whatever is already
-    // there, so it lands on the part of the board somebody is actually looking at.
-    const [x, y, w, h] = extentOf(spec);
-    // A face, or with `card`, the whole profile card.
-    const item = body.card
-      ? {
-          id: `card-${Date.now().toString(36)}`,
-          at: [Math.round(x + w / 2 - 140), Math.round(y + h / 2 - 200)] as [number, number],
-          size: [280] as [number],
-          z: topZ(spec) + 1,
-          block: { kind: 'profile' as const, character: body.character },
-        }
-      : {
-          id: `face-${Date.now().toString(36)}`,
-          at: [Math.round(x + w / 2 - 90), Math.round(y + h / 2 - 100)] as [number, number],
-          size: [180] as [number],
-          z: topZ(spec) + 1,
-          block: { kind: 'face' as const, character: body.character, badge: true },
-        };
-    const result = apply(spec, [{ op: 'add', item }]);
-    await live.commitBoard(result.spec);
-    send(res, 200, { id: item.id });
+    // Somewhere visible rather than at the origin: the middle of whatever is already there,
+    // so it lands on the part of the board somebody is actually looking at.
+    const { extent: _origin, ...loose } = spec;
+    const [x, y, w, h] = extentOf(loose);
+    const item = {
+      id: `card-${Date.now().toString(36)}`,
+      at:
+        body.at ?? ([Math.round(x + w / 2 - 110), Math.round(y + h / 2 - 170)] as [number, number]),
+      size: [220] as [number],
+      z: topZ(spec) + 1,
+      block: { kind: 'profile' as const, profile: await store.readProfile() },
+    };
+    // Through the patch path, so everyone looking at the board sees it arrive.
+    await patchBoard(ask, live, spec.id, [{ op: 'add', item }]);
     return true;
   }
 
@@ -128,7 +110,7 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
   }
 
   /*
-   * Search, across every board, every notebook -- the archived ones too -- and every person.
+   * Search, across every board, every notebook -- the archived ones too -- and the profile.
    *
    * Read from the store rather than from what happens to be cached, so a notebook nobody has
    * opened since the server started is as findable as the one on screen.
@@ -137,12 +119,8 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     const query = (url.searchParams.get('q') ?? '').slice(0, 200);
     const boards = await Promise.all((await store.listBoards()).map((id) => live.board(id)));
     const books = await Promise.all((await store.listBooks()).map((id) => live.book(id)));
-    const faces: Character[] = [];
-    for (const id of await store.listFaces()) {
-      const face = await store.readFace(id);
-      if (face) faces.push(face);
-    }
-    send(res, 200, { query, hits: search({ boards, books, faces }, query) });
+    const profile = await store.readProfile();
+    send(res, 200, { query, hits: search({ boards, books, profile }, query) });
     return true;
   }
 

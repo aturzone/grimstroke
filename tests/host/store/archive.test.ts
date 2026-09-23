@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -89,20 +89,28 @@ describe('the workspace archive', () => {
     // A feature is not finished until its data is in the backup and comes back out exactly.
     const from = freshStore();
     const asset = await from.putAsset(PNG, '.png');
-    const person = {
-      id: 'rio',
+    const profile = {
       name: 'Rio',
       role: 'design lead',
       bio: 'Owns the palette.',
       details: [{ label: 'team', value: 'platform' }],
-      style: 'pixel' as const,
-      parts: { shape: 'heart', hair: 'afro', outfit: 'hoodie', headwear: 'beret' },
-      palette: { cloth: '#c0392f' },
-      sizes: { head: 1.2 },
+      accent: '#15654f',
+      portrait: {
+        paper: '#dfe9f3',
+        strokes: [
+          { d: 'M10 10 C 20 20, 30 30, 40 40', colour: '#14110e', weight: 3, tool: 'pen' as const },
+          {
+            d: 'M0 0 L 10 0 L 10 10 Z',
+            colour: '#ffd23f',
+            tool: 'highlighter' as const,
+            fill: true,
+          },
+        ],
+      },
     };
-    await from.writeFace(person);
+    await from.writeProfile(profile);
     const spec = board('workspace')
-      .place({ kind: 'profile', character: person }, { at: [0, 0], size: [280], rotation: -4 })
+      .place({ kind: 'profile', profile }, { at: [0, 0], size: [280], rotation: -4 })
       .note('- [x] done\n- [ ] not yet', { at: [300, 0], size: [240, 170], group: 'g1' })
       .image(from.assetPath(asset), { at: [600, 0], size: [320], group: 'g1', locked: true }).spec;
     await from.writeBoard(spec);
@@ -114,20 +122,20 @@ describe('the workspace archive', () => {
         material: 'kraft',
         colour: '#e0a21a',
         ink: '#14110e',
-        profile: person,
+        profile,
         stickers: [
           { id: 's1', kind: 'shape', shape: 'star', at: [30, 40], width: 20, rotation: 12 },
           { id: 's2', kind: 'picture', src: from.assetPath(asset), at: [60, 60] },
-          { id: 's3', kind: 'face', character: person, at: [70, 20], width: 24 },
+          { id: 's3', kind: 'portrait', portrait: profile.portrait, at: [70, 20], width: 24 },
         ],
       },
-      leaves: [{ id: 'l1', blocks: [{ kind: 'profile', character: person }] }],
+      leaves: [{ id: 'l1', blocks: [{ kind: 'profile', profile }] }],
     });
 
     const to = freshStore();
     await unpack(to, readArchive(JSON.parse(JSON.stringify(await pack(from)))));
 
-    expect(await to.readFace('rio')).toEqual(person);
+    expect(await to.readProfile()).toEqual(profile);
     const board2 = await to.readBoard('workspace');
     expect(board2?.items.map(({ block, ink, ...rest }) => rest)).toEqual(
       spec.items.map(({ block, ink, ...rest }) => rest),
@@ -135,11 +143,84 @@ describe('the workspace archive', () => {
     expect(board2?.items[0]?.block).toEqual(spec.items[0]?.block);
     const book = await to.readBook('crew');
     expect(book?.archived).toBe(true);
-    expect(book?.cover?.profile).toEqual(person);
-    expect(book?.cover?.stickers?.map((s) => s.kind)).toEqual(['shape', 'picture', 'face']);
+    expect(book?.cover?.profile).toEqual(profile);
+    expect(book?.cover?.stickers?.map((s) => s.kind)).toEqual(['shape', 'picture', 'portrait']);
+    expect(book?.cover?.stickers?.[2]?.portrait).toEqual(profile.portrait);
     // The picture sticker points into the new store, and the bytes came with it.
     const src = book?.cover?.stickers?.[1]?.src ?? '';
     expect(src.startsWith(to.assetsDir)).toBe(true);
     expect(readFileSync(src)).toEqual(PNG);
+  });
+});
+
+describe('what the character studio left behind', () => {
+  const rio = {
+    id: 'rio',
+    name: 'Rio',
+    role: 'design lead',
+    bio: 'Owns the palette.',
+    details: [{ label: 'team', value: 'platform' }],
+    style: 'pixel',
+    parts: { hair: 'afro' },
+    palette: { accent: '#00b3a8' },
+  };
+
+  it('becomes the profile, keeping the words and nothing of the face', async () => {
+    const store = freshStore();
+    await store.ready();
+    const faces = join(store.dir, 'faces');
+    mkdirSync(faces, { recursive: true });
+    writeFileSync(join(faces, 'default.json'), JSON.stringify({ id: 'default', name: 'You' }));
+    writeFileSync(join(faces, 'rio.json'), JSON.stringify(rio));
+    expect(await store.readProfile()).toEqual({
+      name: 'Rio',
+      role: 'design lead',
+      bio: 'Owns the palette.',
+      details: [{ label: 'team', value: 'platform' }],
+      accent: '#00b3a8',
+      portrait: { strokes: [] },
+    });
+  });
+
+  it('turns faces and old cards on a board and a notebook into the profile card', async () => {
+    const store = freshStore();
+    await store.ready();
+    writeFileSync(
+      store.boardPath('old'),
+      JSON.stringify({
+        id: 'old',
+        items: [
+          { id: 'f', at: [0, 0], block: { kind: 'face', character: rio, badge: true } },
+          { id: 'c', at: [0, 0], block: { kind: 'profile', character: rio } },
+        ],
+      }),
+    );
+    const upgraded = await store.readBoard('old');
+    for (const item of upgraded?.items ?? []) {
+      expect(item.block).toMatchObject({ kind: 'profile', profile: { name: 'Rio' } });
+    }
+    writeFileSync(
+      store.bookPath('old'),
+      JSON.stringify({
+        id: 'old',
+        cover: { profile: rio, stickers: [{ id: 's', kind: 'face', character: rio, at: [1, 1] }] },
+        leaves: [{ id: 'l', blocks: [{ kind: 'face', character: rio }] }],
+      }),
+    );
+    const book = await store.readBook('old');
+    expect(book?.cover?.profile?.name).toBe('Rio');
+    expect(book?.cover?.stickers).toEqual([]);
+    expect(book?.leaves[0]?.blocks[0]).toMatchObject({ kind: 'profile' });
+  });
+
+  it('reads an archive of characters as a profile', () => {
+    const archive = readArchive({
+      format: 'grimstroke',
+      version: 1,
+      boards: [],
+      books: [],
+      faces: [rio],
+    });
+    expect(archive.profile?.name).toBe('Rio');
   });
 });

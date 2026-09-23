@@ -14,8 +14,8 @@
 
 import type { Direction } from '~/draw/doc/model.ts';
 import type { PaperKind } from '~/draw/look/grid.ts';
-import type { Character } from '~/draw/material/face/model.ts';
 import type { Block } from '~/draw/material/model.ts';
+import type { Portrait, Profile } from '~/draw/material/profile/model.ts';
 
 /**
  * What the cover is made of.
@@ -38,7 +38,7 @@ export const MATERIALS: readonly CoverMaterial[] = ['card', 'cloth', 'kraft', 'l
  */
 export interface Sticker {
   id: string;
-  kind: 'label' | 'picture' | 'shape' | 'face';
+  kind: 'label' | 'picture' | 'shape' | 'portrait';
   /** Percent of the cover, from its top-left. */
   at: [number, number];
   /** Width as a percent of the cover. Height follows the content. */
@@ -50,8 +50,8 @@ export interface Sticker {
   colour?: string;
   /** For a shape: which one. */
   shape?: 'circle' | 'star' | 'band' | 'tape';
-  /** For a face: who. Carried by value, like every character on a document. */
-  character?: Character;
+  /** For a portrait: the drawing, by value, as it was when it was stuck on. */
+  portrait?: Portrait;
 }
 
 export const SHAPES: ReadonlyArray<NonNullable<Sticker['shape']>> = [
@@ -72,12 +72,12 @@ export interface Cover {
   spine?: string;
   stickers?: Sticker[];
   /**
-   * Whose notebook it is: a character's profile card, pasted onto the front.
+   * Whose notebook it is: the profile card, pasted onto the front.
    *
-   * By value, so the cover still says whose it was after the character has been changed or
-   * deleted in the studio -- a notebook is a record, and its cover is part of the record.
+   * By value, so the cover still says whose it was after the profile has been redrawn -- a
+   * notebook is a record, and its cover is part of the record.
    */
-  profile?: Character;
+  profile?: Profile;
 }
 
 export interface Leaf {

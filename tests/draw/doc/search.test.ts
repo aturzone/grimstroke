@@ -34,7 +34,7 @@ const docs = {
     },
     { id: 'now', title: 'Sprint', cover: { title: 'Sprint 14' }, leaves: [] },
   ],
-  faces: [{ id: 'rio', name: 'Rio', role: 'design lead', parts: {} }],
+  profile: { name: 'Rio', role: 'design lead' },
 };
 
 describe('search', () => {
@@ -57,10 +57,10 @@ describe('search', () => {
     expect(search(docs, 'account sprint')).toHaveLength(0);
   });
 
-  it('finds people by what they do', () => {
+  it('finds the profile by what they do', () => {
     const [hit] = search(docs, 'design');
     expect(hit?.kind).toBe('person');
-    expect(hit?.href).toBe('/profile?id=rio');
+    expect(hit?.href).toBe('/profile');
   });
 
   it('finds Persian typed on either keyboard, with or without the half-space', () => {

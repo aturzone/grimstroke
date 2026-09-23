@@ -1,5 +1,5 @@
 /**
- * The surfaces a person opens: the board, a notebook, the shelf, the studio.
+ * The surfaces a person opens: the board, a notebook, the shelf, the profile.
  *
  * Every one is the SAME HTML an export would produce, with the chrome and the app script
  * appended -- which is what makes "what you see is what you get" a fact rather than an
@@ -10,10 +10,8 @@ import { chrome } from '~/draw/chrome/board.ts';
 import { bookChrome } from '~/draw/chrome/book.ts';
 import { renderProfilePage } from '~/draw/chrome/profile.ts';
 import { shelfChrome } from '~/draw/chrome/shelf.ts';
-import { renderStudio } from '~/draw/chrome/studio.ts';
 import { renderBoard } from '~/draw/doc/board/render.ts';
 import { renderShelf, renderSpread } from '~/draw/doc/book/render.ts';
-import { type Character, DEFAULT_FACE } from '~/draw/material/face/model.ts';
 import { type Ask, html } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
 
@@ -41,37 +39,21 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
     return true;
   }
 
-  /*
-   * The studio.
-   *
-   * A character is opened by id, and an id nobody has saved yet is simply a new character
-   * -- so /face?id=anything is a usable blank sheet rather than a 404, and an agent can
-   * name one before it exists.
-   */
+  // The studio of characters became the profile. An old link still arrives somewhere.
   if (path === '/face') {
-    const id = url.searchParams.get('id') ?? 'default';
-    const character = (await live.store.readFace(id)) ?? { ...DEFAULT_FACE, id };
-    const saved: Character[] = [];
-    for (const other of await live.store.listFaces()) {
-      const one = await live.store.readFace(other);
-      if (one) saved.push(one);
-    }
-    const rendered = renderStudio(character, { saved, live: { scripts: APP } });
-    live.allow(rendered.assets);
-    html(res, rendered.html);
+    res.writeHead(302, { location: '/profile' });
+    res.end();
     return true;
   }
 
   if (path === '/profile') {
-    const id = url.searchParams.get('id') ?? 'default';
-    const character = (await live.store.readFace(id)) ?? { ...DEFAULT_FACE, id };
     const books = await Promise.all(
       (await live.store.listBooks()).map(async (bookId) => {
         const spec = await live.book(bookId);
         return { id: spec.id, title: spec.title ?? spec.id, archived: spec.archived === true };
       }),
     );
-    const rendered = renderProfilePage(character, {
+    const rendered = renderProfilePage(await live.store.readProfile(), {
       books: books.filter((b) => !b.archived),
       live: { scripts: APP },
     });

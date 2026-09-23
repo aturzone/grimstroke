@@ -9,6 +9,7 @@
  */
 
 import type { Block } from '~/draw/material/model.ts';
+import type { Profile } from '~/draw/material/profile/model.ts';
 
 /** Every run of text a block shows, in reading order. */
 export function textOf(block: Block): string[] {
@@ -34,15 +35,8 @@ export function textOf(block: Block): string[] {
         image.caption ?? '',
         ...(image.marks ?? []).map((m) => m.note ?? ''),
       ]);
-    case 'face':
-      return [block.character.name ?? ''];
     case 'profile':
-      return [
-        block.character.name ?? '',
-        block.character.role ?? '',
-        block.character.bio ?? '',
-        ...(block.character.details ?? []).flatMap((d) => [d.label, d.value]),
-      ];
+      return profileText(block.profile);
     case 'divider':
     case 'spacer':
       return [];
@@ -56,3 +50,13 @@ export function textOfAll(blocks: readonly Block[]): string {
 
 /** Arabic script anywhere in the text: the switch for Persian leading and shaping. */
 export const ARABIC = /[\u0600-\u06ff\u0750-\u077f\ufb50-\ufdff\ufe70-\ufeff]/;
+
+/** Every word on a profile card: the name, what they are for, and the details. */
+export function profileText(profile: Profile): string[] {
+  return [
+    profile.name ?? '',
+    profile.role ?? '',
+    profile.bio ?? '',
+    ...(profile.details ?? []).flatMap((d) => [d.label, d.value]),
+  ];
+}

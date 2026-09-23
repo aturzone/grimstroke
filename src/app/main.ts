@@ -12,14 +12,13 @@ import { bootBook } from '~/app/book/app.ts';
 import { bootChrome } from '~/app/chrome.ts';
 import { bootProfile } from '~/app/profile.ts';
 import { bootShelf } from '~/app/shelf.ts';
-import { bootStudio } from '~/app/studio/app.ts';
 
 async function boot(): Promise<void> {
   bootChrome();
-  if (bootShelf() || bootProfile()) return;
-  const studio = bootStudio();
-  if (studio) {
-    (window as unknown as { grimstroke: unknown }).grimstroke = studio;
+  if (bootShelf()) return;
+  const profile = bootProfile();
+  if (profile) {
+    (window as unknown as { grimstroke: unknown }).grimstroke = profile;
     return;
   }
   const surface = document.querySelector('[data-gs="board"], [data-gs="book"]');

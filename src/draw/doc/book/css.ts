@@ -210,7 +210,12 @@ export const COVER = `/* ---- the cover ---- */
   transform-origin: 50% 50%;
 }
 .sticker img { display: block; width: 100%; }
-.sticker .face-art { display: block; width: 100%; height: auto; }
+/* A portrait stuck on: the drawing as a small photo, keyline and hard shadow. */
+.sticker-photo {
+  display: block;
+  border: 1.5px solid #14110e;
+  box-shadow: 1.5px 2px 0 rgba(0, 0, 0, 0.35);
+}
 
 /* Whose notebook it is: their card, pasted on below the title, slightly off true. */
 .cover-profile {

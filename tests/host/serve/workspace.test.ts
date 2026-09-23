@@ -242,3 +242,53 @@ describe('the server', () => {
     expect(boards).toContain('work');
   });
 });
+
+describe('the profile, over HTTP', () => {
+  it('starts from nothing, and changes one field without touching the rest', async () => {
+    const first = (await (await ask('/api/profile')).json()) as { profile: { name: string } };
+    expect(first.profile.name).toBe('me');
+    const stroke = { d: 'M1 1 L 20 20', colour: '#14110e', weight: 3, tool: 'pen' };
+    await ask('/api/profile', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ profile: { name: 'Rio', portrait: { strokes: [stroke] } } }),
+    });
+    const res = await ask('/api/profile', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ patch: { role: 'design lead' } }),
+    });
+    const { profile, card } = (await res.json()) as {
+      profile: { name: string; role: string; portrait: { strokes: unknown[] } };
+      card: string;
+    };
+    expect(profile).toMatchObject({ name: 'Rio', role: 'design lead' });
+    expect(profile.portrait.strokes).toEqual([stroke]);
+    // The card comes back drawn, so a page never draws one itself.
+    expect(card).toContain('class="profile"');
+    expect(card).toContain('M1 1 L 20 20');
+  });
+
+  it('puts the card on a board by value', async () => {
+    const res = await ask('/api/profile/place', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ board: 'cards' }),
+    });
+    expect(res.ok).toBe(true);
+    const { spec } = (await (await ask('/api/state?board=cards')).json()) as {
+      spec: { items: Array<{ block?: { kind: string; profile?: { name: string } } }> };
+    };
+    const card = spec.items.find((item) => item.block?.kind === 'profile');
+    expect(card?.block?.profile?.name).toBe('Rio');
+  });
+
+  it('serves the profile page, and sends the old studio address to it', async () => {
+    const page = await (await ask('/profile')).text();
+    expect(page).toContain('data-gs="canvas"');
+    expect(page).toContain('data-gs="portrait-ink"');
+    const old = await ask('/face?id=rio', { redirect: 'manual' });
+    expect(old.status).toBe(302);
+    expect(old.headers.get('location')).toBe('/profile');
+  });
+});

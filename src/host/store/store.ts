@@ -19,7 +19,8 @@ import { homedir } from 'node:os';
 import { extname, join, resolve } from 'node:path';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import type { BookSpec } from '~/draw/doc/book/model.ts';
-import type { Character } from '~/draw/material/face/model.ts';
+import { upgradeBoard, upgradeBook } from '~/draw/doc/legacy.ts';
+import { type Profile, readProfile } from '~/draw/material/profile/model.ts';
 
 /** How many past versions of a board are kept. A board is a few kilobytes of JSON. */
 const KEEP = 40;
@@ -52,10 +53,6 @@ export class Store {
     return join(this.dir, 'books');
   }
 
-  get facesDir(): string {
-    return join(this.dir, 'faces');
-  }
-
   get assetsDir(): string {
     return join(this.dir, 'assets');
   }
@@ -63,7 +60,6 @@ export class Store {
   async ready(): Promise<void> {
     await mkdir(this.boardsDir, { recursive: true });
     await mkdir(this.booksDir, { recursive: true });
-    await mkdir(this.facesDir, { recursive: true });
     await mkdir(this.assetsDir, { recursive: true });
   }
 
@@ -85,7 +81,7 @@ export class Store {
   async readBoard(id: string): Promise<BoardSpec | undefined> {
     try {
       const raw = await readFile(this.boardPath(id), 'utf8');
-      return JSON.parse(raw) as BoardSpec;
+      return upgradeBoard(JSON.parse(raw) as BoardSpec);
     } catch {
       return undefined;
     }
@@ -170,7 +166,7 @@ export class Store {
   async readHistory(id: string, version: number): Promise<BoardSpec | undefined> {
     const at = join(this.historyDir, safe(id), `${String(version).padStart(8, '0')}.json`);
     try {
-      return JSON.parse(await readFile(at, 'utf8')) as BoardSpec;
+      return upgradeBoard(JSON.parse(await readFile(at, 'utf8')) as BoardSpec);
     } catch {
       return undefined;
     }
@@ -208,7 +204,7 @@ export class Store {
 
   async readBook(id: string): Promise<BookSpec | undefined> {
     try {
-      return JSON.parse(await readFile(this.bookPath(id), 'utf8')) as BookSpec;
+      return upgradeBook(JSON.parse(await readFile(this.bookPath(id), 'utf8')) as BookSpec);
     } catch {
       return undefined;
     }
@@ -219,36 +215,41 @@ export class Store {
     await atomically(this.bookPath(spec.id), `${JSON.stringify(spec, null, 2)}\n`);
   }
 
-  // ---------------------------------------------------------------- faces
+  // ---------------------------------------------------------------- profile
 
-  facePath(id: string): string {
-    return join(this.facesDir, `${safe(id)}.json`);
+  get profilePath(): string {
+    return join(this.dir, 'profile.json');
   }
 
-  async listFaces(): Promise<string[]> {
-    await this.ready();
-    const names = await readdir(this.facesDir);
-    return names
-      .filter((n) => n.endsWith('.json'))
-      .map((n) => n.slice(0, -5))
-      .sort();
-  }
-
-  async readFace(id: string): Promise<Character | undefined> {
+  /**
+   * The workspace's profile.
+   *
+   * There is one. Before there was, there was a studio of characters in faces/, and the first
+   * read here carries the person's own words across from them -- the name, the role, the
+   * sentence and the details -- preferring any character over the built-in default one. The
+   * faces directory itself is left exactly as it was: it is somebody's data, and nothing here
+   * deletes it.
+   */
+  async readProfile(): Promise<Profile> {
     try {
-      return JSON.parse(await readFile(this.facePath(id), 'utf8')) as Character;
+      return readProfile(JSON.parse(await readFile(this.profilePath, 'utf8')));
     } catch {
-      return undefined;
+      // No profile yet: fall through to what the studio left, if anything.
     }
+    try {
+      const faces = join(this.dir, 'faces');
+      const names = (await readdir(faces)).filter((n) => n.endsWith('.json')).sort();
+      const chosen = names.find((n) => n !== 'default.json') ?? names[0];
+      if (chosen) return readProfile(JSON.parse(await readFile(join(faces, chosen), 'utf8')));
+    } catch {
+      // No studio either. A profile starts from nothing.
+    }
+    return readProfile({});
   }
 
-  async writeFace(character: Character): Promise<void> {
+  async writeProfile(profile: Profile): Promise<void> {
     await this.ready();
-    await atomically(this.facePath(character.id), `${JSON.stringify(character, null, 2)}\n`);
-  }
-
-  async removeFace(id: string): Promise<void> {
-    await rm(this.facePath(id), { force: true });
+    await atomically(this.profilePath, `${JSON.stringify(readProfile(profile), null, 2)}\n`);
   }
 
   // ---------------------------------------------------------------- assets

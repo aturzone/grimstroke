@@ -15,7 +15,7 @@ import type { Session } from '~/app/net.ts';
 import type { BookSpec, Cover, CoverMaterial, Sticker } from '~/draw/doc/book/model.ts';
 import { MATERIALS, SHAPES } from '~/draw/doc/book/model.ts';
 import type { BookOp, Loose } from '~/draw/doc/book/patch.ts';
-import type { Character } from '~/draw/material/face/model.ts';
+import type { Profile } from '~/draw/material/profile/model.ts';
 
 /** Cover boards somebody would actually buy. */
 const COLOURS = [
@@ -70,7 +70,8 @@ export class CoverEditor {
   private stage: HTMLElement | undefined;
   private panel: HTMLElement | undefined;
   private chosen: string | undefined;
-  private people: Character[] = [];
+  /** The workspace's profile, for the card on the front and the portrait sticker. */
+  private profile: Profile | undefined;
   private drawing = 0;
 
   constructor(session: Session<BookSpec, BookOp>, fail: (message: string) => void) {
@@ -107,10 +108,10 @@ export class CoverEditor {
     this.bindStage();
     root.addEventListener('keydown', (event) => this.key(event));
     try {
-      const res = await fetch('/api/faces');
-      this.people = ((await res.json()) as { faces: Character[] }).faces;
+      const res = await fetch('/api/profile');
+      this.profile = ((await res.json()) as { profile: Profile }).profile;
     } catch {
-      this.people = [];
+      this.profile = undefined;
     }
     await this.refresh();
   }
@@ -215,19 +216,17 @@ export class CoverEditor {
     );
     section('colour', colours, inks);
 
-    const who = el('select', 'gs-field');
-    who.dataset.gs = 'cover-profile';
-    who.append(new Option('nobody', ''));
-    for (const person of this.people) {
-      who.append(
-        new Option(person.name || person.id, person.id, false, cover.profile?.id === person.id),
-      );
-    }
-    who.addEventListener('change', () => {
-      const person = this.people.find((p) => p.id === who.value);
-      this.setCover({ profile: person ?? null }, 'cover person');
-    });
-    section('whose it is', who);
+    // Your card on the front, as it is now -- or not. By value: redrawing the portrait later
+    // does not change a cover that was already made.
+    const whose = el('div', 'gs-chip-row');
+    whose.dataset.gs = 'cover-profile';
+    whose.append(
+      chip('nobody', !cover.profile, () => this.setCover({ profile: null }, 'cover person')),
+      chip(cover.profile ? 'your card (update it)' : 'your card', Boolean(cover.profile), () => {
+        if (this.profile) this.setCover({ profile: this.profile }, 'cover person');
+      }),
+    );
+    section('whose it is', whose);
 
     // Stickers: add one, then work on whichever is chosen.
     const adds = el('div', 'gs-chip-row');
@@ -256,21 +255,22 @@ export class CoverEditor {
     file.hidden = true;
     file.addEventListener('change', () => void this.addPicture(file));
     adds.append(file);
-    for (const person of this.people.slice(0, 6)) {
-      const b = chip(person.name || person.id, false, () => {
+    if (this.profile?.portrait?.strokes.length) {
+      const portrait = this.profile.portrait;
+      const b = chip('your portrait', false, () => {
         const id = `sticker-${Date.now().toString(36)}`;
         this.chosen = id;
         this.run(
           [
             {
               op: 'sticker.add',
-              sticker: { id, kind: 'face', at: [74, 30], width: 26, character: person },
+              sticker: { id, kind: 'portrait', at: [74, 30], width: 24, portrait },
             },
           ],
           '',
         );
       });
-      b.classList.add('gs-chip-face');
+      b.dataset.gs = 'sticker-add-portrait';
       adds.append(b);
     }
     section('stick on', adds);

@@ -18,8 +18,8 @@
 
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import type { BookSpec } from '~/draw/doc/book/model.ts';
-import type { Character } from '~/draw/material/face/model.ts';
-import { textOf } from '~/draw/material/read.ts';
+import type { Profile } from '~/draw/material/profile/model.ts';
+import { profileText, textOf } from '~/draw/material/read.ts';
 
 export type HitKind = 'board' | 'notebook' | 'archive' | 'person';
 
@@ -45,7 +45,8 @@ export interface Hit {
 export interface Searchable {
   boards: readonly BoardSpec[];
   books: readonly BookSpec[];
-  faces: readonly Character[];
+  /** The workspace's one profile, if there is one. */
+  profile?: Profile | undefined;
 }
 
 /**
@@ -240,28 +241,16 @@ export function search(docs: Searchable, query: string, limit = 40): Hit[] {
     });
   }
 
-  for (const face of docs.faces) {
-    const text = [
-      face.name ?? '',
-      face.role ?? '',
-      face.bio ?? '',
-      ...(face.details ?? []).flatMap((d) => [d.label, d.value]),
-    ]
-      .filter(Boolean)
-      .join(' — ');
+  if (docs.profile) {
+    const text = profileText(docs.profile).filter(Boolean).join(' — ');
     const s = score(text, words, phrase, 4);
-    if (!s) continue;
-    add(
-      {
-        kind: 'person',
-        doc: face.id,
-        docTitle: face.name ?? face.id,
-        title: face.name ?? face.id,
-        href: `/profile?id=${encodeURIComponent(face.id)}`,
-        score: s,
-      },
-      text,
-    );
+    if (s) {
+      const name = docs.profile.name || 'me';
+      add(
+        { kind: 'person', doc: 'profile', docTitle: name, title: name, href: '/profile', score: s },
+        text,
+      );
+    }
   }
 
   return hits.sort((a, b) => b.score - a.score).slice(0, limit);

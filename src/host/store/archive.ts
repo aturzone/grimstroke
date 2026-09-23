@@ -20,7 +20,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { basename } from 'node:path';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import type { BookSpec } from '~/draw/doc/book/model.ts';
-import type { Character } from '~/draw/material/face/model.ts';
+import { type Profile, readProfile } from '~/draw/material/profile/model.ts';
 import type { Settings, Store } from '~/host/store/store.ts';
 
 export const ARCHIVE_FORMAT = 'grimstroke';
@@ -37,8 +37,8 @@ export interface Archive {
   settings: Settings;
   boards: BoardSpec[];
   books: BookSpec[];
-  /** Characters from the studio. They are tiny -- a few hundred bytes of choices each. */
-  faces: Character[];
+  /** The workspace's profile: its words and its drawn portrait. */
+  profile?: Profile;
   /** Asset name to base64 of its bytes. */
   assets: Record<string, string>;
 }
@@ -46,7 +46,8 @@ export interface Archive {
 export interface Restored {
   boards: string[];
   books: string[];
-  faces: string[];
+  /** Whether the archive carried a profile, and it was restored. */
+  profile: boolean;
   assets: number;
 }
 
@@ -70,11 +71,7 @@ export async function pack(store: Store): Promise<Archive> {
     if (spec) books.push(portable(spec, store) as BookSpec);
   }
 
-  const faces: Character[] = [];
-  for (const id of await store.listFaces()) {
-    const face = await store.readFace(id);
-    if (face) faces.push(face);
-  }
+  const profile = await store.readProfile();
 
   /*
    * Only the assets that something still points at.
@@ -101,7 +98,7 @@ export async function pack(store: Store): Promise<Archive> {
     settings: await store.readSettings(),
     boards,
     books,
-    faces,
+    profile,
     assets,
   };
 }
@@ -137,9 +134,12 @@ export function readArchive(value: unknown): Archive {
     settings: (a.settings ?? {}) as Settings,
     boards: a.boards as BoardSpec[],
     books: a.books as BookSpec[],
-    // Faces arrived in the same version, so an archive written before the studio existed
-    // simply has none rather than being rejected for it.
-    faces: Array.isArray(a.faces) ? (a.faces as Character[]) : [],
+    /*
+     * The profile arrived later, in the same version. An archive from before it may carry the
+     * studio's characters instead; the first real one is read as the profile, which keeps the
+     * person's words. An archive with neither simply has no profile.
+     */
+    ...profileOf(a as Partial<Archive> & { faces?: unknown }),
     assets: (a.assets ?? {}) as Record<string, string>,
   };
 }
@@ -176,17 +176,21 @@ export async function unpack(store: Store, archive: Archive): Promise<Restored> 
     books.push(local.id);
   }
 
-  const faces: string[] = [];
-  for (const face of archive.faces) {
-    await store.writeFace(face);
-    faces.push(face.id);
-  }
+  if (archive.profile) await store.writeProfile(archive.profile);
 
   if (Object.keys(archive.settings).length > 0) {
     await store.writeSettings({ ...(await store.readSettings()), ...archive.settings });
   }
 
-  return { boards, books, faces, assets };
+  return { boards, books, profile: archive.profile !== undefined, assets };
+}
+
+function profileOf(a: Partial<Archive> & { faces?: unknown }): { profile?: Profile } {
+  if (a.profile && typeof a.profile === 'object') return { profile: readProfile(a.profile) };
+  if (!Array.isArray(a.faces) || a.faces.length === 0) return {};
+  const faces = a.faces as Array<{ id?: unknown }>;
+  const chosen = faces.find((face) => face?.id !== 'default') ?? faces[0];
+  return { profile: readProfile(chosen) };
 }
 
 // ---------------------------------------------------------------- paths

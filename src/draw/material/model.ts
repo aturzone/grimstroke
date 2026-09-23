@@ -11,8 +11,8 @@
  */
 
 import type { FrameKind } from '~/draw/look/frame.ts';
-import type { Character } from '~/draw/material/face/model.ts';
 import type { NoteStyle } from '~/draw/material/note/model.ts';
+import type { Profile } from '~/draw/material/profile/model.ts';
 
 /**
  * Where a rectangle's numbers live.
@@ -143,21 +143,14 @@ export type Block =
       ink?: NoteInk[];
     }
   /**
-   * A character.
+   * The profile card: the drawn portrait, the name, the role and the details, as one object
+   * -- the thing you pin to a board to say whose it is, or paste on a notebook's cover.
    *
-   * Carried BY VALUE rather than by a reference to a studio somewhere, so a board with a
-   * face on it is still a board with a face on it after it has been archived, copied to
-   * another machine, or opened by something that has never heard of the studio.
+   * Carried BY VALUE rather than by a reference, so a board with a card on it is still a
+   * board with that card after it has been archived, copied to another machine, or the
+   * profile has been redrawn. A card is a record of who it was, when it was put there.
    */
-  | { kind: 'face'; character: Character; badge?: boolean }
-  /**
-   * A character's profile card: the face, the name, the role and the details, as one object
-   * -- the thing you would pin to a board to say who is working on it, or use as the cover of
-   * a notebook that belongs to someone.
-   *
-   * By value, like a face, for the same reason.
-   */
-  | { kind: 'profile'; character: Character }
+  | { kind: 'profile'; profile: Profile }
   | { kind: 'divider' }
   | { kind: 'spacer'; size?: number };
 

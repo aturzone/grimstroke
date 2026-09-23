@@ -32,7 +32,7 @@ const USAGE = `grimstroke ${VERSION} — a notebook for agents
   grimstroke serve [--port N] [--board ID]  open the workspace on a port
   grimstroke save   <file.grimstroke>       write everything to one file
   grimstroke open   <file.grimstroke>       read one back in
-  grimstroke search <words>                 boards, notebooks, the archive and people
+  grimstroke search <words>                 boards, notebooks, the archive and the profile
   grimstroke history [board]                past versions still on disk
   grimstroke rollback <board> [version]     put one of them back
   grimstroke palettes                       list the palettes
@@ -185,10 +185,7 @@ async function main(argv: string[]): Promise<number> {
     const books = (
       await Promise.all((await store.listBooks()).map((id) => store.readBook(id)))
     ).filter((b): b is NonNullable<typeof b> => b !== undefined);
-    const faces = (
-      await Promise.all((await store.listFaces()).map((id) => store.readFace(id)))
-    ).filter((f): f is NonNullable<typeof f> => f !== undefined);
-    const hits = search({ boards, books, faces }, query);
+    const hits = search({ boards, books, profile: await store.readProfile() }, query);
     if (hits.length === 0) {
       process.stdout.write(`nothing for "${query}"\n`);
       return 1;
@@ -264,7 +261,7 @@ async function main(argv: string[]): Promise<number> {
       process.stdout.write(
         `wrote ${file}\n` +
           `  ${archive.boards.length} board(s), ${archive.books.length} notebook(s), ` +
-          `${archive.faces.length} character(s), ` +
+          `${archive.profile ? 'the profile, ' : ''}` +
           `${Object.keys(archive.assets).length} picture(s), ${megabytes} MB\n` +
           '  it is plain JSON: you can read it, diff it, and commit it\n',
       );
@@ -292,7 +289,7 @@ async function main(argv: string[]): Promise<number> {
         `  into ${store.dir}\n` +
         `  boards:    ${restored.boards.join(', ') || '(none)'}\n` +
         `  notebooks: ${restored.books.join(', ') || '(none)'}\n` +
-        `  people:    ${restored.faces.join(', ') || '(none)'}\n` +
+        `  profile:   ${restored.profile ? 'restored' : '(none in the file)'}\n` +
         `  pictures:  ${restored.assets}\n` +
         '  anything already here that the file did not mention was left alone\n',
     );
