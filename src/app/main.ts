@@ -1,0 +1,32 @@
+/**
+ * Which surface this page is.
+ *
+ * One bundle for all of them, chosen by what the server sent. Splitting the
+ * app into one script per surface would mean a second round trip on every
+ * navigation to save a few kilobytes, and the whole thing is smaller than one
+ * of the fonts.
+ */
+
+import { bootBoard } from '~/app/board/app.ts';
+import { bootBook } from '~/app/book/app.ts';
+import { bootChrome } from '~/app/chrome.ts';
+import { bootProfile } from '~/app/profile.ts';
+import { bootShelf } from '~/app/shelf.ts';
+import { bootStudio } from '~/app/studio/app.ts';
+
+async function boot(): Promise<void> {
+  bootChrome();
+  if (bootShelf() || bootProfile()) return;
+  const studio = bootStudio();
+  if (studio) {
+    (window as unknown as { grimstroke: unknown }).grimstroke = studio;
+    return;
+  }
+  const surface = document.querySelector('[data-gs="board"], [data-gs="book"]');
+  if (!surface) return;
+  const app = surface.getAttribute('data-gs') === 'book' ? await bootBook() : await bootBoard();
+  // Handy for an agent driving a browser, and for anyone in a console.
+  (window as unknown as { grimstroke: unknown }).grimstroke = app;
+}
+
+void boot();
