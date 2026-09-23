@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { escapeHtml, inline, label, shapeDigits } from '~/text/inline.ts';
+import { escapeHtml, inline, label, shapeDigits } from '~/draw/type/text.ts';
 
 describe('inline text', () => {
   it('marks a hex colour so the stylesheet can isolate it', () => {

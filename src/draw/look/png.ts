@@ -1,62 +1,25 @@
 /**
- * Destructive redaction.
+ * PNG, by hand.
  *
- * Drawing a censor bar over an image is not redaction. The original still holds
- * the numbers, and so does every copy of it -- including the one that ends up in
- * a bug report attachment, a chat message, or a git history nobody rewrites.
- * This writes a NEW file with those pixels gone.
+ * No image library. Decoding and re-encoding an 8-bit PNG is zlib plus a filter loop, and a
+ * dependency for that is a dependency that will one day not install on the machine that needs
+ * it -- which for a tool an agent runs on someone else's laptop is not a hypothetical.
  *
- * Pixelation is refused outright. It is a digital artefact in a paper world, it
- * LOOKS reversible and invites the question, and for a short low-entropy string
- * like a sixteen-digit card number mosaic redaction is genuinely attackable.
- * Covering is irreversible by construction.
- *
- * No image library: this decodes and re-encodes PNG with zlib from node's own
- * standard library, because a dependency for "fill some rectangles with black"
- * is a dependency that will one day not install on the machine that needs it.
+ * It lives here rather than inside redaction because two things need it now: destroying pixels
+ * in a screenshot, and baking the paper-grain tile so an export has the same grain the browser
+ * paints at run time.
  */
 
-import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
 import { deflateSync, inflateSync } from 'node:zlib';
-import { resolve as resolveRect } from '~/render/coords.ts';
-import type { RectRef } from '~/types.ts';
 
-export interface RedactOptions {
-  /**
-   * Grow every region by this many pixels on each side.
-   *
-   * A rectangle read off a picture by eye is routinely a pixel or two short, and
-   * the two failure directions are not symmetric: covering slightly too much
-   * costs nothing, covering slightly too little leaves part of the number on
-   * screen. The default errs the safe way on purpose.
-   */
-  bleed?: number;
-  /** The fill. Defaults to the near-black used as ink everywhere else. */
-  colour?: [number, number, number];
-}
-
-export interface RedactResult {
-  out: string;
-  regions: string[];
-  width: number;
-  height: number;
-  /** Written into the file, so a page can tell this image has been through here. */
-  marker: string;
-}
-
-const MARKER_KEY = 'grimstroke:redacted';
-
-interface Raster {
+export interface Raster {
   width: number;
   height: number;
   /** RGBA, 4 bytes per pixel. */
   pixels: Buffer;
 }
 
-// ---------------------------------------------------------------- PNG
-
-function crc32(buffer: Buffer): number {
+export function crc32(buffer: Buffer): number {
   let table = crcTable;
   if (!table) {
     table = new Int32Array(256);
@@ -73,7 +36,7 @@ function crc32(buffer: Buffer): number {
 }
 let crcTable: Int32Array | undefined;
 
-function chunk(type: string, data: Buffer): Buffer {
+export function chunk(type: string, data: Buffer): Buffer {
   const length = Buffer.alloc(4);
   length.writeUInt32BE(data.length);
   const body = Buffer.concat([Buffer.from(type, 'latin1'), data]);
@@ -91,7 +54,7 @@ function paeth(a: number, b: number, c: number): number {
   return pb <= pc ? b : c;
 }
 
-function decodePng(bytes: Buffer): Raster {
+export function decodePng(bytes: Buffer): Raster {
   if (bytes.readUInt32BE(0) !== 0x89504e47) throw new Error('not a PNG');
   let offset = 8;
   let width = 0;
@@ -161,7 +124,7 @@ function decodePng(bytes: Buffer): Raster {
   return { width, height, pixels };
 }
 
-function encodePng(raster: Raster, text: Record<string, string>): Buffer {
+export function encodePng(raster: Raster, text: Record<string, string>): Buffer {
   const { width, height, pixels } = raster;
   const stride = width * 4;
   const raw = Buffer.alloc((stride + 1) * height);
@@ -186,65 +149,4 @@ function encodePng(raster: Raster, text: Record<string, string>): Buffer {
   chunks.push(chunk('IDAT', deflateSync(raw, { level: 6 })));
   chunks.push(chunk('IEND', Buffer.alloc(0)));
   return Buffer.concat(chunks);
-}
-
-// ---------------------------------------------------------------- api
-
-/** Has this file been through redactImage? */
-export function isRedacted(path: string): boolean {
-  try {
-    const bytes = readFileSync(path);
-    return bytes.includes(Buffer.from(MARKER_KEY, 'latin1'));
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Fill each region with flat ink and write a new file.
- *
- * Regions use the same space-prefixed references as marks, so a rectangle can be
- * authored once and used for both the redaction and the bar drawn over it.
- */
-export function redactImage(
-  src: string,
-  out: string,
-  regions: readonly RectRef[],
-  options: RedactOptions = {},
-): RedactResult {
-  if (regions.length === 0) throw new Error('redactImage needs at least one region');
-  const bleed = options.bleed ?? 2;
-  const [r, g, b] = options.colour ?? [20, 18, 16];
-
-  const raster = decodePng(readFileSync(src));
-  const applied: string[] = [];
-
-  for (const ref of regions) {
-    const rect = resolveRect(ref, { width: raster.width, height: raster.height });
-    const x0 = Math.max(0, Math.floor((rect.x / 100) * raster.width) - bleed);
-    const y0 = Math.max(0, Math.floor((rect.y / 100) * raster.height) - bleed);
-    const x1 = Math.min(
-      raster.width,
-      Math.ceil(((rect.x + rect.w) / 100) * raster.width) + bleed,
-    );
-    const y1 = Math.min(
-      raster.height,
-      Math.ceil(((rect.y + rect.h) / 100) * raster.height) + bleed,
-    );
-    if (x1 <= x0 || y1 <= y0) continue;
-    for (let y = y0; y < y1; y += 1) {
-      for (let x = x0; x < x1; x += 1) {
-        const at = (y * raster.width + x) * 4;
-        raster.pixels[at] = r;
-        raster.pixels[at + 1] = g;
-        raster.pixels[at + 2] = b;
-        raster.pixels[at + 3] = 255;
-      }
-    }
-    applied.push(String(ref));
-  }
-
-  const marker = createHash('sha256').update(applied.join('|')).digest('hex').slice(0, 16);
-  writeFileSync(out, encodePng(raster, { [MARKER_KEY]: marker }));
-  return { out, regions: applied, width: raster.width, height: raster.height, marker };
 }

@@ -12,7 +12,7 @@
  * resolution can all change without touching a single authored coordinate.
  */
 
-import type { Rect, RectRef } from '~/types.ts';
+import type { Rect, RectRef } from '~/draw/material/model.ts';
 
 const PATTERN = /^(src|pct|css):\s*(-?[\d.]+)[,\s]+(-?[\d.]+)[,\s]+(-?[\d.]+)[,\s]+(-?[\d.]+)\s*$/;
 

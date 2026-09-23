@@ -10,6 +10,8 @@
  * elevation, and no shadow that blurs by even one pixel. Paper is matte.
  */
 
+import { contrast, luminance, textOn } from '~/draw/look/colour.ts';
+
 export interface Palette {
   id: string;
   label: string;
@@ -82,6 +84,17 @@ export const PALETTES: readonly Palette[] = [
     accent: '#c01b3a',
   },
   {
+    id: 'studio',
+    label: 'Studio board',
+    dark: false,
+    // The one palette that is not a riso ink. It is the wall of a room with
+    // things pinned to it: a warm off-white ground, near-black, and the blue
+    // of the marker most people reach for first.
+    paper: '#f4f1e8',
+    ink: '#1b1a17',
+    accent: '#1f3fd0',
+  },
+  {
     id: 'carbon',
     label: 'Carbon',
     dark: true,
@@ -92,6 +105,33 @@ export const PALETTES: readonly Palette[] = [
 ] as const;
 
 export const DEFAULT_PALETTE = 'newsprint';
+
+/**
+ * The palette with this id, or the default.
+ *
+ * Distinct from `palette()`, which throws. A note carries a palette id chosen by a person and
+ * possibly saved by an older version, and a workspace that refuses to open because one note
+ * names a palette that has been renamed is worse than one that opens in yellow.
+ */
+export function paletteById(id: string): Palette {
+  return PALETTES.find((p) => p.id === id) ?? (PALETTES[0] as Palette);
+}
+
+/**
+ * Is this paper dark enough that ink-coloured overlays need inverting?
+ *
+ * Rec. 709 relative luminance on the sRGB values -- good enough to pick a blend mode, and it
+ * avoids pulling in a colour library for one decision.
+ */
+export function isDarkPaper(hex: string): boolean {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return false;
+  const n = Number.parseInt(m[1] as string, 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.45;
+}
 
 export function palette(id: string): Palette {
   const found = PALETTES.find((p) => p.id === id);
@@ -122,53 +162,6 @@ export function customPalette(
     );
   }
   return made;
-}
-
-// ---------------------------------------------------------------- colour
-
-function channel(value: number): number {
-  const c = value / 255;
-  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-}
-
-export function rgb(colour: string): [number, number, number] {
-  let hex = colour.trim().replace('#', '');
-  if (hex.length === 3)
-    hex = hex
-      .split('')
-      .map((c) => c + c)
-      .join('');
-  const value = Number.parseInt(hex, 16);
-  return [(value >> 16) & 0xff, (value >> 8) & 0xff, value & 0xff];
-}
-
-export function luminance(colour: string): number {
-  const [r, g, b] = rgb(colour);
-  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
-}
-
-export function contrast(a: string, b: string): number {
-  const la = luminance(a);
-  const lb = luminance(b);
-  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
-}
-
-/**
- * Lettering on a coloured chip is DERIVED, never authored: whichever of paper or
- * ink scores higher against that accent wins. A palette therefore cannot ship
- * with unreadable chips, whoever adds it.
- */
-export function textOn(background: string, options: readonly string[]): string {
-  let best = options[0] ?? '#000000';
-  let bestRatio = -1;
-  for (const option of options) {
-    const ratio = contrast(background, option);
-    if (ratio > bestRatio) {
-      bestRatio = ratio;
-      best = option;
-    }
-  }
-  return best;
 }
 
 /** Body text is real text, so the WCAG AA floor applies. */

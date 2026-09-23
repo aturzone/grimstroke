@@ -9,7 +9,7 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { FACES, facePath } from './fonts.ts';
+import { FACES, facePath } from '~/draw/type/faces.ts';
 
 /** Never drawn, so never needs covering. */
 const IGNORED = new Set([

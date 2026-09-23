@@ -1,18 +1,17 @@
 import { describe, expect, it } from 'vitest';
+import { contrast, textOn } from '~/draw/look/colour.ts';
 import {
   BODY_FLOOR,
   CHIP_FLOOR,
   check,
-  contrast,
   customPalette,
   PALETTES,
   palette,
-  textOn,
-} from '~/theme/palette.ts';
+} from '~/draw/look/palette.ts';
 
 describe('palettes', () => {
-  it('ships eight', () => {
-    expect(PALETTES).toHaveLength(8);
+  it('ships nine', () => {
+    expect(PALETTES).toHaveLength(9);
   });
 
   it('meets both contrast floors, every one of them', () => {

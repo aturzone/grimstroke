@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CoordinateError, format, resolve, toStyle } from '~/render/coords.ts';
+import { CoordinateError, format, resolve, toStyle } from '~/draw/material/plate/coords.ts';
 
 const source = { width: 720, height: 1280 };
 
