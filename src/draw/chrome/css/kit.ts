@@ -94,6 +94,13 @@ export const KIT = `/* ---- the parts ---- */
   color: var(--gs-on-hot);
   border-color: var(--gs-line);
 }
+/* Chosen stays chosen under the pointer. The hover rule is the more specific of the two, so
+   it used to win the background and keep the chosen text colour: a pressed chip under the
+   mouse went white on pale grey, and read as switched off at the moment it was switched on. */
+.gs-btn[aria-pressed='true']:hover:not(:disabled),
+.gs-btn[aria-pressed='true']:active:not(:disabled) {
+  background: color-mix(in oklab, var(--gs-hot) 88%, var(--gs-ink));
+}
 .gs-btn:disabled { opacity: 0.32; cursor: default; }
 /* Focus is drawn in the chrome's own ink, never the palette accent: a lime accent on cream
    photo paper is a focus ring nobody can see, and a ring nobody can see is no ring. */
