@@ -17,7 +17,13 @@
 
 import { renderItem } from '~/draw/doc/board/render.ts';
 import type { BookSpec, Cover, Leaf, Sticker } from '~/draw/doc/book/model.ts';
-import { boundLeaves, LEAF_HEIGHT, LEAF_WIDTH, spineWidth } from '~/draw/doc/book/model.ts';
+import {
+  bookTitle,
+  boundLeaves,
+  LEAF_HEIGHT,
+  LEAF_WIDTH,
+  spineWidth,
+} from '~/draw/doc/book/model.ts';
 import { renderHead } from '~/draw/doc/head.ts';
 import { upgradeLeaf } from '~/draw/doc/legacy.ts';
 import type { RenderedPage } from '~/draw/doc/model.ts';
@@ -150,7 +156,7 @@ export function renderBook3d(spec: BookSpec, ctx: Surface, order = 0): string {
     `<div class="book3d-cover">${renderCover(spec, ctx)}</div>` +
     '</div>' +
     '<div class="book3d-shadow" aria-hidden="true"></div>' +
-    `<p class="book3d-caption"><b dir="auto">${inline(spec.title ?? spec.id, { digits: ctx.digits })}</b>` +
+    `<p class="book3d-caption"><b dir="auto">${inline(bookTitle(spec), { digits: ctx.digits })}</b>` +
     `<span>${pages(spec)}</span>${put}</p>` +
     '</div>'
   );
@@ -180,7 +186,7 @@ export function renderShelf(
   const shelved = (b: BookSpec, i: number): string =>
     live
       ? `<a class="shelf-link" href="/book?id=${encodeURIComponent(b.id)}" ` +
-        `aria-label="${escapeHtml(b.title ?? b.id)}${b.archived ? ', archived' : ''}">` +
+        `aria-label="${escapeHtml(bookTitle(b))}${b.archived ? ', archived' : ''}">` +
         `${renderBook3d(b, ctx, i)}</a>`
       : renderBook3d(b, ctx, i);
   const section = (name: string, list: readonly BookSpec[]): string =>

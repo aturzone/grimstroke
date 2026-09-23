@@ -11,7 +11,13 @@ import type { ServerResponse } from 'node:http';
 import { resolve } from 'node:path';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import { workspaceExtent } from '~/draw/doc/board/render.ts';
-import { type BookSpec, boundLeaves, LEAF_HEIGHT, LEAF_WIDTH } from '~/draw/doc/book/model.ts';
+import {
+  type BookSpec,
+  bookTitle,
+  boundLeaves,
+  LEAF_HEIGHT,
+  LEAF_WIDTH,
+} from '~/draw/doc/book/model.ts';
 import { apply as applyBook } from '~/draw/doc/book/patch.ts';
 import { renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { upgradeLeaf } from '~/draw/doc/legacy.ts';
@@ -108,7 +114,7 @@ export class Live {
     const leaf = upgradeLeaf(leaves[Math.max(0, index)] ?? { id: 'blank-1', items: [] });
     return {
       id: `book:${book.id}:${leaf.id}`,
-      title: `${book.title ?? book.id} · page ${Math.max(0, index) + 1}`,
+      title: `${bookTitle(book)} · page ${Math.max(0, index) + 1}`,
       ...(book.palette ? { palette: book.palette } : {}),
       ...(book.direction ? { direction: book.direction } : {}),
       paper: leaf.paper ?? book.paper ?? 'ruled',
@@ -121,7 +127,7 @@ export class Live {
       version: book.version ?? 0,
       sheet: {
         book: book.id,
-        bookTitle: book.title ?? book.id,
+        bookTitle: bookTitle(book),
         leaf: leaf.id,
         index: Math.max(0, index),
         count: leaves.length,

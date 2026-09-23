@@ -11,6 +11,7 @@ import { bookChrome } from '~/draw/chrome/book.ts';
 import { renderProfilePage } from '~/draw/chrome/profile.ts';
 import { shelfChrome } from '~/draw/chrome/shelf.ts';
 import { renderBoard } from '~/draw/doc/board/render.ts';
+import { bookTitle } from '~/draw/doc/book/model.ts';
 import { renderShelf, renderSpread } from '~/draw/doc/book/render.ts';
 import { type Ask, html } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
@@ -65,7 +66,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
     const books = await Promise.all(
       (await live.store.listBooks()).map(async (bookId) => {
         const spec = await live.book(bookId);
-        return { id: spec.id, title: spec.title ?? spec.id, archived: spec.archived === true };
+        return { id: spec.id, title: bookTitle(spec), archived: spec.archived === true };
       }),
     );
     const rendered = renderProfilePage(await live.store.readProfile(), {

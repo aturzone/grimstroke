@@ -8,7 +8,7 @@
 
 import { button, item } from '~/draw/chrome/parts.ts';
 import { helpDialog, searchDialog, topBar } from '~/draw/chrome/top.ts';
-import type { BookSpec } from '~/draw/doc/book/model.ts';
+import { type BookSpec, bookTitle } from '~/draw/doc/book/model.ts';
 
 export function bookChrome(spec: BookSpec): string {
   const leaves = Math.max(spec.leaves.length, spec.minLeaves ?? 0);
@@ -34,7 +34,7 @@ export function bookChrome(spec: BookSpec): string {
   return [
     topBar({
       place: 'shelf',
-      title: spec.title ?? spec.id,
+      title: bookTitle(spec),
       back: { href: '/shelf', label: 'the shelf' },
       saved: true,
       actions,

@@ -17,7 +17,7 @@
  */
 
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
-import type { BookSpec } from '~/draw/doc/book/model.ts';
+import { type BookSpec, bookTitle } from '~/draw/doc/book/model.ts';
 import type { Profile } from '~/draw/material/profile/model.ts';
 import { leafText, profileText, textOf } from '~/draw/material/read.ts';
 
@@ -199,7 +199,7 @@ export function search(docs: Searchable, query: string, limit = 40): Hit[] {
 
   for (const book of docs.books) {
     const kind: HitKind = book.archived ? 'archive' : 'notebook';
-    const docTitle = book.title ?? book.id;
+    const docTitle = bookTitle(book);
     const cover = [
       docTitle,
       book.cover?.title ?? '',

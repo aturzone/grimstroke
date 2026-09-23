@@ -146,6 +146,11 @@ export const MIN_SPINE = 12;
 export const MAX_SPINE = 46;
 
 /** How thick this book is, from how many leaves it has. */
+/** What a notebook is called: its title, or the title on its cover, or its id. */
+export function bookTitle(spec: Pick<BookSpec, 'id' | 'title' | 'cover'>): string {
+  return spec.title?.trim() || spec.cover?.title?.trim() || spec.id;
+}
+
 export function spineWidth(spec: BookSpec): number {
   const leaves = Math.max(spec.leaves.length, spec.minLeaves ?? 0);
   return Math.round(Math.min(MAX_SPINE, Math.max(MIN_SPINE, MIN_SPINE + leaves * LEAF_THICKNESS)));

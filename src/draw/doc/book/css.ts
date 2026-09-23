@@ -172,6 +172,9 @@ body.on-book { display: grid; place-content: center; }
   background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 9px);
   box-shadow: inset 0 0 0 10px var(--cover, var(--accent));
 }
+:root[dir='rtl'] .book-closed::before {
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.05) 70%, transparent);
+}
 .book-closed:hover { transform: perspective(3000px) rotateY(-7deg); }
 :root[dir='rtl'] .book-closed:hover { transform: perspective(3000px) rotateY(7deg); }
 .book-closed:focus-visible { outline: 3px solid var(--paper); outline-offset: 6px; }
