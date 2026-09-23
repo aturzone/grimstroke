@@ -39,7 +39,12 @@ function tray(): HTMLElement {
  * twice, and a failure that vanishes on a timer is a failure that was never reported. Anything
  * else leaves on its own after a few seconds, and a busy message stays until it is told.
  */
-export function toast(text: string, tone: Tone = 'info'): Toast {
+export function toast(
+  text: string,
+  tone: Tone = 'info',
+  /** One thing to do about it, on the slip itself -- undo, above all. */
+  action?: { label: string; run: () => void },
+): Toast {
   const slip = document.createElement('div');
   slip.className = 'gs-toast gs-card';
   const words = document.createElement('span');
@@ -49,7 +54,19 @@ export function toast(text: string, tone: Tone = 'info'): Toast {
   close.className = 'gs-btn gs-btn-icon';
   close.setAttribute('aria-label', 'dismiss');
   close.textContent = '×';
-  slip.append(words, close);
+  slip.append(words);
+  if (action) {
+    const act = document.createElement('button');
+    act.type = 'button';
+    act.className = 'gs-btn gs-toast-act';
+    act.textContent = action.label;
+    act.addEventListener('click', () => {
+      action.run();
+      leave();
+    });
+    slip.append(act);
+  }
+  slip.append(close);
   tray().append(slip);
 
   let timer = 0;
@@ -62,7 +79,8 @@ export function toast(text: string, tone: Tone = 'info'): Toast {
     words.textContent = next;
     slip.dataset.tone = nextTone;
     window.clearTimeout(timer);
-    if (nextTone === 'info') timer = window.setTimeout(leave, 3600);
+    // Long enough to reach the button when there is one to reach.
+    if (nextTone === 'info') timer = window.setTimeout(leave, action ? 9000 : 3600);
   };
   close.addEventListener('click', leave);
   say(text, tone);

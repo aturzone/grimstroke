@@ -364,6 +364,7 @@ export const KIT = `/* ---- the parts ---- */
 }
 @keyframes gs-pulse { from { opacity: 0.25; transform: scale(0.7); } to { opacity: 1; transform: none; } }
 .gs-toast-text { flex: 1; line-height: 1.45; }
+.gs-toast-act { height: 30px; border-color: var(--gs-line); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
 .gs-toast[data-leaving] { opacity: 0; transform: translateY(6px); transition: opacity var(--gs-mid) linear, transform var(--gs-mid) var(--gs-ease); }
 
 @media (prefers-reduced-motion: reduce) {

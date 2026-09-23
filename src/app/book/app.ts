@@ -335,6 +335,10 @@ export class BookApp {
 
     window.addEventListener('keydown', (event) => {
       if (typing(event.target) || this.cover.isOpen) return;
+      if (event.key === 'Escape' && document.querySelector('.pages-grid')) {
+        document.querySelector('.pages-grid')?.remove();
+        return;
+      }
       if ((event.metaKey || event.ctrlKey) && letterOf(event) === 'z') {
         event.preventDefault();
         if (event.shiftKey) this.session.redo();
@@ -463,7 +467,18 @@ export class BookApp {
         const hint = document.createElement('span');
         hint.className = 'page-hint';
         hint.textContent = describe((leaf.items?.length ?? 0) + (leaf.blocks?.length ?? 0));
-        cell.append(number, hint);
+        // A miniature of the page itself, drawn by the server's own leaf renderer and shrunk --
+        // blank cards with a number on them said nothing about which page was which.
+        const thumb = document.createElement('div');
+        thumb.className = 'page-thumb';
+        thumb.setAttribute('aria-hidden', 'true');
+        if ((leaf.items?.length ?? 0) + (leaf.blocks?.length ?? 0) > 0) {
+          void this.leafHtml(index).then((html) => {
+            // Our own server's markup, the same that fills the spread.
+            thumb.innerHTML = html;
+          });
+        }
+        cell.append(thumb, number, hint);
         cell.addEventListener('click', (event) => {
           if (event.shiftKey || event.metaKey || event.ctrlKey) {
             if (chosen.has(leaf.id)) chosen.delete(leaf.id);
@@ -494,6 +509,12 @@ export class BookApp {
           window.setTimeout(draw, 40);
         });
         grid.append(cell);
+        // The same scale for every miniature: the cells are all one width.
+        if (index === 0) {
+          requestAnimationFrame(() => {
+            grid.style.setProperty('--thumb-scale', String(cell.clientWidth / 560));
+          });
+        }
       });
     };
     draw();

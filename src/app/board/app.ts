@@ -103,6 +103,8 @@ export class BoardApp implements BoardContext {
         const id = this.notes.drawing;
         const on = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-gs="item"]');
         if (id && on?.dataset.gsId !== id) this.notes.stopDrawing();
+        // A press on the bare board puts the settings panel away too.
+        if (!on) this.notes.closeSettings();
       },
       { capture: true },
     );
@@ -183,6 +185,7 @@ export class BoardApp implements BoardContext {
     if (tool !== 'select') {
       this.selection.clear();
       this.notes.stopDrawing();
+      this.notes.closeSettings();
     }
   }
 
@@ -359,11 +362,12 @@ export class BoardApp implements BoardContext {
     if (ops.length === 0) return;
     this.selection.clear();
     this.session.run(ops, '');
-    toast(
-      ops.length === 1
-        ? 'removed. Undo brings it back.'
-        : `${ops.length} removed. Undo brings them back.`,
-    );
+    // The undo is ON the message, not only on a key: removing is one keystroke, and a board
+    // that lost three screenshots to a stray Backspace should be one click from having them.
+    toast(ops.length === 1 ? 'removed' : `${ops.length} things removed`, 'info', {
+      label: 'undo',
+      run: () => this.session.undo(),
+    });
   }
 
   /**
@@ -550,6 +554,9 @@ export class BoardApp implements BoardContext {
         return;
       }
       if (event.key === 'Escape') {
+        // Escape closes whatever is open, the way it does everywhere else: the settings panel
+        // only closed when focus happened to be inside it, and stayed open over the board.
+        this.notes.closeSettings();
         this.notes.stopDrawing();
         this.selection.clear();
         this.setTool('select');

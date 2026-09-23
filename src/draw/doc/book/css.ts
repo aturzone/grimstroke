@@ -605,7 +605,9 @@ export const PAGES = `/* ---- every page at once ----
 .pages-grid {
   position: fixed;
   inset: 0;
-  z-index: 80;
+  /* Under the top bar, not over it: the bar is how you get out again -- "pages" closes it,
+     and the other actions stay in reach. Over it, the grid was a room with no door. */
+  z-index: 40;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   align-content: start;
@@ -613,6 +615,26 @@ export const PAGES = `/* ---- every page at once ----
   padding: 84px 28px 28px;
   overflow: auto;
   background: color-mix(in oklab, var(--desk) 88%, #000);
+}
+.page-thumb {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.page-thumb > .leaf {
+  width: var(--leaf-width);
+  height: var(--leaf-height);
+  min-height: 0;
+  transform: scale(var(--thumb-scale, 0.17));
+  transform-origin: 0 0;
+}
+.page-thumb .gs-leaf-edit, .page-thumb .leaf-folio { display: none; }
+.page-cell .page-number, .page-cell .page-hint { position: relative; z-index: 1; }
+.page-cell .page-number {
+  justify-self: start;
+  padding: 0 4px;
+  background: var(--paper);
 }
 .page-cell {
   position: relative;
