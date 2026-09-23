@@ -198,6 +198,10 @@ body.on-book { display: grid; place-content: center; }
   text-transform: uppercase;
   transform: rotate(-3deg);
 }
+/* One page at a time -- a phone -- and the cover is the whole book, not the right half of a
+   spread that is not being shown. */
+.book[data-single] .book-closed { inset-inline-start: 24px; }
+.book[data-single][data-closed]::before { inset-inline-start: 12px; }
 @media (prefers-reduced-motion: reduce) {
   .book-closed { transition: opacity 200ms linear; }
   .book-closed.is-opening { transform: none; }
