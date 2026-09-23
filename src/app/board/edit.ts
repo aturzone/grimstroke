@@ -143,8 +143,11 @@ export class Editor {
       event.stopPropagation();
       // Never interfere with an input method composing a character.
       if (event.isComposing) return;
+      // Escape keeps what was written. It used to throw it away, and since a discarded edit
+      // was never a patch, undo could not bring it back: a paragraph gone for pressing the key
+      // every other board uses to mean "done". Undo is the way to take an edit back.
       if (event.key === 'Escape') {
-        done(false);
+        done(true);
         return;
       }
       if (event.key === 'Enter' && (event.metaKey || event.ctrlKey) && !event.shiftKey) {

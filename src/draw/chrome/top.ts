@@ -194,8 +194,7 @@ export function helpDialog(): string {
       ['mod+Shift+1', 'heading'],
       ['mod+Shift+.', 'quote'],
       ['mod+Shift+D', "today's date"],
-      ['mod+Enter', 'done'],
-      ['Esc', 'cancel'],
+      ['mod+Enter or Esc', 'done'],
     ]) +
     keys('a notebook', [
       ['→ / ←', 'turn the page'],
