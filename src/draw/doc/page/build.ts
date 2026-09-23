@@ -7,18 +7,10 @@
  * caller is an agent you do not control.
  */
 
-import { renderPage } from '~/render/document.ts';
-import type {
-  Block,
-  Chip,
-  Direction,
-  ImageSource,
-  Mark,
-  NotebookSpec,
-  PageSpec,
-  RenderedPage,
-  ZoomSpec,
-} from '~/types.ts';
+import type { RenderedPage } from '~/draw/doc/model.ts';
+import type { Chip, NotebookSpec, PageSpec } from '~/draw/doc/page/model.ts';
+import { renderPage } from '~/draw/doc/page/render.ts';
+import type { Block, ImageSource, LabelTone, ZoomSpec } from '~/draw/material/model.ts';
 
 export class Page {
   readonly spec: PageSpec;
@@ -55,12 +47,17 @@ export class Page {
     return this;
   }
 
-  heading(text: string, level: 1 | 2 = 1): this {
-    return this.add({ kind: 'heading', text, level });
+  heading(text: string, level: 1 | 2 = 1, options: { hand?: boolean; colour?: string } = {}): this {
+    return this.add({ kind: 'heading', text, level, ...options });
   }
 
-  text(text: string): this {
-    return this.add({ kind: 'text', text });
+  text(text: string, options: { hand?: boolean; colour?: string } = {}): this {
+    return this.add({ kind: 'text', text, ...options });
+  }
+
+  /** A band of flat colour with words written across it. */
+  label(text: string, options: { tone?: LabelTone; hand?: boolean; colour?: string } = {}): this {
+    return this.add({ kind: 'label', text, ...options });
   }
 
   bullets(...items: string[]): this {
@@ -165,5 +162,3 @@ export function notebook(options: Partial<NotebookSpec> = {}): Notebook {
 export function page(id: string, options: Omit<Partial<PageSpec>, 'id' | 'blocks'> = {}): Page {
   return Page.create(id, options);
 }
-
-export type { Block, Chip, Direction, ImageSource, Mark, NotebookSpec, PageSpec, ZoomSpec };

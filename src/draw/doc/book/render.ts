@@ -1,0 +1,336 @@
+/**
+ * A notebook, as HTML. Pure: nothing here opens a browser or touches the
+ * network.
+ *
+ * Three views, and they are three genuinely different objects rather than one
+ * drawn at three sizes:
+ *
+ *   the SPREAD   the book open, two leaves and the binding between them
+ *   the COVER    the book closed, seen straight on
+ *   the SHELF    the books stood up, in three dimensions, as you would find one
+ *
+ * The 3D is CSS transforms on real elements, not an image and not a canvas.
+ * A book on the shelf is therefore still text -- its title is selectable, its
+ * stickers are the stickers, and it stays sharp at any size and in a printed
+ * PDF. An image of a book would be none of those things.
+ */
+
+import type { BookSpec, Cover, Leaf, Sticker } from '~/draw/doc/book/model.ts';
+import { boundLeaves, LEAF_HEIGHT, LEAF_WIDTH, spineWidth } from '~/draw/doc/book/model.ts';
+import { renderHead } from '~/draw/doc/head.ts';
+import type { RenderedPage } from '~/draw/doc/model.ts';
+import { type Surface, servedPath, surface } from '~/draw/doc/surface.ts';
+import { textOn } from '~/draw/look/colour.ts';
+import { ruling } from '~/draw/look/grid.ts';
+import { Rng } from '~/draw/look/rng.ts';
+import { renderBlock } from '~/draw/material/block.ts';
+import { renderProfile } from '~/draw/material/face/profile.ts';
+import { renderFace } from '~/draw/material/face/render.ts';
+import { halftoneDefs } from '~/draw/material/note/render.ts';
+import { ARABIC, textOfAll } from '~/draw/material/read.ts';
+import { escapeHtml, inline, label } from '~/draw/type/text.ts';
+
+export interface BookRenderOptions {
+  /** Which leaf to open at. The spread shows this one and the next. */
+  leaf?: number;
+  live?: { chrome?: string; scripts?: string[] } | undefined;
+}
+
+// ---------------------------------------------------------------- cover
+
+/**
+ * The cover, as an element.
+ *
+ * Sized in percentages of itself throughout, so the same markup is a shelf
+ * thumbnail and a full-screen cover with nothing recomputed -- which is also
+ * why a sticker's position is a percentage and not a pixel.
+ */
+export function renderCover(spec: BookSpec, ctx: Surface): string {
+  const cover: Cover = spec.cover ?? {};
+  const title = cover.title ?? spec.title ?? spec.id;
+  const material = cover.material ?? 'card';
+  /*
+   * The title is written in a colour that can be read on this cover.
+   *
+   * It was always near-white, which is right on a dark blue cloth and unreadable on the
+   * yellow plastic one somebody picks next. Chosen by contrast, the way a chip's lettering
+   * is, unless the cover names its own.
+   */
+  const colour = cover.colour ?? ctx.pal.accent;
+  const ink = cover.ink ?? textOn(colour, ['#fbf9f4', '#14110e']);
+  const vars = [
+    cover.colour ? `--cover:${escapeHtml(cover.colour)}` : '',
+    `--cover-ink:${escapeHtml(ink)}`,
+  ]
+    .filter(Boolean)
+    .join(';');
+  const stickers = (cover.stickers ?? []).map((s) => renderSticker(s, ctx)).join('');
+  const person = cover.profile
+    ? `<div class="cover-profile">${renderProfile(cover.profile, { chrome: false })}</div>`
+    : '';
+  return (
+    `<div class="cover cover-${material}${cover.profile ? ' has-profile' : ''}" style="${vars}">` +
+    '<div class="cover-face">' +
+    `<div class="cover-title" dir="auto">${inline(title, { digits: ctx.digits })}</div>` +
+    person +
+    stickers +
+    '</div>' +
+    '</div>'
+  );
+}
+
+function renderSticker(sticker: Sticker, ctx: Surface): string {
+  const style = [
+    `left:${sticker.at[0]}%`,
+    `top:${sticker.at[1]}%`,
+    `--sticker-width:${sticker.width ?? 40}%`,
+    sticker.rotation ? `--tilt:${sticker.rotation}deg` : '',
+    sticker.colour ? `--sticker:${escapeHtml(sticker.colour)}` : '',
+  ]
+    .filter(Boolean)
+    .join(';');
+  const body =
+    sticker.kind === 'picture'
+      ? `<img src="${escapeHtml(servedPath(sticker.src ?? '', ctx))}" alt="" draggable="false">`
+      : sticker.kind === 'face' && sticker.character
+        ? renderFace({ ...sticker.character, tilt: 0 }, { badge: true, chrome: false, size: 120 })
+        : sticker.kind === 'shape'
+          ? `<span class="shape shape-${sticker.shape ?? 'circle'}"></span>`
+          : `<span class="sticker-text">${inline(sticker.text ?? '', {
+              digits: ctx.digits,
+            })}</span>`;
+  return (
+    `<div class="sticker sticker-${sticker.kind}" data-gs="sticker" ` +
+    `data-gs-id="${escapeHtml(sticker.id)}" style="${style}">${body}</div>`
+  );
+}
+
+// ---------------------------------------------------------------- shelf
+
+/**
+ * A book stood up, in three dimensions.
+ *
+ * Three faces and a real rotation, which is what makes it read as an object you
+ * could pick up rather than a rectangle with a gradient on it. The thickness
+ * comes from how many leaves the book has, so a full notebook is visibly fatter
+ * than a new one -- which is the whole reason to show a shelf rather than a
+ * list of names.
+ */
+export function renderBook3d(spec: BookSpec, ctx: Surface): string {
+  const depth = spineWidth(spec);
+  const cover: Cover = spec.cover ?? {};
+  const spine = cover.spine ?? cover.title ?? spec.title ?? spec.id;
+  const style = [
+    `--spine-depth:${depth}px`,
+    `--lean:${shelfLean(spec)}deg`,
+    cover.colour ? `--cover:${escapeHtml(cover.colour)}` : '',
+  ]
+    .filter(Boolean)
+    .join(';');
+  const put = spec.archived
+    ? `<span class="shelf-tag">${label('archived', ctx.uppercase)}</span>`
+    : '';
+  return (
+    `<div class="book3d${spec.archived ? ' is-archived' : ''}" data-gs="book" ` +
+    `data-gs-id="${escapeHtml(spec.id)}" style="${style}">` +
+    '<div class="book3d-stage">' +
+    // The block of paper first: it is behind both the spine and the cover, and
+    // its own edge is what you see along the open side.
+    '<div class="book3d-leaves"></div>' +
+    `<div class="book3d-spine"><span>${inline(spine, { digits: ctx.digits })}</span></div>` +
+    `<div class="book3d-cover">${renderCover(spec, ctx)}</div>` +
+    '</div>' +
+    put +
+    '</div>'
+  );
+}
+
+/** A shelf of books: the ones in use, and the ones put away. */
+export function renderShelf(
+  books: readonly BookSpec[],
+  options: { id?: string; live?: { chrome?: string; scripts?: string[] } | undefined } = {},
+): RenderedPage {
+  const ctx = surface(options.id ?? 'shelf', { palette: books[0]?.palette ?? 'studio' });
+  const head = renderHead(ctx, 'ltr', { paper: 'blank', grain: 0.7 });
+  const open = books.filter((b) => !b.archived);
+  const put = books.filter((b) => b.archived);
+
+  const live = options.live;
+  // Live, every book is a link into itself; an export of the shelf is a picture of one.
+  const shelved = (b: BookSpec): string =>
+    live
+      ? `<a class="shelf-link" href="/book?id=${encodeURIComponent(b.id)}" ` +
+        `aria-label="${escapeHtml(b.title ?? b.id)}${b.archived ? ', archived' : ''}">` +
+        `${renderBook3d(b, ctx)}</a>`
+      : renderBook3d(b, ctx);
+  const section = (name: string, list: readonly BookSpec[]): string =>
+    list.length === 0
+      ? ''
+      : `<section class="shelf"><h2 class="shelf-name">${label(name, ctx.uppercase)}</h2>` +
+        `<div class="shelf-row">${list.map(shelved).join('')}</div>` +
+        '</section>';
+  const empty =
+    books.length === 0
+      ? '<div class="shelf-empty"><p class="shelf-empty-title">an empty shelf</p>' +
+        '<p>A notebook is a sequence you turn through: findings in order, a log, a diary of a ' +
+        'bug. Make one, or let an agent make one over the API.</p></div>'
+      : '';
+
+  const html = [
+    '<!doctype html>',
+    '<html lang="en" dir="ltr" data-script="latin" data-uppercase="on">',
+    head,
+    live ? '<body class="on-shelf is-live">' : '<body class="on-shelf">',
+    halftoneDefs(),
+    '<div class="shelves" data-gs="shelves">',
+    empty,
+    section('in use', open),
+    section('archive', put),
+    '</div>',
+    live?.chrome ?? '',
+    ...(live?.scripts ?? []).map(
+      (src) => `<script type="module" src="${escapeHtml(src)}"></script>`,
+    ),
+    '</body>',
+    '</html>',
+  ].join('\n');
+
+  return {
+    id: ctx.id,
+    html: `${html}\n`,
+    assets: ctx.assets,
+    width: 1200,
+    selector: '.shelves',
+    warnings: ctx.warnings,
+    autofit: true,
+  };
+}
+
+// ---------------------------------------------------------------- spread
+
+/**
+ * The book open.
+ *
+ * Two leaves and the binding between them, which is not decoration: the gutter
+ * is why a notebook is not two pages side by side, and losing it is how a
+ * spread stops reading as one object.
+ *
+ * The leaf index is the LEFT leaf. In a right-to-left book the leaves are laid
+ * in document order and the page mirrors them, so leaf one lands on the right,
+ * which is where that reader expects it.
+ */
+export function renderSpread(spec: BookSpec, options: BookRenderOptions = {}): RenderedPage {
+  const ctx = surface(spec.id, spec);
+  const { direction, uppercase } = ctx;
+  const leaves = boundLeaves(spec);
+  const at = Math.max(0, Math.min(options.leaf ?? 0, Math.max(0, leaves.length - 1)));
+  const shown: Array<Leaf | undefined> = [leaves[at], leaves[at + 1]];
+
+  const head = renderHead(ctx, direction, {
+    paper: 'blank',
+    grain: spec.grain,
+    fonts: spec.fonts,
+    extra: {
+      '--leaf-width': `${LEAF_WIDTH}px`,
+      '--leaf-height': `${LEAF_HEIGHT}px`,
+      '--spine-depth': `${spineWidth(spec)}px`,
+    },
+  });
+
+  const body = shown
+    .map((leaf, side) => renderLeaf(leaf, at + side, spec, ctx, side === 0 ? 'verso' : 'recto'))
+    .join('');
+
+  const script = ARABIC.test(collectText(spec)) ? 'arabic' : 'latin';
+  const live = options.live;
+  const book =
+    halftoneDefs() +
+    `<div class="book" data-gs="book" data-gs-id="${escapeHtml(spec.id)}" ` +
+    `data-gs-leaf="${at}" data-gs-leaves="${leaves.length}">` +
+    `<div class="book-spread">${body}</div>` +
+    '<div class="book-gutter" aria-hidden="true"></div>' +
+    '</div>';
+
+  const html = [
+    '<!doctype html>',
+    `<html lang="${escapeHtml(direction === 'rtl' ? 'fa' : 'en')}" dir="${direction}" ` +
+      `data-script="${script}" data-uppercase="${uppercase ? 'on' : 'off'}">`,
+    head,
+    live ? '<body class="on-book live">' : '<body class="on-book">',
+    book,
+    live?.chrome ?? '',
+    ...(live?.scripts ?? []).map(
+      (src) => `<script type="module" src="${escapeHtml(src)}"></script>`,
+    ),
+    '</body>',
+    '</html>',
+  ].join('\n');
+
+  return {
+    id: `${spec.id}-${at}`,
+    html: `${html}\n`,
+    assets: ctx.assets,
+    width: LEAF_WIDTH * 2 + 80,
+    selector: '.book',
+    warnings: ctx.warnings,
+  };
+}
+
+/**
+ * One leaf, as the app receives it when a page turns.
+ *
+ * The same function that draws it in a spread. The app fetches leaves rather
+ * than building them, because a leaf drawn in the browser would be a second
+ * renderer, and a second renderer is a second thing that can disagree with the
+ * first about what a sticky note looks like.
+ */
+export function renderOneLeaf(
+  spec: BookSpec,
+  index: number,
+): { html: string; assets: Record<string, string> } | undefined {
+  const leaves = boundLeaves(spec);
+  if (index < 0 || index >= leaves.length) return undefined;
+  const ctx = surface(spec.id, spec);
+  const side = index % 2 === 0 ? 'verso' : 'recto';
+  return { html: renderLeaf(leaves[index], index, spec, ctx, side), assets: ctx.assets };
+}
+
+function renderLeaf(
+  leaf: Leaf | undefined,
+  number: number,
+  spec: BookSpec,
+  ctx: Surface,
+  side: 'verso' | 'recto',
+): string {
+  if (!leaf) return `<div class="leaf leaf-${side} leaf-absent" aria-hidden="true"></div>`;
+  const rule = ruling(leaf.paper ?? spec.paper ?? 'ruled', { colour: ctx.pal.ink });
+  const style = [
+    rule.image ? `--paper-rule:${rule.image}` : '--paper-rule:none',
+    `--paper-rule-size:${rule.size || 'auto'}`,
+  ].join(';');
+  const blocks = leaf.blocks.map((block) => renderBlock(block, ctx)).join('\n');
+  // Blank leaves still carry a number. Finding your place in a notebook is the
+  // whole reason the numbers are there, and an unwritten page is still a place.
+  const folio = `<span class="leaf-folio">${label(String(number + 1), false)}</span>`;
+  return (
+    `<div class="leaf leaf-${side}" data-gs="leaf" data-gs-id="${escapeHtml(leaf.id)}" ` +
+    `data-gs-index="${number}" style="${style}">` +
+    `<div class="leaf-body">${blocks}</div>${folio}</div>`
+  );
+}
+
+function collectText(spec: BookSpec): string {
+  return [
+    spec.title ?? '',
+    spec.cover?.title ?? '',
+    spec.cover?.spine ?? '',
+    ...(spec.cover?.stickers ?? []).map((sticker) => sticker.text ?? ''),
+    ...spec.leaves.map((leaf) => textOfAll(leaf.blocks)),
+  ].join(' ');
+}
+
+/** A seeded lean, so a book on a shelf is not perfectly upright. */
+export function shelfLean(spec: BookSpec): number {
+  const rng = new Rng(`${spec.id}:shelf`);
+  return Number(((rng.next() < 0.5 ? -1 : 1) * rng.between(0.4, 1.6)).toFixed(2));
+}
