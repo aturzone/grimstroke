@@ -1,8 +1,12 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.13/schema.json",
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "files": {
-    "includes": ["src/**", "tests/**", "tools/**", "build.ts", "*.json", "!dist", "!node_modules"]
+    "includes": ["src/**", "tests/**", "tools/**", "*.json", "!dist", "!node_modules"]
   },
   "formatter": {
     "enabled": true,
@@ -12,7 +16,11 @@
     "lineEnding": "lf"
   },
   "javascript": {
-    "formatter": { "quoteStyle": "single", "semicolons": "always", "trailingCommas": "all" }
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    }
   },
   "linter": {
     "enabled": true,
@@ -20,9 +28,16 @@
       "preset": "recommended",
       "suspicious": {
         "noExplicitAny": "error",
-        "noConsole": { "level": "warn", "options": { "allow": ["warn", "error"] } }
+        "noConsole": {
+          "level": "warn",
+          "options": {
+            "allow": ["warn", "error"]
+          }
+        }
       },
-      "correctness": { "noUnusedImports": "error" }
+      "correctness": {
+        "noUnusedImports": "error"
+      }
     }
   }
 }

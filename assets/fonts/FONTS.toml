@@ -21,7 +21,27 @@ source = "https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304"
 version = "2.304"
 note = "Latin body and all technical strings. The design language is monospace-forward, so this IS the Latin body face, not just a code face."
 
+[face.Caveat]
+files = ["Caveat-Variable.ttf"]
+variable = true
+weight = [400, 700]
+scripts = ["latin", "greek", "cyrillic"]
+licence = "SIL OFL 1.1"
+licence_file = "OFL-Caveat.txt"
+source = "https://github.com/google/fonts/tree/main/ofl/caveat"
+note = "The hand. Notes, captions and anything a person would have written rather than typed. One variable file carries 400 to 700, so there is no second weight to keep in sync."
+
+[face."Caveat Brush"]
+files = ["CaveatBrush-Regular.ttf"]
+scripts = ["latin"]
+licence = "SIL OFL 1.1"
+licence_file = "OFL-CaveatBrush.txt"
+source = "https://github.com/google/fonts/tree/main/ofl/caveatbrush"
+note = "The marker. Headlines and labels -- the thick strokes on a sticky note. Latin only: neither hand covers Arabic script, so Persian falls through to Estedad by design, not by accident."
+
 [sha256]
+"Caveat-Variable.ttf" = "0bdb6b660482d31531b3945849fba5916b3ef8695da7024a9e6b9ee3c4157988"
+"CaveatBrush-Regular.ttf" = "e565bd7bffd895ca64f8d1cb77c816b9b38d9c010246386a07c9648592f6f282"
 "Estedad-Bold.ttf" = "398f032e3ac3a8e556a5d1efaefefc0e3b394c14dd91a9b6e6ca1ff96b28c40d"
 "Estedad-Regular.ttf" = "21813d003960f2003c370fc217d524d6d10d9918fa18e2fd0dbb8c7d28bc7df8"
 "JetBrainsMono-Bold.ttf" = "5590990c82e097397517f275f430af4546e1c45cff408bde4255dad142479dcb"

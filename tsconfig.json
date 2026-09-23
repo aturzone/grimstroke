@@ -23,6 +23,6 @@
       "~/*": ["src/*"]
     }
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "tools/**/*.ts", "build.ts"],
+  "include": ["src/**/*.ts", "tests/**/*.ts", "tools/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

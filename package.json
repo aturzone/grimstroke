@@ -10,8 +10,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./render": "./dist/render.js"
+    ".": "./dist/index.js"
   },
   "bin": {
     "grimstroke": "./dist/cli.js"
@@ -21,16 +20,16 @@
     "assets"
   ],
   "scripts": {
-    "build": "node --import ./tools/register.mjs build.ts",
-    "build:dev": "node --import ./tools/register.mjs build.ts --dev",
-    "watch": "node --import ./tools/register.mjs build.ts --dev --watch",
+    "build": "node --import ./tools/register.mjs tools/build.ts",
+    "build:dev": "node --import ./tools/register.mjs tools/build.ts --dev",
+    "watch": "node --import ./tools/register.mjs tools/build.ts --dev --watch",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "look": "node --import ./tools/register.mjs tools/looksheet.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm test"
+    "look": "node --import ./tools/register.mjs tools/look.ts",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.0",

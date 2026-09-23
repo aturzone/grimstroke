@@ -29,7 +29,20 @@ async function run(): Promise<void> {
 
   const targets = [
     { entryPoints: ['src/index.ts'], outfile: 'dist/index.js' },
-    { entryPoints: ['src/cli.ts'], outfile: 'dist/cli.js', banner: { js: '#!/usr/bin/env node' } },
+    {
+      entryPoints: ['src/host/cli.ts'],
+      outfile: 'dist/cli.js',
+      banner: { js: '#!/usr/bin/env node' },
+    },
+    // The app. Browser platform, and nothing external: the page must need
+    // nothing from anywhere else, which is what makes the product a URL.
+    {
+      entryPoints: ['src/app/main.ts'],
+      outfile: 'dist/app.js',
+      platform: 'browser' as const,
+      external: [] as string[],
+      minify: !dev,
+    },
   ];
 
   if (watch) {
