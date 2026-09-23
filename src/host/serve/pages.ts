@@ -45,6 +45,8 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
     const spec = await live.book(url.searchParams.get('id') ?? 'notebook');
     const rendered = renderSpread(spec, {
       leaf: Number(url.searchParams.get('leaf') ?? 0),
+      // Arriving from the shelf, it is shut; arriving at a page, it is open at it.
+      closed: !url.searchParams.has('leaf'),
       live: { chrome: bookChrome(spec), scripts: APP },
     });
     live.allow(rendered.assets);

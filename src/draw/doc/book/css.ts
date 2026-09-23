@@ -124,6 +124,85 @@ body.on-book { display: grid; place-content: center; }
 
 /* The binding: a dark seam with stitches down it. Two leaves that merely touch are two
    sheets of paper; the stitching is what says they are held together. */
+/* ---- shut ----
+
+   The cover lies over the right-hand leaf, hinged at the spine, and the left-hand side is the
+   bare board of the back cover. Opening it swings the cover over to the left about the spine
+   -- the one movement everybody knows a notebook makes -- and the spread is underneath. */
+.book[data-closed] .book-spread,
+.book[data-closed] .book-gutter { visibility: hidden; }
+.book[data-closed]::before { inset-inline-start: calc(50% - 8px); }
+.book-closed {
+  position: absolute;
+  z-index: 6;
+  inset-block: 24px;
+  inset-inline-start: 50%;
+  inset-inline-end: 24px;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  box-shadow: 14px 18px 0 rgba(0, 0, 0, 0.35);
+  transition:
+    transform 900ms cubic-bezier(0.55, 0.08, 0.2, 1),
+    box-shadow 900ms linear,
+    opacity 220ms linear 680ms;
+}
+:root[dir='rtl'] .book-closed { transform-origin: right center; }
+/* A spine edge on the hinge side, so it reads as a board with thickness rather than a card. */
+.book-closed::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 14px;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.05) 70%, transparent);
+  pointer-events: none;
+}
+/* The inside of the cover: an endpaper, seen as it swings over. Without it the back of the
+   front face showed through, mirrored -- the title backwards across the spread. */
+.book-closed > .cover { backface-visibility: hidden; }
+.book-closed::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+  background-color: color-mix(in oklab, var(--paper) 86%, var(--cover, var(--accent)));
+  background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 9px);
+  box-shadow: inset 0 0 0 10px var(--cover, var(--accent));
+}
+.book-closed:hover { transform: perspective(3000px) rotateY(-7deg); }
+:root[dir='rtl'] .book-closed:hover { transform: perspective(3000px) rotateY(7deg); }
+.book-closed:focus-visible { outline: 3px solid var(--paper); outline-offset: 6px; }
+.book-closed.is-opening {
+  transform: perspective(3000px) rotateY(-178deg);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+}
+:root[dir='rtl'] .book-closed.is-opening { transform: perspective(3000px) rotateY(178deg); }
+.book-closed-hint {
+  position: absolute;
+  z-index: 3;
+  inset-block-end: 4%;
+  inset-inline-end: 5%;
+  padding: 6px 12px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  font-family: var(--mono-font);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .book-closed { transition: opacity 200ms linear; }
+  .book-closed.is-opening { transform: none; }
+}
+
 .book-gutter {
   position: absolute;
   inset-block: 40px;
@@ -274,7 +353,6 @@ export const SHELF = `/* ---- the shelf ---- */
 .is-live .shelves { padding-block-start: 104px; }
 .shelf-link { display: block; color: inherit; text-decoration: none; border-radius: 2px; }
 .shelf-link:focus-visible { outline: 2.5px solid var(--paper); outline-offset: 10px; }
-.shelf-link:focus-visible .book3d-stage { transform: rotateY(-12deg) rotateX(1deg); }
 .shelf-empty {
   max-width: 440px;
   margin: 8vh auto 0;
@@ -298,51 +376,90 @@ export const SHELF = `/* ---- the shelf ---- */
   color: color-mix(in oklab, var(--paper) 86%, var(--desk));
 }
 .shelf-row {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 42px;
-  padding-block-end: 22px;
-  /* The books stand on something. A row of floating covers is a grid of
-     rectangles; a line under them is a shelf. */
-  border-block-end: 3px solid color-mix(in oklab, var(--desk) 60%, #000);
-  box-shadow: 0 5px 0 color-mix(in oklab, var(--desk) 82%, #000);
+  align-items: flex-start;
+  gap: 48px 54px;
+  padding: 8px 18px 0;
+}
+/* The books stand on something. A row of floating covers is a grid of rectangles; a plank
+   under them -- a lit top edge and a dark front lip -- is a shelf. Each book carries its own
+   length of plank, reaching into the gaps either side, so every row that wraps is a shelf
+   too and the lengths meet into one. */
+.book3d::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset-inline: -28px;
+  top: calc(var(--book-height) + 4px);
+  height: 14px;
+  background: linear-gradient(to bottom,
+    color-mix(in oklab, var(--desk) 55%, #fff) 0 2px,
+    color-mix(in oklab, var(--desk) 70%, #000) 2px 100%);
+  box-shadow: 0 10px 16px rgba(0, 0, 0, 0.3);
 }
 
 .book3d {
   --book-width: 176px;
   --book-height: 236px;
+  --board: color-mix(in oklab, var(--cover, var(--accent)) 78%, #000);
   position: relative;
   width: var(--book-width);
-  perspective: 900px;
+  perspective: 1100px;
+  /* The eye is above the shelf, so the top of the block of paper is in view. */
+  perspective-origin: 50% -60%;
+  animation: gs-shelf-in 520ms cubic-bezier(0.2, 0.8, 0.25, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
 }
+@keyframes gs-shelf-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Turned so the SPINE faces you, as a book on a shelf is, and looked at slightly from above
+   so the block of paper shows along the top. It was turned the other way once: the spine
+   faced away, was drawn through the book from behind, and sat half its thickness off the
+   cover -- a strip floating beside every notebook, with its lettering mirrored. */
 .book3d-stage {
   position: relative;
   width: var(--book-width);
   height: var(--book-height);
   transform-style: preserve-3d;
-  /* Turned towards the viewer so the spine is visible. A book square-on is a
-     rectangle, and the whole reason to draw it in three dimensions is to show
-     that it is an object with a thickness that depends on how full it is. */
-  transform: rotateY(-26deg) rotateX(3deg) rotateZ(var(--lean, 0deg));
-  transition: transform 220ms ease;
+  transform: rotateX(-7deg) rotateY(24deg) rotateZ(var(--lean, 0deg));
+  transition: transform 420ms cubic-bezier(0.2, 0.8, 0.25, 1);
 }
-.book3d:hover .book3d-stage { transform: rotateY(-12deg) rotateX(1deg); }
+/* Pointed at, it is pulled a little out of the row and turned to show its cover. */
+.shelf-link:hover .book3d-stage,
+.shelf-link:focus-visible .book3d-stage,
+.book3d:hover .book3d-stage {
+  transform: translate3d(0, -10px, 26px) rotateX(-4deg) rotateY(8deg);
+}
 
-.book3d-cover {
+.book3d-cover,
+.book3d-back {
   position: absolute;
   inset: 0;
-  transform: translateZ(calc(var(--spine-depth) / 2));
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.38);
 }
+.book3d-cover { transform: translateZ(calc(var(--spine-depth) / 2)); }
+.book3d-cover .cover { box-shadow: inset 3px 0 0 rgba(0, 0, 0, 0.18); }
+.book3d-back {
+  transform: translateZ(calc(var(--spine-depth) / -2));
+  background: var(--board);
+}
+/* The spine: at the left edge, spanning front to back, facing out. */
 .book3d-spine {
   position: absolute;
   inset-block: 0;
-  inset-inline-start: 0;
+  left: 0;
   width: var(--spine-depth);
-  transform: rotateY(-90deg) translateZ(calc(var(--spine-depth) / 2));
   transform-origin: left center;
-  background: color-mix(in oklab, var(--cover, var(--accent)) 82%, #000);
+  transform: translateZ(calc(var(--spine-depth) / -2)) rotateY(-90deg);
+  background:
+    linear-gradient(to bottom, transparent 7%, rgba(0, 0, 0, 0.28) 7% 7.8%, transparent 7.8% 92.2%,
+      rgba(0, 0, 0, 0.28) 92.2% 93%, transparent 93%),
+    linear-gradient(to right, rgba(0, 0, 0, 0.3), rgba(255, 255, 255, 0.08) 45%, rgba(0, 0, 0, 0.25)),
+    var(--board);
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -353,41 +470,62 @@ export const SHELF = `/* ---- the shelf ---- */
   color: #fbf9f4;
   white-space: nowrap;
   writing-mode: vertical-rl;
-  /* The spine is rotated to face left, so what the viewer sees is its BACK -- and the title
-     on it came out mirrored, every glyph reversed. The scaleX un-mirrors it in the spine's
-     own coordinates; the rotate is what makes it read bottom to top, as a spine does. */
-  transform: rotate(180deg) scaleX(-1);
-  max-height: 88%;
+  /* Read bottom to top, as a spine is on a European shelf. */
+  transform: rotate(180deg);
+  max-height: 80%;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
-/* The block of paper inside the cover.
-
-   A rectangle slightly smaller than the cover, sitting just behind it, so the
-   page edges peek out along the open side -- which is what actually says
-   "there is paper in here". It was a rotated FACE first, translated by the
-   book's width, and after perspective it landed as a dotted white line
-   somewhere off to the right of the shelf.
-
-   The stripes are the leaves. The gradient is 3px per line, so a fat book and
-   a thin one have visibly different numbers of them. */
-.book3d-leaves {
+/* The block of paper, seen from above between the boards: one fine line per leaf, so a full
+   notebook is visibly thicker than a new one. */
+.book3d-top {
   position: absolute;
-  inset-block: 4px;
-  inset-inline-start: 5px;
-  inset-inline-end: -4px;
-  transform: translateZ(calc(var(--spine-depth) / 2 - 2px));
-  background-color: #efece2;
-  background-image: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.16) 0 1px,
-    transparent 1px 3px
-  );
-  box-shadow: inset -2px 0 3px rgba(0, 0, 0, 0.18);
+  top: 0;
+  left: 2px;
+  width: calc(var(--book-width) - 5px);
+  height: var(--spine-depth);
+  transform-origin: top center;
+  transform: translateZ(calc(var(--spine-depth) / 2 - 1px)) rotateX(-90deg);
+  background-color: #f1ede1;
+  background-image: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.13) 0 1px, transparent 1px 3px);
 }
+/* Where it stands: a soft contact shadow on the shelf, which is what puts it ON the shelf. */
+.book3d-shadow {
+  position: absolute;
+  inset-inline: 6% -2%;
+  top: calc(var(--book-height) - 6px);
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.5), transparent);
+  filter: blur(2px);
+  transition: transform 420ms cubic-bezier(0.2, 0.8, 0.25, 1), opacity 420ms linear;
+}
+.shelf-link:hover .book3d-shadow,
+.book3d:hover .book3d-shadow { transform: scale(0.86); opacity: 0.6; }
+
+.book3d-caption {
+  display: grid;
+  gap: 2px;
+  margin-block-start: 26px;
+  color: color-mix(in oklab, var(--paper) 88%, var(--desk));
+  font-family: var(--mono-font);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.book3d-caption b {
+  overflow: hidden;
+  font-family: var(--hand-font);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--paper);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.book3d-caption span { opacity: 0.7; }
 
 .shelf-tag {
-  display: inline-block;
-  margin-block-start: 12px;
+  justify-self: start;
+  margin-block-start: 6px;
   padding: 2px 8px;
   background: color-mix(in oklab, var(--desk) 55%, #000);
   color: color-mix(in oklab, var(--paper) 80%, var(--desk));
@@ -396,6 +534,10 @@ export const SHELF = `/* ---- the shelf ---- */
   letter-spacing: var(--label-tracking);
 }
 .book3d.is-archived .book3d-cover { filter: saturate(0.72) brightness(0.92); }
+@media (prefers-reduced-motion: reduce) {
+  .book3d { animation: none; }
+  .book3d-stage { transition: none; }
+}
 
 
 `;

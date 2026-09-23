@@ -25,7 +25,7 @@ import { Gestures } from '~/app/board/gestures.ts';
 import { Handles } from '~/app/board/handles.ts';
 import { Notes } from '~/app/board/notes.ts';
 import { Selection } from '~/app/board/select.ts';
-import type { Tool } from '~/app/board/tools.ts';
+import { DRAWING, type Tool } from '~/app/board/tools.ts';
 import { type Point, View } from '~/app/board/view.ts';
 import { toast } from '~/app/chrome.ts';
 import { must, onClick, typing } from '~/app/dom.ts';
@@ -167,6 +167,8 @@ export class BoardApp implements BoardContext {
   setTool(tool: Tool): void {
     this.tool = tool;
     this.viewport.dataset.tool = tool;
+    // On a phone the inks only come up while something that draws is in hand.
+    document.querySelector('[data-gs="tray"]')?.toggleAttribute('data-inking', DRAWING.has(tool));
     for (const button of document.querySelectorAll<HTMLElement>('[data-gs="tool"]')) {
       button.setAttribute('aria-pressed', String(button.dataset.gsTool === tool));
     }

@@ -129,7 +129,21 @@ export class BookApp {
    * the copy is removed nothing moves, which is what makes the turn feel like
    * paper rather than like a transition.
    */
+  /**
+   * Open the cover, if the notebook is shut. True if it was: that press was the opening, and
+   * it does not also turn a page.
+   */
+  open(): boolean {
+    const shut = this.book.querySelector<HTMLElement>('[data-gs="closed"]');
+    if (!shut || shut.classList.contains('is-opening')) return false;
+    this.book.removeAttribute('data-closed');
+    shut.classList.add('is-opening');
+    window.setTimeout(() => shut.remove(), 950);
+    return true;
+  }
+
   async flip(direction: 1 | -1): Promise<void> {
+    if (direction === 1 && this.open()) return;
     if (this.flipping) return;
     if (this.single) {
       await this.step(direction);
@@ -202,6 +216,7 @@ export class BookApp {
 
   /** Go to a leaf, riffling if it is far away. */
   async goto(index: number): Promise<void> {
+    this.open();
     const wanted = Math.max(0, Math.min(index, this.leaves.length - 1));
     const target = wanted - (wanted % 2);
     this.side = wanted % 2 === 0 ? 'verso' : 'recto';
@@ -281,6 +296,18 @@ export class BookApp {
         ? `of ${of}`
         : `${this.leaf + 1}–${Math.min(this.leaf + 2, of)} of ${of}`;
     }
+    const shut = this.book.querySelector<HTMLElement>('[data-gs="closed"]');
+    shut?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.open();
+    });
+    shut?.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        this.open();
+      }
+    });
+
     const jump = document.querySelector<HTMLInputElement>('[data-gs="jump"]');
     if (jump) {
       jump.max = String(of);

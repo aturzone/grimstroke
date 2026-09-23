@@ -90,41 +90,39 @@ export const TRAY = `/* ---- the tray ---- */
   /* The tray is centred and wide, so on a tablet the desk card steps up out of its way. */
   .gs-desk { inset-block-end: 80px; }
 }
-/* Wrapping, not scrolling.
+/* One row on a phone, and nothing out of sight.
 
-   The tools and the inks both scrolled sideways on a phone first, and on a 390px screen that
-   put half the tools past the edge with nothing to say they were there -- reachable only by
-   dragging a strip nobody knew could be dragged. Wrapping costs a row of height and keeps
-   every control in sight, which on a phone is the whole argument. */
+   It wrapped into two rows of tools and a third of inks first, which kept everything visible
+   and took a fifth of a phone's screen from the board. Now the ten tools share one row, each
+   as wide as the row allows and a full 44px tall -- a thumb needs height more than width --
+   and the inks come up above the tray only while something that draws is in hand, because
+   that is the only time an ink means anything. Nothing scrolls sideways: a strip nobody knows
+   can be dragged hides half of what is on it. */
 @media (max-width: 760px) {
   .gs-tray {
     inset-inline: 8px;
     inset-block-end: 8px;
     transform: none;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 4px 6px;
+    gap: 0;
+    padding: 4px;
   }
   :root[dir='rtl'] .gs-tray { transform: none; }
   .gs-tray .gs-sep { display: none; }
-  /* Two even rows of five, never nine and an orphan: the tools are a set, and a set that
-     wraps one of its members onto a row of its own reads as a mistake. */
-  .gs-tray-tools {
-    flex: 1 1 100%;
-    display: grid;
-    grid-template-columns: repeat(5, 44px);
-    justify-content: center;
-    gap: 4px 8px;
-  }
-  .gs-tool { width: 44px; height: 44px; min-width: 44px; }
+  .gs-tray-tools { flex: 1; display: flex; justify-content: space-between; gap: 0; }
+  .gs-tool { flex: 1 1 0; width: auto; min-width: 0; max-width: 48px; height: 44px; }
   .gs-tray-inks {
-    flex: 1 1 100%;
+    position: absolute;
+    inset-block-end: calc(100% + 6px);
+    inset-inline: 0;
     justify-content: center;
     margin: 0;
-    padding: 6px 0 2px;
-    border-inline-start: 0;
-    border-block-start: 1.5px solid var(--gs-faint);
+    padding: 8px 6px;
+    border: 1.5px solid var(--gs-line);
+    border-radius: var(--gs-radius);
+    background: var(--gs-paper);
+    box-shadow: var(--gs-shadow);
   }
+  .gs-tray:not([data-inking]) .gs-tray-inks { display: none; }
   .gs-swatch { width: 26px; height: 26px; }
   .gs-desk { inset-block-end: auto; inset-block-start: 62px; inset-inline-start: auto; inset-inline-end: 8px; flex-direction: column; }
   .gs-desk .gs-sep { width: 20px; height: 1.5px; margin: 3px 0; }

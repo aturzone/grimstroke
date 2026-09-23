@@ -60,7 +60,9 @@ export const PANELS = `/* ---- search ---- */
 .gs-hit-kind[data-kind='archive'] { background: var(--gs-ink); color: var(--gs-paper); }
 .gs-hit-title { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gs-hit-text { color: var(--gs-soft); font-size: var(--gs-t1); line-height: 1.45; overflow-wrap: anywhere; }
-.gs-hit mark { background: color-mix(in oklab, var(--gs-hot) 55%, transparent); color: inherit; padding: 0 1px; }
+/* A highlighter, whatever the palette: the hot ink was blue on the default one, and dark
+   words on mid blue is the one highlight that is harder to read than no highlight. */
+.gs-hit mark { background: #ffe066; color: #14110e; padding: 0 1px; border-radius: 1px; }
 .gs-search-none { padding: 22px 16px; color: var(--gs-soft); text-align: center; }
 .gs-search-none b { font-family: var(--hand-font); font-size: var(--gs-t5); color: var(--gs-ink); display: block; margin-block-end: 4px; }
 

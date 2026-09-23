@@ -33,6 +33,12 @@ import { escapeHtml, inline, label } from '~/draw/type/text.ts';
 export interface BookRenderOptions {
   /** Which leaf to open at. The spread shows this one and the next. */
   leaf?: number;
+  /**
+   * Start shut, showing the cover. A notebook is picked up by its cover and opened, and a
+   * notebook that opens straight onto two blank pages has skipped the part that says whose it
+   * is and what is in it.
+   */
+  closed?: boolean;
   live?: { chrome?: string; scripts?: string[] } | undefined;
 }
 
@@ -116,13 +122,14 @@ function renderSticker(sticker: Sticker, ctx: Surface): string {
  * than a new one -- which is the whole reason to show a shelf rather than a
  * list of names.
  */
-export function renderBook3d(spec: BookSpec, ctx: Surface): string {
+export function renderBook3d(spec: BookSpec, ctx: Surface, order = 0): string {
   const depth = spineWidth(spec);
   const cover: Cover = spec.cover ?? {};
   const spine = cover.spine ?? cover.title ?? spec.title ?? spec.id;
   const style = [
     `--spine-depth:${depth}px`,
     `--lean:${shelfLean(spec)}deg`,
+    `--i:${order}`,
     cover.colour ? `--cover:${escapeHtml(cover.colour)}` : '',
   ]
     .filter(Boolean)
@@ -134,15 +141,28 @@ export function renderBook3d(spec: BookSpec, ctx: Surface): string {
     `<div class="book3d${spec.archived ? ' is-archived' : ''}" data-gs="book" ` +
     `data-gs-id="${escapeHtml(spec.id)}" style="${style}">` +
     '<div class="book3d-stage">' +
-    // The block of paper first: it is behind both the spine and the cover, and
-    // its own edge is what you see along the open side.
-    '<div class="book3d-leaves"></div>' +
+    // A box: the back board, the block of paper seen from above, the spine hinged to the
+    // front, and the front. Each is a face placed in 3D, so the spine meets the cover at its
+    // edge instead of floating beside it.
+    '<div class="book3d-back"></div>' +
+    '<div class="book3d-top"></div>' +
     `<div class="book3d-spine"><span>${inline(spine, { digits: ctx.digits })}</span></div>` +
     `<div class="book3d-cover">${renderCover(spec, ctx)}</div>` +
     '</div>' +
-    put +
+    '<div class="book3d-shadow" aria-hidden="true"></div>' +
+    `<p class="book3d-caption"><b dir="auto">${inline(spec.title ?? spec.id, { digits: ctx.digits })}</b>` +
+    `<span>${pages(spec)}</span>${put}</p>` +
     '</div>'
   );
+}
+
+/** How much is written in it: the pages with something on them, out of how many. */
+function pages(spec: BookSpec): string {
+  const written = spec.leaves.filter(
+    (leaf) => (leaf.items?.length ?? 0) + (leaf.blocks?.length ?? 0) > 0,
+  ).length;
+  const total = Math.max(spec.leaves.length, spec.minLeaves ?? 0);
+  return written === 0 ? `${total} blank pages` : `${written} of ${total} pages written`;
 }
 
 /** A shelf of books: the ones in use, and the ones put away. */
@@ -157,12 +177,12 @@ export function renderShelf(
 
   const live = options.live;
   // Live, every book is a link into itself; an export of the shelf is a picture of one.
-  const shelved = (b: BookSpec): string =>
+  const shelved = (b: BookSpec, i: number): string =>
     live
       ? `<a class="shelf-link" href="/book?id=${encodeURIComponent(b.id)}" ` +
         `aria-label="${escapeHtml(b.title ?? b.id)}${b.archived ? ', archived' : ''}">` +
-        `${renderBook3d(b, ctx)}</a>`
-      : renderBook3d(b, ctx);
+        `${renderBook3d(b, ctx, i)}</a>`
+      : renderBook3d(b, ctx, i);
   const section = (name: string, list: readonly BookSpec[]): string =>
     list.length === 0
       ? ''
@@ -246,9 +266,14 @@ export function renderSpread(spec: BookSpec, options: BookRenderOptions = {}): R
   const book =
     halftoneDefs() +
     `<div class="book" data-gs="book" data-gs-id="${escapeHtml(spec.id)}" ` +
-    `data-gs-leaf="${at}" data-gs-leaves="${leaves.length}">` +
+    `data-gs-leaf="${at}" data-gs-leaves="${leaves.length}"${options.closed ? ' data-closed' : ''}>` +
     `<div class="book-spread">${body}</div>` +
     '<div class="book-gutter" aria-hidden="true"></div>' +
+    (options.closed
+      ? '<div class="book-closed" data-gs="closed" role="button" tabindex="0" ' +
+        `aria-label="open the notebook">${renderCover(spec, ctx)}` +
+        '<span class="book-closed-hint">open</span></div>'
+      : '') +
     '</div>';
 
   const html = [
