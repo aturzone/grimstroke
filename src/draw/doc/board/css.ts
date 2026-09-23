@@ -63,6 +63,17 @@ body.on-board { background: var(--paper); }
    A zero-sized box at the stroke's own origin with overflow visible, and no
    viewBox: a viewBox would scale the path, and a stroke that changes shape
    when its bounding box is recomputed is not the stroke that was drawn. */
+/* A run of strokes sharing one surface: a zero-sized box at the board's corner, like a lone
+   stroke's, with every stroke in it placed by its own transform. */
+:is(.board, .leaf-items) .ink-run {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+}
 :is(.board, .leaf-items) .stroke {
   position: absolute;
   width: 0;

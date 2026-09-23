@@ -127,7 +127,12 @@ export function renderBoard(spec: BoardSpec, options: BoardRenderOptions = {}): 
     .map((item, index) => ({ item, index }))
     .sort((a, b) => (a.item.z ?? 0) - (b.item.z ?? 0) || a.index - b.index);
 
-  const drawn = ordered.map(({ item }) => renderItem(item, ox, oy, ctx)).join('\n');
+  const drawn = drawItems(
+    ordered.map(({ item }) => item),
+    ox,
+    oy,
+    ctx,
+  );
   checkGlyphs(spec, ctx);
 
   const script = ARABIC.test(collectText(spec)) ? 'arabic' : 'latin';
@@ -199,6 +204,70 @@ export function renderOneItem(
   const ctx = surface(spec.id, spec);
   const [ox, oy] = extentOf(spec);
   return { html: renderItem(item, ox, oy, ctx), assets: ctx.assets };
+}
+
+/**
+ * Items in paint order, with every run of consecutive strokes drawn as ONE svg.
+ *
+ * A stroke was its own svg element, and two thousand of them were two thousand elements for
+ * the browser to lay out, stack and composite on every frame of a pan: hiding them took a
+ * board of 200 items and 2000 strokes from 41 to 56 frames a second at fit. Strokes that are
+ * next to each other in the paint order cannot have anything between them, so they can share
+ * one surface without changing what is on top of what. Each is still its own addressable
+ * group -- the same id, the same data attributes -- so selecting, moving, turning and erasing
+ * one works exactly as before. A stroke on its own keeps its own svg.
+ */
+function drawItems(
+  items: readonly BoardItem[],
+  ox: number,
+  oy: number,
+  ctx: ReturnType<typeof surface>,
+): string {
+  const out: string[] = [];
+  let run: BoardItem[] = [];
+  const flush = (): void => {
+    if (run.length === 1) out.push(renderItem(run[0] as BoardItem, ox, oy, ctx));
+    else if (run.length > 1) {
+      out.push(
+        `<svg class="ink-run" style="z-index:${run[0]?.z ?? 0}" aria-hidden="true">` +
+          run
+            .map((item) => inkGroup(item, item.ink as Ink, item.at[0] - ox, item.at[1] - oy))
+            .join('') +
+          '</svg>',
+      );
+    }
+    run = [];
+  };
+  for (const item of items) {
+    if (item.ink) run.push(item);
+    else {
+      flush();
+      out.push(renderItem(item, ox, oy, ctx));
+    }
+  }
+  flush();
+  return out.join('\n');
+}
+
+/** One stroke inside a shared svg: placed by a transform, since an svg group has no left/top. */
+function inkGroup(item: BoardItem, ink: Ink, x: number, y: number): string {
+  const tool = ink.tool ?? 'pen';
+  const style = [
+    `transform:translate(${x}px, ${y}px) rotate(var(--tilt, 0deg))`,
+    item.rotation ? `--tilt:${item.rotation}deg` : '',
+    ink.colour ? `--stroke:${escapeHtml(ink.colour)}` : '',
+    ink.weight ? `--stroke-weight:${ink.weight}px` : '',
+  ]
+    .filter(Boolean)
+    .join(';');
+  return (
+    `<g class="stroke tool-${tool} ${ink.fill ? 'fill' : 'line'}" data-gs="item" ` +
+    `data-gs-id="${escapeHtml(item.id)}" data-gs-at="${x},${y}"` +
+    (item.rotation ? ` data-gs-rotation="${item.rotation}"` : '') +
+    (item.locked ? ' data-gs-locked="1"' : '') +
+    (item.group ? ` data-gs-group="${escapeHtml(item.group)}"` : '') +
+    ` style="${style}"><path d="${escapeHtml(ink.d)}"/></g>`
+  );
 }
 
 /** One placed item, as HTML, relative to an origin. A leaf draws its items through this too. */

@@ -44,9 +44,6 @@ export const MAX_ZOOM = 6;
  */
 const FAR = 0.4;
 
-/** How far the ruling tile overhangs the viewport, so a translate never shows its edge. */
-const OVERHANG = 384;
-
 export class View {
   readonly viewport: HTMLElement;
   readonly board: HTMLElement;
@@ -263,10 +260,16 @@ export class View {
     const coarse = this.base.coarse ? period * (this.base.coarse / this.base.fine) : 0;
 
     const tile = rule.tile;
+    // The tile overhangs the viewport by ONE repeat of the ruling, which is all a shift by the
+    // pan modulo that repeat can ever expose. It overhung by a fixed 384px first: a layer half
+    // as big again as the screen, composited on every frame of every pan.
+    const repeat = coarse || period;
     if (period !== this.period) {
       this.period = period;
-      tile.style.width = `${Math.ceil(vw) + OVERHANG * 2}px`;
-      tile.style.height = `${Math.ceil(vh) + OVERHANG * 2}px`;
+      tile.style.left = `${-repeat}px`;
+      tile.style.top = `${-repeat}px`;
+      tile.style.width = `${Math.ceil(vw) + repeat * 2}px`;
+      tile.style.height = `${Math.ceil(vh) + repeat * 2}px`;
       // Written directly. The paper's own size is declared at the root, where its var() has
       // already been resolved against the paper's period, so overriding --rule-p down here
       // would change nothing.
@@ -276,8 +279,7 @@ export class View {
     }
     // The grid repeats every period -- every coarse period, on graph paper -- so a shift by
     // the pan modulo that is indistinguishable from a shift by the whole pan.
-    const repeat = coarse || period;
     const mod = (n: number): number => ((n % repeat) + repeat) % repeat;
-    tile.style.transform = `translate3d(${mod(x + OVERHANG)}px, ${mod(y + OVERHANG)}px, 0)`;
+    tile.style.transform = `translate3d(${mod(x + repeat)}px, ${mod(y + repeat)}px, 0)`;
   }
 }

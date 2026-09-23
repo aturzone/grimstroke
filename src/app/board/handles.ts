@@ -187,10 +187,18 @@ export class Handles {
         if (item.ink) {
           // Ink has no width to set: it is scaled, about its own top-left corner.
           const k = w / box.w;
-          element.style.transformOrigin = `${box.x - item.at[0]}px ${box.y - item.at[1]}px`;
-          element.style.transform = `scale(${k})`;
           const ox = box.x - item.at[0];
           const oy = box.y - item.at[1];
+          if (element instanceof SVGGElement) {
+            // A stroke in a shared svg is already placed by its transform; scale on top of it.
+            const [x, y] = (element.dataset.gsAt ?? '0,0').split(',').map(Number);
+            element.style.transform =
+              `translate(${(x ?? 0) + ox}px, ${(y ?? 0) + oy}px) scale(${k}) ` +
+              `translate(${-ox}px, ${-oy}px) rotate(var(--tilt, 0deg))`;
+          } else {
+            element.style.transformOrigin = `${ox}px ${oy}px`;
+            element.style.transform = `scale(${k})`;
+          }
           result = {
             op: 'update',
             id: item.id,

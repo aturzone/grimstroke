@@ -48,9 +48,11 @@ export const SELECT = `/* ---- selection ----
 
    The paper itself keeps its own ruling for export and for print, where there is no camera
    and nothing to resample. */
-/* The live board's own surface goes transparent and this layer becomes the paper: the
-   sheet's colour AND its ruling, both drawn in screen space. Leaving the board opaque simply
-   painted over the grid, because the board is a later sibling. */
+/* The live board's own surface goes transparent and this layer carries the ruling, drawn in
+   screen space; the viewport under it is the paper's colour and its grain. It was opaque
+   paper itself once, which hid the grain beneath it and put one more full-screen layer into
+   every frame. Leaving the board opaque simply painted over the grid, because the board is a
+   later sibling. */
 .live .board { background-image: none; background-color: transparent; }
 .gs-rule {
   position: absolute;
@@ -58,15 +60,12 @@ export const SELECT = `/* ---- selection ----
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background-color: var(--paper);
 }
 /* The tile overhangs the viewport and is only ever TRANSLATED, by the pan modulo one period
    of the ruling, so moving the board never redraws it. The app writes its size and its
    background-size, and only when the period steps. */
 .gs-rule-tile {
   position: absolute;
-  left: -384px;
-  top: -384px;
   background-image: var(--paper-rule, none);
   background-repeat: repeat;
   will-change: transform;

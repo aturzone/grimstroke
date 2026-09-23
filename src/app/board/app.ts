@@ -154,9 +154,17 @@ export class BoardApp implements BoardContext {
     return this.board.querySelector<HTMLElement>(`[data-gs-id="${CSS.escape(id)}"]`);
   }
 
-  place(element: HTMLElement, at: [number, number]): void {
-    element.style.left = `${at[0] - this.view.origin.x}px`;
-    element.style.top = `${at[1] - this.view.origin.y}px`;
+  place(element: HTMLElement | SVGElement, at: [number, number]): void {
+    const x = at[0] - this.view.origin.x;
+    const y = at[1] - this.view.origin.y;
+    // A stroke inside a shared svg is a group, and a group is placed by a transform.
+    if (element instanceof SVGGElement) {
+      element.dataset.gsAt = `${x},${y}`;
+      element.style.transform = `translate(${x}px, ${y}px) rotate(var(--tilt, 0deg))`;
+      return;
+    }
+    element.style.left = `${x}px`;
+    element.style.top = `${y}px`;
   }
 
   nextId(prefix: string): string {
@@ -269,6 +277,11 @@ export class BoardApp implements BoardContext {
        */
       if (existing?.classList.contains('is-dragging')) continue;
       if (existing && existing.outerHTML === change.html) continue;
+      // A changed stroke arrives as its own svg. One that lived in a shared run leaves it,
+      // and the fresh one goes on the board -- not inside the run, where an svg in an svg is
+      // placed by rules it does not follow.
+      const inRun = existing?.closest('.ink-run') !== null && existing !== null;
+      if (inRun) existing?.remove();
       const holder = document.createElement('div');
       // The markup came from our own renderer on our own server; it is not
       // untrusted input, and there is no other way to put a rendered item on
@@ -277,7 +290,7 @@ export class BoardApp implements BoardContext {
       const fresh = holder.firstElementChild as HTMLElement | null;
       if (!fresh) continue;
       if (this.selection.has(change.id)) fresh.dataset.selected = '1';
-      if (existing) {
+      if (existing && !inRun) {
         this.notes.forget(change.id);
         existing.replaceWith(fresh);
       } else {

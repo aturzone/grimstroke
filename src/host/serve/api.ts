@@ -284,13 +284,20 @@ async function patchBoard(ask: Ask, live: Live, id: string, ops: Op[]): Promise<
    * event, and posted the whole thing back to a browser that already had it. An item whose
    * only change is where it is, or how high in the pile, is sent as that and nothing more.
    */
-  const placed = new Set(result.placed);
+  // A stroke that changed places in the pile may be sharing a surface with its neighbours,
+  // where only document order stacks it: it comes back drawn, on its own, at its new height.
+  const restacked = new Set(
+    ops.flatMap((op) =>
+      op.op === 'order' && result.spec.items.find((i) => i.id === op.id)?.ink ? [op.id] : [],
+    ),
+  );
+  const placed = new Set(result.placed.filter((itemId) => !restacked.has(itemId)));
   const items = new Map(result.spec.items.map((item) => [item.id, item]));
   const payload = {
     version: result.spec.version ?? 0,
     removed: result.removed,
     reset: result.reset,
-    placed: result.placed.map((itemId) => {
+    placed: [...placed].map((itemId) => {
       const item = items.get(itemId);
       return { id: itemId, at: item?.at ?? [0, 0], z: item?.z ?? 0 };
     }),
