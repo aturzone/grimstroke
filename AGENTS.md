@@ -39,16 +39,18 @@ src/draw/               PURE. No browser, no network, no clock.
       coords.ts         the space-prefixed coordinate contract
       redact.ts         destructive redaction, on raw pixels
     note/               the sticky note: model, markdown body, render
-    face/               characters: ink and pixel parts, the profile card
+    profile/            the one profile: the drawn portrait and the card
     css.ts              each folder keeps its own stylesheet piece beside it
   doc/                  the documents, each a model, a builder or patch, a render
     page/               a column of blocks
     board/              a plane with things placed on it
-    book/               a sequence you turn through: cover, leaves, stickers
+    book/               a sequence you turn through: cover, leaves, stickers;
+                        each leaf is a small board of placed items
+    legacy.ts           old stored shapes, upgraded as they are read
     search.ts           Persian-aware folding and ranking, over all of them
     style.ts            the stylesheet: only the ORDER of the pieces lives here
   chrome/               the controls around a document, as markup: the top bar,
-                        the tray, the turner, the studio, the profile page
+                        the tray, the turner, the page nav, the profile page
     css/                their stylesheet pieces
 
 src/app/                THE LIVE SURFACE. A browser, no disk, no framework.
@@ -57,8 +59,8 @@ src/app/                THE LIVE SURFACE. A browser, no disk, no framework.
   chrome.ts             toasts, menus, confirm cards, search, help
   board/                camera, gestures, handles, arrange, ink, notes, export
   book/                 turning, jumping, the cover editor
+  profile.ts            the easel: drawing the portrait
   note/                 a live note: grab, edit, format chords
-  studio/               the character studio
   motion/               springs and poses, for things that move
 
 src/host/               NOT pure. The outside world.
@@ -76,6 +78,7 @@ tests/                  mirrors src/: tests/draw/..., tests/host/...
   fixtures/index.ts     every fixture path, resolved once
 tools/                  build.ts, look.ts, and the TypeScript loader they need
 assets/fonts/           the vendored faces. Nothing is resolved from the system.
+docs/api.md             every endpoint and operation an agent can use
 ```
 
 It is deliberately a deep tree and not a wide one. A folder holds few enough
@@ -89,6 +92,13 @@ you have opened it.
 ```sh
 pnpm check
 ```
+
+Commit only on a green check, gated on its exit code -- `pnpm check && git commit`, never a
+pipe through grep that swallows the failure. A red commit got in exactly that way.
+
+The server reads the renderer when it starts. After `pnpm build`, restart it
+(`tools/serve.sh`), or you are looking at the old stylesheet and wondering why a fix is not
+there.
 
 ## The rules that are not style
 
@@ -218,3 +228,18 @@ note instead. Links and checkboxes in a note's body still get their clicks.
 generating source that must contain `\u0627`-style escapes (the Persian
 ranges in `material/read.ts`, `doc/search.ts`), double the backslash, then read
 the file back and check.
+
+**A page of a notebook is a board.** It is addressed as `book:<notebook>:<leaf>` and served
+by `Live.page()`, which builds a BoardSpec from the leaf and writes items back into it. Do not
+give pages their own editor, their own patch vocabulary or their own renderer: the whole point
+is that every board tool works on a page because it is the same code.
+
+**Stored data is upgraded on read and never rewritten for it.** `draw/doc/legacy.ts` turns old
+shapes (characters, face stickers, columns of blocks on a leaf) into current ones in memory. A
+file is only written when its content actually changes, and nothing deletes what a user left
+on disk -- the old `faces/` directory is read once for the profile and then left alone.
+
+**The golden check is the proof a refactor changed nothing.** `tests/golden/` holds every
+surface to a fingerprint. When a change is meant to alter output, run `pnpm golden before` on
+the old code and `pnpm golden after` on the new, diff them, and only then `pnpm test -u`.
+

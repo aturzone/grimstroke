@@ -86,16 +86,21 @@ expect. It stays smooth at a couple of hundred items and a few thousand strokes.
 material, ink, stickers, a profile card — and leaves you turn through, rearrange
 and archive.
 
-**Characters** are made in a studio, drawn in ink or as pixel art from a set of
-parts, and each one has a **profile** page: an ID card that can be placed on a
-board or used as a notebook's cover.
+Every **page of a notebook is a small board**: open one and every board tool is
+there -- notes, pictures, ink, the eraser, moving, turning, grouping -- on a sheet
+the size of the page. A notebook opens on its cover and turns like paper.
+
+The **profile** is you: a portrait you draw yourself in a 3:4 photo frame with the
+same pens, your name and a few words, on an ID card you can pin to a board, paste
+on a notebook's cover, or stick on as a portrait.
 
 **Search** covers every board, every notebook — archived ones too — and every
-character, and folds Persian spelling variants so a search finds what you meant.
+the profile, and folds Persian spelling variants so a search finds what you meant.
 
 Every one of those is a patch operation, so an agent can do all of it over
 `POST /api/patch`, and all of it round-trips through the `.grimstroke` backup
-the workspace can download and restore.
+the workspace can download and restore. `docs/api.md` lists every endpoint and
+operation.
 
 ## What it is for
 
@@ -109,7 +114,7 @@ It knows nothing about bugs, severities or reports. It draws pages.
 ## The blocks
 
 `heading` · `text` · `label` · `bullets` · `table` · `code` · `quote` ·
-`image` · `compare` · `note` · `face` · `profile` · `divider` · `spacer`
+`image` · `compare` · `note` · `profile` · `stack` · `divider` · `spacer`
 
 `image` takes marks. Some are machine-precise — a box, a numbered badge, a
 callout with a leader note, a censor bar. Some are made by a hand — a circle
