@@ -7,3 +7,6 @@ tools/looksheet/
 
 # Playwright MCP session output.
 .playwright-mcp/
+
+# Golden renders are for diffing two of them, not for committing.
+tools/golden/

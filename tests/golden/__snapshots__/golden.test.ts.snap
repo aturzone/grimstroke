@@ -1,0 +1,20 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden > renders every surface exactly as before 1`] = `
+{
+  "board": "b56fa4bc1a3d2d12 131268",
+  "board-live": "b41a32960b07d5ec 158958",
+  "page-carbon-ltr": "331f6305b4a56eb4 132903",
+  "page-carbon-rtl": "afdc0cc08605ebf0 132872",
+  "page-newsprint-ltr": "6dd2e3cb0ec15e05 132916",
+  "page-newsprint-rtl": "aef2d40ff25ac5a7 132870",
+  "page-studio-ltr": "60fef0eb3b33fd3c 132922",
+  "page-studio-rtl": "04df2522a85a2f38 132905",
+  "profile": "26df1a4d2e0fc007 165136",
+  "shelf": "dc96643886d50e08 158238",
+  "spread-live-ltr": "d34ac10f5a01c971 144224",
+  "spread-live-rtl": "fa5342d261446d39 144286",
+  "spread-ltr": "096cf054bde81705 130042",
+  "spread-rtl": "46fa2df9f9082f3f 130104",
+}
+`;
