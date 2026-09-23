@@ -121,6 +121,23 @@ function selectionBar(): string {
   );
 }
 
+/** The page before and after this one, and which this is. */
+function pageNav(sheet: NonNullable<BoardSpec['sheet']>): string {
+  const to = (n: number): string => `/page?book=${encodeURIComponent(sheet.book)}&leaf=${n + 1}`;
+  const link = (n: number, gs: string, label: string, name: 'prev' | 'next'): string =>
+    n < 0 || n >= sheet.count
+      ? `<button type="button" class="gs-btn gs-btn-icon" data-gs="${gs}" aria-label="${label}" disabled>${icon(name)}</button>`
+      : `<a class="gs-btn gs-btn-icon" data-gs="${gs}" href="${to(n)}" aria-label="${label}">${icon(name)}` +
+        `<span class="gs-tip" role="presentation">${label}</span></a>`;
+  return (
+    '<span class="gs-page-nav">' +
+    link(sheet.index - 1, 'page-prev', 'the page before', 'prev') +
+    `<span class="gs-page-no" data-gs="page-no">${sheet.index + 1} of ${sheet.count}</span>` +
+    link(sheet.index + 1, 'page-next', 'the page after', 'next') +
+    '</span>'
+  );
+}
+
 export function chrome(spec: BoardSpec): string {
   const tools = TOOLS.map((tool, i) => toolButton(tool, i === 2 || i === 6)).join('');
   const inks = INKS.map(
@@ -155,20 +172,38 @@ export function chrome(spec: BoardSpec): string {
     item({ gs: 'restore', text: 'restore from a backup', icon: 'restore' }) +
     '</div></details>';
 
+  const sheet = spec.sheet;
+  // A page takes its palette from its notebook, so only its ruling is its own to choose.
   const more =
-    heading('palette') +
-    `<div class="gs-paper-swatches" role="group" aria-label="palette">${palettes}</div>` +
-    heading('paper') +
+    (sheet
+      ? ''
+      : heading('palette') +
+        `<div class="gs-paper-swatches" role="group" aria-label="palette">${palettes}</div>`) +
+    heading(sheet ? 'this page is' : 'paper') +
     `<div class="gs-chip-row" role="group" aria-label="paper">${papers}</div>`;
 
+  const bar = sheet
+    ? topBar({
+        place: 'shelf',
+        title: spec.title ?? spec.id,
+        back: {
+          href: `/book?id=${encodeURIComponent(sheet.book)}&leaf=${sheet.index - (sheet.index % 2)}`,
+          label: sheet.bookTitle,
+        },
+        saved: true,
+        actions: pageNav(sheet) + exportMenu,
+        more,
+      })
+    : topBar({
+        place: 'board',
+        title: spec.title ?? spec.id,
+        saved: true,
+        actions: exportMenu,
+        more,
+      });
+
   return [
-    topBar({
-      place: 'board',
-      title: spec.title ?? spec.id,
-      saved: true,
-      actions: exportMenu,
-      more,
-    }),
+    bar,
 
     '<div class="gs-tray gs-card" data-gs="tray" role="toolbar" aria-label="tools">',
     `<div class="gs-tray-tools">${tools}</div>`,

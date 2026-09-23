@@ -37,6 +37,8 @@ export function textOf(block: Block): string[] {
       ]);
     case 'profile':
       return profileText(block.profile);
+    case 'stack':
+      return block.blocks.flatMap(textOf);
     case 'divider':
     case 'spacer':
       return [];
@@ -58,5 +60,16 @@ export function profileText(profile: Profile): string[] {
     profile.role ?? '',
     profile.bio ?? '',
     ...(profile.details ?? []).flatMap((d) => [d.label, d.value]),
+  ];
+}
+
+/** Every word on a page: what is placed on it, and a column written to it. */
+export function leafText(leaf: {
+  items?: ReadonlyArray<{ block?: Block }>;
+  blocks?: readonly Block[];
+}): string[] {
+  return [
+    ...(leaf.items ?? []).flatMap((item) => (item.block ? textOf(item.block) : [])),
+    ...(leaf.blocks ?? []).flatMap(textOf),
   ];
 }

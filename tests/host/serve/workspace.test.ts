@@ -292,3 +292,50 @@ describe('the profile, over HTTP', () => {
     expect(old.headers.get('location')).toBe('/profile');
   });
 });
+
+describe('a notebook page, as a board', () => {
+  const post = (body: unknown): Promise<Response> =>
+    ask('/api/patch', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+  it('is driven by an agent with the board vocabulary, and lands in the notebook', async () => {
+    await post({ kind: 'book', id: 'pages', ops: [{ op: 'book', patch: { title: 'Pages' } }] });
+    const res = await post({
+      board: 'book:pages:blank-3',
+      ops: [
+        {
+          op: 'add',
+          item: {
+            id: 'n1',
+            at: [60, 80],
+            size: [200],
+            block: { kind: 'note', text: 'on page three' },
+          },
+        },
+      ],
+    });
+    expect(res.ok).toBe(true);
+    const { spec } = (await (await ask('/api/state?kind=book&id=pages')).json()) as {
+      spec: { leaves: Array<{ id: string; items?: Array<{ id: string }> }> };
+    };
+    expect(spec.leaves.map((leaf) => leaf.id)).toContain('blank-3');
+    expect(spec.leaves.find((leaf) => leaf.id === 'blank-3')?.items?.[0]?.id).toBe('n1');
+  });
+
+  it('opens by page number, as a sheet with the board tools', async () => {
+    const page = await (await ask('/page?book=pages&leaf=3')).text();
+    expect(page).toContain('on-page');
+    expect(page).toContain('data-gs-sheet="560,790"');
+    expect(page).toContain('data-gs="tray"');
+    expect(page).toContain('on page three');
+    expect(page).toContain('3 of');
+  });
+
+  it('shows up in the notebook spread', async () => {
+    const book = await (await ask('/book?id=pages&leaf=2')).text();
+    expect(book).toContain('on page three');
+  });
+});

@@ -92,6 +92,14 @@ export interface BoardSpec {
   extent?: [number, number, number, number];
   /** Bumped on every write, so a reader can tell whether it has the latest. */
   version?: number;
+  /**
+   * Set when this board is a PAGE OF A NOTEBOOK, seen as a board.
+   *
+   * Never stored. The server builds the board from the page, and writes the items back into
+   * the page; this says which one, so the page is drawn as a sheet with an edge and the
+   * chrome can turn to the next one.
+   */
+  sheet?: { book: string; bookTitle: string; leaf: string; index: number; count: number };
 }
 
 /**

@@ -28,6 +28,19 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
     return true;
   }
 
+  /*
+   * One page of a notebook, as a board: every tool the board has, on a sheet with an edge.
+   * The leaf is its id, or its page number counted from one.
+   */
+  if (path === '/page') {
+    const book = url.searchParams.get('book') ?? 'notebook';
+    const spec = await live.board(`book:${book}:${url.searchParams.get('leaf') ?? '1'}`);
+    const rendered = renderBoard(spec, { live: { chrome: chrome(spec), scripts: APP } });
+    live.allow(rendered.assets);
+    html(res, rendered.html);
+    return true;
+  }
+
   if (path === '/book') {
     const spec = await live.book(url.searchParams.get('id') ?? 'notebook');
     const rendered = renderSpread(spec, {

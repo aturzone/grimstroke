@@ -12,6 +12,7 @@
  * bound into a notebook without being converted.
  */
 
+import type { BoardItem } from '~/draw/doc/board/model.ts';
 import type { Direction } from '~/draw/doc/model.ts';
 import type { PaperKind } from '~/draw/look/grid.ts';
 import type { Block } from '~/draw/material/model.ts';
@@ -84,7 +85,19 @@ export interface Leaf {
   id: string;
   /** The ruling printed on this leaf. Falls back to the book's. */
   paper?: PaperKind;
-  blocks: Block[];
+  /**
+   * What is on the page, placed: exactly a board's items, in the page's own pixels from its
+   * top-left corner. A page IS a small board with an edge -- notes, pictures, ink, labels,
+   * everything a board can hold, moved, turned and grouped the same way.
+   */
+  items?: BoardItem[];
+  /**
+   * A column of blocks, for writing a page the way a page document is written.
+   *
+   * Accepted, and folded on arrival into one 'stack' item at the page's margins -- so what an
+   * agent writes as a column is still an object a person can pick up, move and resize.
+   */
+  blocks?: Block[];
 }
 
 export interface BookSpec {
@@ -140,8 +153,11 @@ export function spineWidth(spec: BookSpec): number {
 
 /** A blank leaf, for padding a book out to its minimum. */
 export function blankLeaf(id: string): Leaf {
-  return { id, blocks: [] };
+  return { id, items: [] };
 }
+
+/** The margins a column of blocks is set inside, on a page. */
+export const LEAF_MARGIN: readonly [number, number] = [40, 44];
 
 /**
  * The leaves as they are actually bound: what is written, padded to the
@@ -160,5 +176,8 @@ export function boundLeaves(spec: BookSpec): Leaf[] {
 
 /** Is there room left, or is it time to add leaves or put the book away? */
 export function isFull(spec: BookSpec): boolean {
-  return spec.leaves.length > 0 && spec.leaves.every((leaf) => leaf.blocks.length > 0);
+  return (
+    spec.leaves.length > 0 &&
+    spec.leaves.every((leaf) => (leaf.items?.length ?? 0) + (leaf.blocks?.length ?? 0) > 0)
+  );
 }

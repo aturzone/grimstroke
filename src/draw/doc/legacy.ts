@@ -8,8 +8,15 @@
  * Pure: plain data in, plain data out.
  */
 
-import type { BoardSpec } from '~/draw/doc/board/model.ts';
-import type { BookSpec, Cover, Sticker } from '~/draw/doc/book/model.ts';
+import type { BoardItem, BoardSpec } from '~/draw/doc/board/model.ts';
+import {
+  type BookSpec,
+  type Cover,
+  LEAF_MARGIN,
+  LEAF_WIDTH,
+  type Leaf,
+  type Sticker,
+} from '~/draw/doc/book/model.ts';
 import type { Block } from '~/draw/material/model.ts';
 import { type Profile, readProfile } from '~/draw/material/profile/model.ts';
 
@@ -56,6 +63,40 @@ export function upgradeBook(spec: BookSpec): BookSpec {
   return {
     ...spec,
     ...(cover ? { cover } : {}),
-    leaves: spec.leaves.map((leaf) => ({ ...leaf, blocks: leaf.blocks.map(upgradeBlock) })),
+    leaves: spec.leaves.map(upgradeLeaf),
   };
+}
+
+/** The id of the item a page's column of blocks is folded into. */
+export function columnId(leaf: Pick<Leaf, 'id'>): string {
+  return `${leaf.id}-column`;
+}
+
+/**
+ * A leaf, as placed items only.
+ *
+ * Leaves were a column of blocks once, and a page can still be written that way. The column
+ * becomes one 'stack' item set at the page's margins -- where the column used to sit -- and
+ * a column written again replaces the stack's contents and keeps wherever it has been moved
+ * to since. Nothing is lost: the blocks are all still there, inside the stack.
+ */
+export function upgradeLeaf(leaf: Leaf): Leaf {
+  const { blocks: raw, ...rest } = leaf;
+  const items: BoardItem[] = (leaf.items ?? []).map((item) =>
+    item.block ? { ...item, block: upgradeBlock(item.block) } : item,
+  );
+  const blocks = (raw ?? []).map(upgradeBlock);
+  if (blocks.length === 0) return { ...rest, items };
+  const id = columnId(leaf);
+  const existing = items.find((item) => item.id === id);
+  const stack: BoardItem = existing
+    ? { ...existing, block: { kind: 'stack', blocks } }
+    : {
+        id,
+        at: [LEAF_MARGIN[0], LEAF_MARGIN[1]],
+        size: [LEAF_WIDTH - LEAF_MARGIN[0] * 2],
+        z: 0,
+        block: { kind: 'stack', blocks },
+      };
+  return { ...rest, items: [stack, ...items.filter((item) => item.id !== id)] };
 }

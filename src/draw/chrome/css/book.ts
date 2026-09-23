@@ -57,8 +57,12 @@ body.on-book.live { padding-block: 76px 84px; }
 .book[data-single][data-side='verso'] .book-spread > .leaf:nth-child(2),
 .book[data-single][data-side='recto'] .book-spread > .leaf:nth-child(1) { display: none; }
 .book[data-single] .book-gutter { display: none; }
-.book[data-single] .leaf-verso { background-image: var(--paper-rule, none); }
-.book[data-single] .leaf-recto { background-image: var(--paper-rule, none); }
+.book[data-single] .leaf-verso,
+.book[data-single] .leaf-recto {
+  background-image: var(--paper-rule, none);
+  background-size: var(--paper-rule-size, auto);
+  background-repeat: repeat;
+}
 
 /* ---- the cover studio ----
 
@@ -144,4 +148,25 @@ body.on-book.live { padding-block: 76px 84px; }
   .gs-cover-stage { width: min(62vw, 300px, calc((45vh) * 0.75)); }
   .gs-cover-panel { max-height: none; }
 }
+
+/* The way into a page: a pencil in its top corner, quiet until the page is pointed at, and
+   always there on a touch screen, which has nothing to point with. */
+.gs-leaf-edit {
+  position: absolute;
+  z-index: 3;
+  inset-block-start: 10px;
+  inset-inline-end: 10px;
+  height: 30px;
+  padding-inline: 8px 10px;
+  gap: 6px;
+  background: var(--gs-paper);
+  border-color: var(--gs-line);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  font-size: var(--gs-t1);
+  opacity: 0;
+  transition: opacity var(--gs-fast) linear;
+}
+.leaf:hover .gs-leaf-edit, .gs-leaf-edit:focus-visible { opacity: 1; }
+@media (hover: none) { .gs-leaf-edit { opacity: 1; } }
+@media print { .gs-leaf-edit { display: none; } }
 `;

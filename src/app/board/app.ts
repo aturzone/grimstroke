@@ -139,7 +139,9 @@ export class BoardApp implements BoardContext {
   /** The hint on an empty sheet, shown only while there is nothing else on it. */
   private showEmpty(): void {
     const hint = document.querySelector<HTMLElement>('[data-gs="empty"]');
-    if (hint) hint.hidden = this.session.spec.items.length > 0;
+    // The hint is a slip taped to the middle of an empty board. On an empty page, the page
+    // itself says it: a blank sheet needs no note telling you it is blank.
+    if (hint) hint.hidden = this.session.spec.items.length > 0 || 'gsSheet' in this.board.dataset;
   }
 
   // ---------------------------------------------------------------- context
@@ -443,6 +445,16 @@ export class BoardApp implements BoardContext {
   /** Frame everything on the board. Named fitAll because a bare `fit` reads as
    * a focused test to the linter, which is a fair thing for it to think. */
   private fitAll(): void {
+    // A page has an edge, and "everything" on it is the whole sheet.
+    const sheet = this.board.dataset.gsSheet?.split(',').map(Number);
+    if (sheet && sheet.length === 2) {
+      // Clear of the bar above and the tray below, which would otherwise cover its edges.
+      // On a phone the width is what runs out, so the margin shrinks with it.
+      const margin = Math.min(104, window.innerWidth * 0.06);
+      this.view.frame({ x: 0, y: 0, w: sheet[0] ?? 560, h: sheet[1] ?? 790 }, margin);
+      this.showZoom();
+      return;
+    }
     const bounds = this.exporter.contentBounds();
     this.view.frame(bounds ?? { x: 0, y: 0, w: 1200, h: 800 });
     this.showZoom();

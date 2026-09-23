@@ -66,6 +66,9 @@ export function renderBlock(block: Block, ctx: Surface, place: BlockPlacement = 
       return renderSticky(block, ctx, place);
     case 'profile':
       return renderProfile(block.profile);
+    case 'stack':
+      // The column a page used to be, as one object: set as a leaf's body sets it.
+      return `<div class="stack">${block.blocks.map((one) => renderBlock(one, ctx)).join('\n')}</div>`;
     case 'divider':
       return '<hr class="block">';
     case 'spacer':

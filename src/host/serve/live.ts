@@ -11,13 +11,28 @@ import type { ServerResponse } from 'node:http';
 import { resolve } from 'node:path';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import { workspaceExtent } from '~/draw/doc/board/render.ts';
-import type { BookSpec } from '~/draw/doc/book/model.ts';
+import { type BookSpec, boundLeaves, LEAF_HEIGHT, LEAF_WIDTH } from '~/draw/doc/book/model.ts';
+import { apply as applyBook } from '~/draw/doc/book/patch.ts';
+import { renderOneLeaf } from '~/draw/doc/book/render.ts';
+import { upgradeLeaf } from '~/draw/doc/legacy.ts';
 import type { Store } from '~/host/store/store.ts';
 
 interface Client {
   res: ServerResponse;
   /** The tab it belongs to, so a tab is never sent its own patch back. */
   tab?: string | undefined;
+}
+
+/**
+ * A page of a notebook, addressed as a board: book:<notebook>:<leaf>.
+ *
+ * One address, so the board's whole machinery -- the editor, the patch API, the events, the
+ * undo stack, export -- works on a page with nothing written twice. The leaf may also be
+ * given as a page number, counted from one.
+ */
+export function pageAddress(id: string): { book: string; leaf: string } | undefined {
+  const match = /^book:([^:]+):(.+)$/.exec(id);
+  return match ? { book: match[1] as string, leaf: match[2] as string } : undefined;
 }
 
 export class Live {
@@ -37,6 +52,8 @@ export class Live {
   // ---------------------------------------------------------------- boards
 
   async board(id: string): Promise<BoardSpec> {
+    const page = pageAddress(id);
+    if (page) return this.page(page.book, page.leaf);
     /*
      * The cache is checked against the FILE, every time.
      *
@@ -81,11 +98,73 @@ export class Live {
     return spec;
   }
 
+  /** A notebook's page, as a board with an edge. */
+  async page(bookId: string, ref: string): Promise<BoardSpec> {
+    const book = await this.book(bookId);
+    const leaves = boundLeaves(book);
+    let index = leaves.findIndex((leaf) => leaf.id === ref);
+    if (index < 0 && /^\d+$/.test(ref))
+      index = Math.min(leaves.length, Math.max(1, Number(ref))) - 1;
+    const leaf = upgradeLeaf(leaves[Math.max(0, index)] ?? { id: 'blank-1', items: [] });
+    return {
+      id: `book:${book.id}:${leaf.id}`,
+      title: `${book.title ?? book.id} · page ${Math.max(0, index) + 1}`,
+      ...(book.palette ? { palette: book.palette } : {}),
+      ...(book.direction ? { direction: book.direction } : {}),
+      paper: leaf.paper ?? book.paper ?? 'ruled',
+      ...(book.grain !== undefined ? { grain: book.grain } : {}),
+      ...(book.fonts ? { fonts: book.fonts } : {}),
+      ...(book.digits ? { digits: book.digits } : {}),
+      ...(book.uppercaseLabels !== undefined ? { uppercaseLabels: book.uppercaseLabels } : {}),
+      items: leaf.items ?? [],
+      extent: [0, 0, LEAF_WIDTH, LEAF_HEIGHT],
+      version: book.version ?? 0,
+      sheet: {
+        book: book.id,
+        bookTitle: book.title ?? book.id,
+        leaf: leaf.id,
+        index: Math.max(0, index),
+        count: leaves.length,
+      },
+    };
+  }
+
   /** Hold this as the board now, and write it through. */
   async commitBoard(spec: BoardSpec): Promise<void> {
+    const page = pageAddress(spec.id);
+    if (page) {
+      await this.commitPage(page.book, page.leaf, spec);
+      return;
+    }
     this.boards.set(spec.id, spec);
     await this.store.writeBoard(spec);
     this.seen.set(spec.id, await this.store.boardStamp(spec.id));
+  }
+
+  /**
+   * A page's items, written back into its notebook -- and the notebook's viewers told, so a
+   * spread open in another tab shows the page as it now is.
+   */
+  private async commitPage(bookId: string, leafId: string, spec: BoardSpec): Promise<void> {
+    const book = await this.book(bookId);
+    const existing = book.leaves.find((leaf) => leaf.id === leafId) ?? { id: leafId };
+    const { blocks: _folded, ...leaf } = upgradeLeaf(existing);
+    const result = applyBook(book, [
+      {
+        op: 'leaf.replace',
+        leaf: { ...leaf, items: spec.items, ...(spec.paper ? { paper: spec.paper } : {}) },
+      },
+    ]);
+    await this.commitBook(result.spec);
+    const index = result.spec.leaves.findIndex((one) => one.id === leafId);
+    const drawn = index < 0 ? undefined : renderOneLeaf(result.spec, index);
+    if (drawn) this.allow(drawn.assets);
+    this.broadcast(`book:${bookId}`, 'patch', {
+      version: result.spec.version ?? 0,
+      removed: [],
+      reset: result.reset,
+      changed: drawn ? [{ id: leafId, html: drawn.html }] : [],
+    });
   }
 
   // ---------------------------------------------------------------- books

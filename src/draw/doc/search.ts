@@ -19,7 +19,7 @@
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import type { BookSpec } from '~/draw/doc/book/model.ts';
 import type { Profile } from '~/draw/material/profile/model.ts';
-import { profileText, textOf } from '~/draw/material/read.ts';
+import { leafText, profileText, textOf } from '~/draw/material/read.ts';
 
 export type HitKind = 'board' | 'notebook' | 'archive' | 'person';
 
@@ -224,7 +224,7 @@ export function search(docs: Searchable, query: string, limit = 40): Hit[] {
       );
     }
     book.leaves.forEach((leaf, index) => {
-      const text = leaf.blocks.flatMap(textOf).filter(Boolean).join(' — ');
+      const text = leafText(leaf).filter(Boolean).join(' — ');
       const s = score(text, words, phrase, 3);
       if (!s) return;
       add(

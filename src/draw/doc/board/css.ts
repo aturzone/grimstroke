@@ -41,50 +41,50 @@ body.on-board { background: var(--paper); }
   opacity: var(--grain-opacity, 0);
 }
 
-.board .item {
+:is(.board, .leaf-items) .item {
   position: absolute;
   transform-origin: 50% 50%;
 }
 /* Only a turned item carries a transform. A rotate(0) is still a transform, and every
    transform is its own stacking context and composited plane -- on a board of two thousand
    things, that is two thousand planes holding nothing that moves. */
-.board .item[data-gs-rotation],
-.board .stroke[data-gs-rotation] { transform: rotate(var(--tilt, 0deg)); }
+:is(.board, .leaf-items) .item[data-gs-rotation],
+:is(.board, .leaf-items) .stroke[data-gs-rotation] { transform: rotate(var(--tilt, 0deg)); }
 
 /* An item is placed, so the margins a block uses to space itself from its
    neighbours in a column are wrong here -- they offset it from where it was
    put, which on a plane is simply the wrong position. */
-.board .item > .block { margin: 0; }
-/* A face on a board is as wide as its item, so resizing the item resizes the face. */
-.board .item > .face-art { width: 100%; height: auto; }
+:is(.board, .leaf-items) .item > .block { margin: 0; }
+/* A card is as wide as its item, so resizing the item resizes the card. */
+:is(.board, .leaf-items) .item > .profile { max-width: none; }
 
 /* Ink.
 
    A zero-sized box at the stroke's own origin with overflow visible, and no
    viewBox: a viewBox would scale the path, and a stroke that changes shape
    when its bounding box is recomputed is not the stroke that was drawn. */
-.board .stroke {
+:is(.board, .leaf-items) .stroke {
   position: absolute;
   width: 0;
   height: 0;
   overflow: visible;
   pointer-events: none;
 }
-.board .stroke.line path {
+:is(.board, .leaf-items) .stroke.line path {
   fill: none;
   stroke: var(--stroke, var(--ink));
   stroke-width: var(--stroke-weight, 3px);
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.board .stroke.fill path {
+:is(.board, .leaf-items) .stroke.fill path {
   fill: var(--stroke, var(--accent));
   stroke: none;
 }
 
 /* A highlighter multiplies and a pencil is never quite opaque. A marker is
    flat and full strength, which is what makes it a marker. */
-.board .stroke.tool-highlighter path { opacity: 0.38; mix-blend-mode: multiply; }
-.board .stroke.tool-pencil path { opacity: 0.72; }
-.board .stroke.tool-marker path { opacity: 1; }
+:is(.board, .leaf-items) .stroke.tool-highlighter path { opacity: 0.38; mix-blend-mode: multiply; }
+:is(.board, .leaf-items) .stroke.tool-pencil path { opacity: 0.72; }
+:is(.board, .leaf-items) .stroke.tool-marker path { opacity: 1; }
 `;

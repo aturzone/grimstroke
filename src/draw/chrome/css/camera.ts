@@ -89,4 +89,28 @@ body.live {
 .live .board { background: none; }
 .live .board::before { display: none; }
 
+/* A page of a notebook, opened as a board: a sheet with an edge, lying on the desk, ruled
+   the way its leaf is. Everything else about it is the board. One page is small, so the
+   shadow here is an ordinary hard box-shadow -- it is the ten-thousand-pixel board that
+   could not afford one. */
+.live.on-page .viewport { background-color: var(--desk); }
+.live.on-page .viewport::before { display: none; }
+.live.on-page .board {
+  background-color: var(--paper);
+  background-image: var(--paper-rule, none);
+  background-size: var(--paper-rule-size, auto);
+  box-shadow: 10px 12px 0 rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+.live.on-page .board::before { display: block; opacity: 0.13; }
+.gs-page-nav { display: flex; align-items: center; gap: 2px; }
+.gs-page-no {
+  min-width: 64px;
+  font-family: var(--mono-font);
+  font-size: var(--gs-t1);
+  text-align: center;
+  color: var(--gs-soft);
+  white-space: nowrap;
+}
+
 `;

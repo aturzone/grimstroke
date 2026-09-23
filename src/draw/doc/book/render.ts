@@ -15,18 +15,19 @@
  * PDF. An image of a book would be none of those things.
  */
 
+import { renderItem } from '~/draw/doc/board/render.ts';
 import type { BookSpec, Cover, Leaf, Sticker } from '~/draw/doc/book/model.ts';
 import { boundLeaves, LEAF_HEIGHT, LEAF_WIDTH, spineWidth } from '~/draw/doc/book/model.ts';
 import { renderHead } from '~/draw/doc/head.ts';
+import { upgradeLeaf } from '~/draw/doc/legacy.ts';
 import type { RenderedPage } from '~/draw/doc/model.ts';
 import { type Surface, servedPath, surface } from '~/draw/doc/surface.ts';
 import { textOn } from '~/draw/look/colour.ts';
 import { ruling } from '~/draw/look/grid.ts';
 import { Rng } from '~/draw/look/rng.ts';
-import { renderBlock } from '~/draw/material/block.ts';
 import { halftoneDefs } from '~/draw/material/note/render.ts';
 import { renderPortrait, renderProfile } from '~/draw/material/profile/render.ts';
-import { ARABIC, textOfAll } from '~/draw/material/read.ts';
+import { ARABIC, leafText } from '~/draw/material/read.ts';
 import { escapeHtml, inline, label } from '~/draw/type/text.ts';
 
 export interface BookRenderOptions {
@@ -307,14 +308,20 @@ function renderLeaf(
     rule.image ? `--paper-rule:${rule.image}` : '--paper-rule:none',
     `--paper-rule-size:${rule.size || 'auto'}`,
   ].join(';');
-  const blocks = leaf.blocks.map((block) => renderBlock(block, ctx)).join('\n');
+  // Placed, as on a board: each item at its own position from the page's corner, drawn by
+  // the board's own renderItem, in paint order.
+  const items = [...(upgradeLeaf(leaf).items ?? [])]
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => (a.item.z ?? 0) - (b.item.z ?? 0) || a.index - b.index)
+    .map(({ item }) => renderItem(item, 0, 0, ctx))
+    .join('\n');
   // Blank leaves still carry a number. Finding your place in a notebook is the
   // whole reason the numbers are there, and an unwritten page is still a place.
   const folio = `<span class="leaf-folio">${label(String(number + 1), false)}</span>`;
   return (
     `<div class="leaf leaf-${side}" data-gs="leaf" data-gs-id="${escapeHtml(leaf.id)}" ` +
     `data-gs-index="${number}" style="${style}">` +
-    `<div class="leaf-body">${blocks}</div>${folio}</div>`
+    `<div class="leaf-items">${items}</div>${folio}</div>`
   );
 }
 
@@ -324,7 +331,7 @@ function collectText(spec: BookSpec): string {
     spec.cover?.title ?? '',
     spec.cover?.spine ?? '',
     ...(spec.cover?.stickers ?? []).map((sticker) => sticker.text ?? ''),
-    ...spec.leaves.map((leaf) => textOfAll(leaf.blocks)),
+    ...spec.leaves.map((leaf) => leafText(leaf).join(' ')),
   ].join(' ');
 }
 

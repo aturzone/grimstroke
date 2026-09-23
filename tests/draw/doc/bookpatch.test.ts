@@ -87,3 +87,53 @@ describe('patching a notebook', () => {
     expect(apply(base(), [{ op: 'book', patch: { title: 'x' } }]).spec.version).toBe(1);
   });
 });
+
+describe('a page is a small board', () => {
+  const book = (): BookSpec => ({
+    id: 'b',
+    minLeaves: 10,
+    leaves: [{ id: 'l1', blocks: [{ kind: 'heading', text: 'Tuesday' }] }],
+  });
+  const note = {
+    id: 'n',
+    at: [100, 200] as [number, number],
+    block: { kind: 'note' as const, text: 'hi' },
+  };
+
+  it('folds a column of blocks into one stack at the margins', () => {
+    const { spec } = apply(book(), [{ op: 'leaf.items', id: 'l1', ops: [] }]);
+    const [stack] = spec.leaves[0]?.items ?? [];
+    expect(stack).toMatchObject({ id: 'l1-column', at: [40, 44], block: { kind: 'stack' } });
+    expect(spec.leaves[0]?.blocks).toBeUndefined();
+  });
+
+  it('takes the board vocabulary, and undoes it', () => {
+    const start = apply(book(), [{ op: 'leaf.items', id: 'l1', ops: [] }]).spec;
+    const ops = [
+      { op: 'leaf.items' as const, id: 'l1', ops: [{ op: 'add' as const, item: note }] },
+    ];
+    const added = apply(start, ops).spec;
+    expect(added.leaves[0]?.items?.map((item) => item.id)).toEqual(['l1-column', 'n']);
+    const moved = apply(added, [
+      { op: 'leaf.items', id: 'l1', ops: [{ op: 'move', id: 'n', at: [5, 6] }] },
+    ]).spec;
+    expect(moved.leaves[0]?.items?.[1]?.at).toEqual([5, 6]);
+    const back = apply(added, invert(start, ops)).spec;
+    expect(back.leaves[0]?.items?.map((item) => item.id)).toEqual(['l1-column']);
+  });
+
+  it('writes the blank pages up to one that is written on', () => {
+    const { spec } = apply(book(), [
+      { op: 'leaf.items', id: 'blank-4', ops: [{ op: 'add', item: note }] },
+    ]);
+    expect(spec.leaves.map((leaf) => leaf.id)).toEqual(['l1', 'blank-2', 'blank-3', 'blank-4']);
+    expect(spec.leaves[3]?.items?.[0]?.id).toBe('n');
+  });
+
+  it('refuses a page that is not there, in the board words', () => {
+    expect(() => apply(book(), [{ op: 'leaf.items', id: 'nope', ops: [] }])).toThrow(/no leaf/);
+    expect(() =>
+      apply(book(), [{ op: 'leaf.items', id: 'l1', ops: [{ op: 'remove', id: 'ghost' }] }]),
+    ).toThrow(BookPatchError);
+  });
+});

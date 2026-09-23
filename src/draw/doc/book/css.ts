@@ -68,16 +68,23 @@ body.on-book { display: grid; place-content: center; }
 /* The curve into the binding. Paper does not lie flat next to a spine, and the
    shadow that falls into the gutter is most of what says these two leaves are
    joined rather than adjacent. */
+/* The gradient is its own layer with its own size. Given only the ruling's size, it took that
+   size too and repeated every 28 pixels across the page -- a column of shadow per rule, which
+   turned every lined notebook into squared paper. */
 .leaf-verso {
   background-image:
     linear-gradient(to left, rgba(0, 0, 0, 0.19), rgba(0, 0, 0, 0) 9%),
     var(--paper-rule, none);
+  background-size: 100% 100%, var(--paper-rule-size, auto);
+  background-repeat: no-repeat, repeat;
   box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.1);
 }
 .leaf-recto {
   background-image:
     linear-gradient(to right, rgba(0, 0, 0, 0.19), rgba(0, 0, 0, 0) 9%),
     var(--paper-rule, none);
+  background-size: 100% 100%, var(--paper-rule-size, auto);
+  background-repeat: no-repeat, repeat;
 }
 /* Paper tooth, the same translucent tile as a sticky note's. A leaf is paper; the
    only reason it is not torn is that it was cut, not ripped. */
@@ -94,12 +101,17 @@ body.on-book { display: grid; place-content: center; }
 .leaf > * { position: relative; z-index: 1; }
 .leaf-absent { background: none; }
 .leaf-absent::after { display: none; }
-.leaf-body > .block:first-child { margin-block-start: 0; }
+/* What is on a page is placed from its corner, as on a board: the layer covers the whole
+   leaf, padding and all, so an item at (40, 44) sits where the old column started. */
+.leaf > .leaf-items { position: absolute; inset: 0; z-index: 1; }
+/* A column written to a page, as one object: the rhythm a leaf's body always had. */
+.stack > .block:first-child { margin-block-start: 0; }
+.stack .note .actions, .stack .note .grips { display: none; }
+.stack > .note { margin-block: 26px 6px; }
 /* A note bound into a leaf is printed there: its toolbar would be six buttons that do
    nothing, and its tape reaches up past its own top, so it keeps clear of the line above. */
 .leaf .note .actions, .leaf .note .grips { display: none; }
 .leaf .note .handle { justify-content: flex-start; }
-.leaf-body > .note { margin-block: 26px 6px; }
 .leaf-folio {
   position: absolute;
   inset-block-end: 20px;

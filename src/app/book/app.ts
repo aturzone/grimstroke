@@ -325,6 +325,38 @@ export class BookApp {
       if (event.key === 'End') void this.goto(this.leaves.length - 1);
     });
 
+    /*
+     * A page is opened to be worked on: double-click it, or its pencil. Every tool the board
+     * has is there -- notes, pictures, ink, the eraser, moving, turning, grouping -- on a
+     * sheet the size of the page. The spread is for reading and turning.
+     */
+    const edit = (leaf: HTMLElement | null): void => {
+      const leafId = leaf?.dataset.gsId;
+      if (!leafId) return;
+      window.location.href = `/page?book=${encodeURIComponent(this.session.spec.id)}&leaf=${encodeURIComponent(leafId)}`;
+    };
+    this.book.addEventListener('dblclick', (event) => {
+      edit((event.target as HTMLElement).closest<HTMLElement>('[data-gs="leaf"]'));
+    });
+    const decorate = (): void => {
+      for (const leaf of this.book.querySelectorAll<HTMLElement>('[data-gs="leaf"]')) {
+        if (leaf.querySelector('.gs-leaf-edit')) continue;
+        const pen = document.createElement('button');
+        pen.type = 'button';
+        pen.className = 'gs-btn gs-leaf-edit';
+        pen.setAttribute('aria-label', 'work on this page');
+        pen.innerHTML = PENCIL;
+        pen.addEventListener('click', (event) => {
+          event.stopPropagation();
+          edit(leaf);
+        });
+        leaf.append(pen);
+      }
+    };
+    decorate();
+    // Leaves are replaced as pages turn and as edits arrive; each new one gets its pencil.
+    new MutationObserver(decorate).observe(this.book, { childList: true, subtree: true });
+
     // Clicking the outer edge of a leaf turns it, as it would if you reached
     // for the corner of a real one.
     this.book.addEventListener('click', (event) => {
@@ -356,7 +388,7 @@ export class BookApp {
 
   private addLeaf(): void {
     const id = `leaf-${Date.now().toString(36)}`;
-    this.session.run([{ op: 'leaf.add', leaf: { id, blocks: [] } }], '');
+    this.session.run([{ op: 'leaf.add', leaf: { id, items: [] } }], '');
     toast('a blank leaf was added at the end');
   }
 
@@ -403,7 +435,7 @@ export class BookApp {
         number.textContent = String(index + 1);
         const hint = document.createElement('span');
         hint.className = 'page-hint';
-        hint.textContent = describe(leaf.blocks.length);
+        hint.textContent = describe((leaf.items?.length ?? 0) + (leaf.blocks?.length ?? 0));
         cell.append(number, hint);
         cell.addEventListener('click', (event) => {
           if (event.shiftKey || event.metaKey || event.ctrlKey) {
@@ -443,9 +475,14 @@ export class BookApp {
 }
 
 /** What a leaf has on it, in words. */
+/** The pencil on a page, with its words: it is the way into the page, so it says so. */
+const PENCIL =
+  '<svg class="gs-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 L5.6 14.8 L16.2 4.2 ' +
+  'L19.8 7.8 L9.2 18.4 Z M14 6.4 L17.6 10"/></svg><span class="gs-btn-text">work on this page</span>';
+
 function describe(blocks: number): string {
   if (blocks === 0) return 'blank';
-  return blocks === 1 ? '1 block' : `${blocks} blocks`;
+  return blocks === 1 ? '1 thing' : `${blocks} things`;
 }
 
 export async function bootBook(): Promise<BookApp> {

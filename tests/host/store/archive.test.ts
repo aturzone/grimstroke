@@ -210,7 +210,11 @@ describe('what the character studio left behind', () => {
     const book = await store.readBook('old');
     expect(book?.cover?.profile?.name).toBe('Rio');
     expect(book?.cover?.stickers).toEqual([]);
-    expect(book?.leaves[0]?.blocks[0]).toMatchObject({ kind: 'profile' });
+    // A page written as a column is one stack of blocks now, placed at the margins.
+    expect(book?.leaves[0]?.items?.[0]?.block).toMatchObject({
+      kind: 'stack',
+      blocks: [{ kind: 'profile' }],
+    });
   });
 
   it('reads an archive of characters as a profile', () => {

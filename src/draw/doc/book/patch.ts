@@ -13,7 +13,20 @@
  * the old one, and a test check a sequence of edits with nothing running.
  */
 
-import type { BookSpec, Cover, Leaf, Sticker } from '~/draw/doc/book/model.ts';
+import {
+  apply as applyItems,
+  type Op as ItemOp,
+  invert as invertItems,
+  PatchError,
+} from '~/draw/doc/board/patch.ts';
+import {
+  type BookSpec,
+  blankLeaf,
+  type Cover,
+  type Leaf,
+  type Sticker,
+} from '~/draw/doc/book/model.ts';
+import { upgradeLeaf } from '~/draw/doc/legacy.ts';
 import type { Block } from '~/draw/material/model.ts';
 
 /**
@@ -39,6 +52,14 @@ export type BookOp =
    */
   | { op: 'leaf.move'; ids: string[]; to: number }
   | { op: 'leaf.blocks'; id: string; blocks: Block[] }
+  /**
+   * Change what is placed on one page, in the board's own vocabulary: add, move, update,
+   * remove, order. A page is a small board, and there is one way to move a thing on either.
+   * A leaf id past the last written page ('blank-12') writes the pages up to it.
+   */
+  | { op: 'leaf.items'; id: string; ops: ItemOp[] }
+  /** Put one leaf back exactly as it was. What undoing a change to a whole page records. */
+  | { op: 'leaf.replace'; leaf: Leaf }
   | { op: 'cover'; patch: Loose<Cover> }
   | { op: 'sticker.add'; sticker: Sticker }
   | { op: 'sticker.update'; id: string; patch: Loose<Omit<Sticker, 'id'>> }
@@ -84,6 +105,27 @@ export function apply(spec: BookSpec, ops: readonly BookOp[]): BookPatchResult {
     return at;
   };
 
+  /**
+   * A leaf by id, writing the blank pages up to it if it is one of them.
+   *
+   * A notebook shows forty pages before anything is written on them, and those pages are
+   * named 'blank-N' until they are. Writing on page thirty is writing pages one to thirty
+   * into the book, the ones between empty.
+   */
+  const reach = (id: string): number => {
+    const at = book.leaves.findIndex((leaf) => leaf.id === id);
+    if (at >= 0) return at;
+    const blank = /^blank-(\d+)$/.exec(id);
+    const number = blank ? Number(blank[1]) : 0;
+    if (!blank || number < book.leaves.length + 1 || number > Math.max(book.minLeaves ?? 0, 2000)) {
+      throw new BookPatchError(`no leaf ${JSON.stringify(id)} in this notebook`);
+    }
+    for (let n = book.leaves.length + 1; n <= number; n += 1)
+      book.leaves.push(blankLeaf(`blank-${n}`));
+    reset = true;
+    return book.leaves.length - 1;
+  };
+
   for (const op of ops) {
     switch (op.op) {
       case 'leaf.add': {
@@ -92,7 +134,7 @@ export function apply(spec: BookSpec, ops: readonly BookOp[]): BookPatchResult {
           throw new BookPatchError(`leaf ${JSON.stringify(op.leaf.id)} is already bound in`);
         }
         const at = op.at ?? book.leaves.length;
-        book.leaves.splice(Math.max(0, Math.min(at, book.leaves.length)), 0, op.leaf);
+        book.leaves.splice(Math.max(0, Math.min(at, book.leaves.length)), 0, upgradeLeaf(op.leaf));
         touch(op.leaf.id);
         reset = true;
         break;
@@ -117,9 +159,29 @@ export function apply(spec: BookSpec, ops: readonly BookOp[]): BookPatchResult {
         break;
       }
       case 'leaf.blocks': {
-        const at = find(op.id);
-        book.leaves[at] = { ...(book.leaves[at] as Leaf), blocks: op.blocks };
+        const at = reach(op.id);
+        book.leaves[at] = upgradeLeaf({ ...(book.leaves[at] as Leaf), blocks: op.blocks });
         touch(op.id);
+        break;
+      }
+      case 'leaf.items': {
+        const at = reach(op.id);
+        // A column written the old way is folded first, so the page is one list of items.
+        const leaf = upgradeLeaf(book.leaves[at] as Leaf);
+        try {
+          const placed = applyItems({ id: leaf.id, items: leaf.items ?? [] }, op.ops);
+          book.leaves[at] = { ...leaf, items: placed.spec.items };
+        } catch (error) {
+          if (error instanceof PatchError) throw new BookPatchError(error.message);
+          throw error;
+        }
+        touch(op.id);
+        break;
+      }
+      case 'leaf.replace': {
+        const at = reach(op.leaf.id);
+        book.leaves[at] = upgradeLeaf(op.leaf);
+        touch(op.leaf.id);
         break;
       }
       case 'cover': {
@@ -200,9 +262,20 @@ export function invert(spec: BookSpec, ops: readonly BookOp[]): BookOp[] {
         if (first >= 0) back.push({ op: 'leaf.move', ids: [...op.ids], to: first });
         break;
       }
-      case 'leaf.blocks': {
+      case 'leaf.blocks':
+      case 'leaf.replace': {
+        const id = op.op === 'leaf.blocks' ? op.id : op.leaf.id;
+        const leaf = current.leaves.find((candidate) => candidate.id === id);
+        back.push(leaf ? { op: 'leaf.replace', leaf } : { op: 'leaf.remove', id });
+        break;
+      }
+      case 'leaf.items': {
         const leaf = current.leaves.find((candidate) => candidate.id === op.id);
-        if (leaf) back.push({ op: 'leaf.blocks', id: op.id, blocks: leaf.blocks });
+        const items = invertItems(
+          { id: op.id, items: leaf ? (upgradeLeaf(leaf).items ?? []) : [] },
+          op.ops,
+        );
+        back.push({ op: 'leaf.items', id: op.id, ops: items });
         break;
       }
       case 'cover': {

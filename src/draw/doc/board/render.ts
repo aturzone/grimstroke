@@ -135,18 +135,21 @@ export function renderBoard(spec: BoardSpec, options: BoardRenderOptions = {}): 
   const boardHtml = [
     halftoneDefs(),
     `<div class="board" data-gs="board" data-gs-id="${escapeHtml(spec.id)}" ` +
-      `data-gs-origin="${ox},${oy}" data-gs-version="${spec.version ?? 0}">`,
+      `data-gs-origin="${ox},${oy}" data-gs-version="${spec.version ?? 0}"` +
+      (spec.sheet ? ` data-gs-sheet="${width},${height}"` : '') +
+      '>',
     drawn,
     '</div>',
   ].join('\n');
 
   const body = live
     ? [
-        '<body class="on-board live">',
+        spec.sheet ? '<body class="on-board on-page live">' : '<body class="on-board live">',
         '<div class="viewport" data-gs="viewport">',
         // The ruling, drawn in SCREEN space. See the stylesheet: a grid inside the scaled
-        // board is resampled by the transform and comes out as plaid.
-        '<div class="gs-rule" data-gs="rule" aria-hidden="true"></div>',
+        // board is resampled by the transform and comes out as plaid. A page has an edge and
+        // carries its own ruling, the way a leaf in the notebook does.
+        spec.sheet ? '' : '<div class="gs-rule" data-gs="rule" aria-hidden="true"></div>',
         boardHtml,
         '</div>',
         live.chrome ?? '',
@@ -198,7 +201,8 @@ export function renderOneItem(
   return { html: renderItem(item, ox, oy, ctx), assets: ctx.assets };
 }
 
-function renderItem(
+/** One placed item, as HTML, relative to an origin. A leaf draws its items through this too. */
+export function renderItem(
   item: BoardItem,
   ox: number,
   oy: number,

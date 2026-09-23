@@ -151,6 +151,11 @@ export type Block =
    * profile has been redrawn. A card is a record of who it was, when it was put there.
    */
   | { kind: 'profile'; profile: Profile }
+  /**
+   * A column of blocks as one object: what a page written as a column becomes when it is
+   * laid on a sheet where everything else is placed. It moves and resizes as one.
+   */
+  | { kind: 'stack'; blocks: Block[] }
   | { kind: 'divider' }
   | { kind: 'spacer'; size?: number };
 
