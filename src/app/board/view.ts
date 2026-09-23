@@ -59,8 +59,8 @@ export class View {
   private onChange: (() => void) | undefined;
   private pending = 0;
   private box: DOMRect;
-  /** The sheet's size in board units. Pinned when the page is served, so read once. */
-  private readonly sheet: { w: number; h: number };
+  /** The sheet's size in board units. Read once, and changed only by resize(). */
+  private sheet: { w: number; h: number };
   private readonly rule: { wrap: HTMLElement; tile: HTMLElement } | undefined;
   private readonly shadow: HTMLElement | null;
   private readonly base: { fine: number; coarse: number };
@@ -97,6 +97,15 @@ export class View {
     };
     window.addEventListener('resize', measure);
     new ResizeObserver(measure).observe(viewport);
+  }
+
+  /** The sheet grew. Its origin did not -- a page whose origin moved is re-served instead. */
+  resize(w: number, h: number): void {
+    const root = document.documentElement.style;
+    root.setProperty('--board-width', `${w}px`);
+    root.setProperty('--board-height', `${h}px`);
+    this.sheet = { w, h };
+    this.schedule();
   }
 
   watch(fn: () => void): void {

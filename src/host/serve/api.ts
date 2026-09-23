@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 import { extname, join } from 'node:path';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import { apply, type Op, PatchError, topZ } from '~/draw/doc/board/patch.ts';
-import { extentOf, renderBoard, renderOneItem } from '~/draw/doc/board/render.ts';
+import { extentOf, grownExtent, renderBoard, renderOneItem } from '~/draw/doc/board/render.ts';
 import { apply as applyBook, type BookOp, BookPatchError } from '~/draw/doc/book/patch.ts';
 import { renderCover, renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { search } from '~/draw/doc/search.ts';
@@ -296,6 +296,9 @@ async function patchBoard(ask: Ask, live: Live, id: string, ops: Op[]): Promise<
     });
     return;
   }
+  // Something went near the edge of the sheet: the sheet grows, and every page is told.
+  const grown = grownExtent(result.spec);
+  if (grown) result.spec.extent = grown;
   await live.commitBoard(result.spec);
 
   /*
@@ -323,6 +326,7 @@ async function patchBoard(ask: Ask, live: Live, id: string, ops: Op[]): Promise<
         if (drawn) live.allow(drawn.assets);
         return { id: itemId, html: drawn?.html ?? '' };
       }),
+    ...(grown ? { extent: grown } : {}),
   };
   send(ask.res, 200, payload);
   live.broadcast(`board:${id}`, 'patch', payload, header(ask.req, 'x-grimstroke-client'));

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { board } from '~/draw/doc/board/build.ts';
-import { extentOf } from '~/draw/doc/board/render.ts';
+import type { BoardSpec } from '~/draw/doc/board/model.ts';
+import { extentOf, grownExtent, WORKSPACE_EDGE } from '~/draw/doc/board/render.ts';
 import { UI } from '../../fixtures/index.ts';
 
 /** The style attribute of the first placed item, which is where placement actually lives. */
@@ -102,5 +103,35 @@ describe('the board', () => {
     const again = JSON.parse(JSON.stringify(b));
     expect(again.items[0].at).toEqual([4, 5]);
     expect(again.palette).toBe('studio');
+  });
+});
+
+describe('a sheet that grows', () => {
+  const note = (id: string, at: [number, number]) => ({
+    id,
+    at,
+    size: [200, 200] as [number, number],
+    block: { kind: 'note' as const, text: id },
+  });
+  const spec = (items: BoardSpec['items']): BoardSpec => ({
+    id: 'b',
+    extent: [-900, -900, 2800, 2400],
+    items,
+  });
+
+  it('stays as it is while everything fits', () => {
+    expect(grownExtent(spec([note('a', [0, 0])]))).toBeUndefined();
+  });
+
+  it('grows right without moving the origin', () => {
+    const grown = grownExtent(spec([note('a', [0, 0]), note('b', [1800, 0])]));
+    expect(grown?.[0]).toBe(-900);
+    expect(grown?.[1]).toBe(-900);
+    expect((grown?.[0] ?? 0) + (grown?.[2] ?? 0)).toBeGreaterThan(1800 + 200 + WORKSPACE_EDGE);
+  });
+
+  it('moves the origin when it grows left', () => {
+    const grown = grownExtent(spec([note('a', [-800, 0])]));
+    expect(grown?.[0]).toBeLessThan(-900);
   });
 });

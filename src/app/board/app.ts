@@ -223,6 +223,15 @@ export class BoardApp implements BoardContext {
   // ---------------------------------------------------------------- updates
 
   private absorb(reply: PatchReply): void {
+    if (reply.extent) {
+      const [x, y, w, h] = reply.extent;
+      if (x !== this.view.origin.x || y !== this.view.origin.y) {
+        // Every position on the page is relative to the old origin. Get a page with the new one.
+        window.location.reload();
+        return;
+      }
+      this.view.resize(w, h);
+    }
     for (const id of reply.removed) {
       this.element(id)?.remove();
       this.selection.drop(id);
