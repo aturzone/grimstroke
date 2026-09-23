@@ -10,14 +10,12 @@
 
 import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { exportPage } from '~/export/playwright.ts';
-import { page } from '~/notebook.ts';
+import { page } from '~/draw/doc/page/build.ts';
+import { exportPage } from '~/host/export.ts';
+import { DEVICE } from '../fixtures/index.ts';
 
-const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
-const DEVICE = join(FIXTURES, 'device.png');
 const PLATE = [18, 32, 64] as const;
 
 let available = false;

@@ -15,7 +15,7 @@
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, extname, resolve as resolvePath } from 'node:path';
-import type { RenderedPage } from '~/types.ts';
+import type { RenderedPage } from '~/draw/doc/model.ts';
 
 const ORIGIN = 'http://grimstroke.local';
 
@@ -86,6 +86,7 @@ interface RouteLike {
 interface PageLike {
   goto(url: string, options: { waitUntil: 'load' }): Promise<unknown>;
   evaluate(fn: () => unknown): Promise<unknown>;
+  evaluate(fn: (arg: string) => unknown, arg: string): Promise<unknown>;
   $(selector: string): Promise<ElementLike | null>;
 }
 
@@ -153,6 +154,12 @@ export async function exportPages(
       // which looks like a font bug in whatever is being documented.
       await tab.evaluate(() => document.fonts.ready);
 
+      // A board does not know its own size: the height of a note is whatever
+      // its text turned out to need, which nothing outside a browser can say.
+      // Measuring beats estimating -- an estimate that is low clips the bottom
+      // off a note and the export looks like the note was written that way.
+      if (job.page.autofit) await fitToContent(tab, job.page.selector);
+
       const element = await tab.$(job.page.selector);
       if (!element) {
         await context.close();
@@ -180,6 +187,32 @@ export async function exportPages(
     await browser.close();
   }
   return results;
+}
+
+/**
+ * Grow the captured element to contain everything inside it.
+ *
+ * Children are absolutely positioned, so they contribute nothing to their
+ * parent's size and anything past the declared extent is simply cut off. This
+ * measures the real union and writes it back before the screenshot.
+ */
+async function fitToContent(tab: PageLike, selector: string): Promise<void> {
+  await tab.evaluate((sel: string) => {
+    const root = document.querySelector(sel);
+    if (!(root instanceof HTMLElement)) return;
+    const base = root.getBoundingClientRect();
+    let right = base.width;
+    let bottom = base.height;
+    for (const child of Array.from(root.children)) {
+      const box = child.getBoundingClientRect();
+      right = Math.max(right, box.right - base.left);
+      bottom = Math.max(bottom, box.bottom - base.top);
+    }
+    // Only ever grows. Shrinking to the content would crop the margin the
+    // document asked for, which is part of how it is meant to look.
+    root.style.width = `${Math.ceil(Math.max(base.width, right))}px`;
+    root.style.height = `${Math.ceil(Math.max(base.height, bottom))}px`;
+  }, selector);
 }
 
 export async function exportPage(

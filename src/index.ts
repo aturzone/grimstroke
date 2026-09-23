@@ -17,43 +17,126 @@
  *
  * render() is pure and needs no browser. Export is optional and so is the
  * browser it needs.
+ *
+ * This file is the whole export surface. Everything below it is arranged as a
+ * tree -- draw/ is pure, host/ touches the outside world -- and nothing outside
+ * this file is part of the public API, so the tree can be rearranged without
+ * breaking a caller.
  */
 
-export { tapeStrip, tornClipPath, tornPath } from '~/art/paper.ts';
-export { hashString, Rng } from '~/art/prng.ts';
-export type { ExportOptions, ExportResult } from '~/export/playwright.ts';
-export { exportPage, exportPages } from '~/export/playwright.ts';
-export { Notebook, notebook, Page, page } from '~/notebook.ts';
-export { CoordinateError, resolve as resolveRect } from '~/render/coords.ts';
-export { describeGaps, missingGlyphs } from '~/render/coverage.ts';
-export { renderPage } from '~/render/document.ts';
-export { setFontDirectory } from '~/render/fonts.ts';
-export { imageSize } from '~/render/probe.ts';
-export { redactImage, isRedacted } from '~/render/redact.ts';
-export type { RedactOptions, RedactResult } from '~/render/redact.ts';
-export type { Palette } from '~/theme/palette.ts';
+// -- draw/board: the workspace ----------------------------------------
+export type { Placement } from '~/draw/doc/board/build.ts';
+export { Board, board } from '~/draw/doc/board/build.ts';
+export type { BoardItem, BoardSpec, Ink, InkTool } from '~/draw/doc/board/model.ts';
+export { ITEM_HEIGHT, ITEM_MAX_WIDTH, ITEM_WIDTH } from '~/draw/doc/board/model.ts';
+export type { Op, PatchResult } from '~/draw/doc/board/patch.ts';
 export {
+  apply as applyPatch,
+  invert as invertPatch,
+  PatchError,
+  topZ,
+} from '~/draw/doc/board/patch.ts';
+export type { BoardRenderOptions } from '~/draw/doc/board/render.ts';
+export {
+  extentOf,
+  renderBoard,
+  renderOneItem,
+  WORKSPACE_PAD,
+  workspaceExtent,
+} from '~/draw/doc/board/render.ts';
+// -- draw/book: the notebook ------------------------------------------
+export type { BookSpec, Cover, CoverMaterial, Leaf, Sticker } from '~/draw/doc/book/model.ts';
+export {
+  blankLeaf,
+  boundLeaves,
+  isFull,
+  LEAF_HEIGHT,
+  LEAF_WIDTH,
+  MATERIALS,
+  spineWidth,
+} from '~/draw/doc/book/model.ts';
+export type { BookRenderOptions } from '~/draw/doc/book/render.ts';
+export {
+  renderBook3d,
+  renderCover,
+  renderShelf,
+  renderSpread,
+  shelfLean,
+} from '~/draw/doc/book/render.ts';
+// -- draw/doc: what every document shares -----------------------------
+export type { Direction, RenderedPage } from '~/draw/doc/model.ts';
+// -- draw/page: the document ------------------------------------------
+export { Notebook, notebook, Page, page } from '~/draw/doc/page/build.ts';
+export type { Chip, NotebookSpec, PageSpec } from '~/draw/doc/page/model.ts';
+export { renderPage } from '~/draw/doc/page/render.ts';
+// -- draw/look: the visual vocabulary ---------------------------------
+export { contrast, luminance, rgb, textOn } from '~/draw/look/colour.ts';
+export type { Frame, FrameKind, FrameOptions, PlacedTape } from '~/draw/look/frame.ts';
+export { FRAMES, frame } from '~/draw/look/frame.ts';
+export type { GrainOptions } from '~/draw/look/grain.ts';
+export { grain, grainPixels } from '~/draw/look/grain.ts';
+export type { PaperKind, Ruling, RulingOptions } from '~/draw/look/grid.ts';
+export { PAPERS, ruling } from '~/draw/look/grid.ts';
+export type { Arrow, EllipseOptions, HandOptions } from '~/draw/look/hand.ts';
+export {
+  handArrow,
+  handBracket,
+  handCurve,
+  handEllipse,
+  handLine,
+  handSwipe,
+  handUnderline,
+  smooth,
+} from '~/draw/look/hand.ts';
+export type { Palette } from '~/draw/look/palette.ts';
+export {
+  BODY_FLOOR,
+  CHIP_FLOOR,
   check as checkPalette,
-  contrast,
   customPalette,
   DEFAULT_PALETTE,
   PALETTES,
   palette,
-  textOn,
-} from '~/theme/palette.ts';
+} from '~/draw/look/palette.ts';
+export type { Point, Tape, TornOptions } from '~/draw/look/paper.ts';
+export {
+  CURL_LEVELS,
+  curlPath,
+  tapeStrip,
+  tornClipPath,
+  tornRectPath,
+  tornRectPoints,
+} from '~/draw/look/paper.ts';
+export type { Raster } from '~/draw/look/png.ts';
+export { decodePng, encodePng } from '~/draw/look/png.ts';
+export { hashString, mulberry32, Rng, seedFrom } from '~/draw/look/rng.ts';
+// -- draw/material: what can be put down ------------------------------
 export type {
   Block,
-  Chip,
-  Direction,
   ImageSource,
+  LabelTone,
   Mark,
   MarkKind,
-  NotebookSpec,
-  PageSpec,
   Rect,
   RectRef,
   RedactStyle,
-  RenderedPage,
+  Side,
   Space,
   ZoomSpec,
-} from '~/types.ts';
+} from '~/draw/material/model.ts';
+export { CoordinateError, resolve as resolveRect } from '~/draw/material/plate/coords.ts';
+export { imageSize } from '~/draw/material/plate/probe.ts';
+export type { RedactOptions, RedactResult } from '~/draw/material/plate/redact.ts';
+export { isRedacted } from '~/draw/material/plate/redact.ts';
+export { describeGaps, missingGlyphs } from '~/draw/type/coverage.ts';
+export type { Face, FaceCheck, Role, Roles } from '~/draw/type/faces.ts';
+export { fontFamily, setFontDirectory, verifyFaces } from '~/draw/type/faces.ts';
+export type { ExportOptions, ExportResult } from '~/host/export.ts';
+export { exportPage, exportPages } from '~/host/export.ts';
+export type { RedactedFile } from '~/host/redact.ts';
+export { redactImage } from '~/host/redact.ts';
+// -- host: the outside world ------------------------------------------
+export type { ServeOptions, Serving } from '~/host/serve/server.ts';
+export { serve } from '~/host/serve/server.ts';
+export type { Settings, StoreOptions } from '~/host/store/store.ts';
+export { Store, safeName } from '~/host/store/store.ts';
