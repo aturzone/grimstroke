@@ -37,7 +37,65 @@ Or, for an agent that can only write a file and run a command:
 
 ```sh
 grimstroke render page.json --out ./images
+grimstroke search 'login button'
 ```
+
+## The workspace
+
+A page is a column. A **board** is a plane with things placed on it, and a
+workspace is one board.
+
+```sh
+grimstroke serve
+# grimstroke is on http://127.0.0.1:53199/?t=...
+```
+
+Open the port in any browser and that is the whole product: no install, no
+extension, no desktop build. Pan it, zoom it, drop screenshots on it, draw on
+it, write on it. It saves as you go, into plain JSON files in a directory you
+can open.
+
+An agent talks to the same server over HTTP and needs nothing at all — not even
+a browser:
+
+```sh
+curl -X POST "$URL/api/patch" -H 'content-type: application/json' -d '{
+  "board": "workspace",
+  "ops": [{ "op": "add", "item": {
+    "id": "n1", "at": [120, 200], "size": [280],
+    "block": { "kind": "note", "text": "Two-factor is off by default.", "title": "measured" }
+  }}]
+}'
+```
+
+Both write to the one document, and every change is broadcast, so a person with
+the board open watches the agent work.
+
+**Anything that can go on a page can go on a board.** An item is a block plus a
+position, so a sticky note is the same sticky note and improving one improves
+both. Strokes are SVG paths, which is why the board is DOM and SVG rather than a
+canvas: `pdf` prints through the browser's own vector pipeline, so the text is
+still text and a hairline is still a hairline at four hundred per cent.
+
+On a board, anything can be resized, rotated, grouped, aligned, spaced evenly,
+locked and duplicated, and a sticky note's body is markdown — headings, lists,
+task boxes you can tick, code, links — with the editing shortcuts you would
+expect. It stays smooth at a couple of hundred items and a few thousand strokes.
+
+**Notebooks** sit on a shelf. A notebook has a cover you can design — title,
+material, ink, stickers, a profile card — and leaves you turn through, rearrange
+and archive.
+
+**Characters** are made in a studio, drawn in ink or as pixel art from a set of
+parts, and each one has a **profile** page: an ID card that can be placed on a
+board or used as a notebook's cover.
+
+**Search** covers every board, every notebook — archived ones too — and every
+character, and folds Persian spelling variants so a search finds what you meant.
+
+Every one of those is a patch operation, so an agent can do all of it over
+`POST /api/patch`, and all of it round-trips through the `.grimstroke` backup
+the workspace can download and restore.
 
 ## What it is for
 
@@ -50,12 +108,26 @@ It knows nothing about bugs, severities or reports. It draws pages.
 
 ## The blocks
 
-`heading` · `text` · `bullets` · `table` · `code` · `quote` · `image` ·
-`compare` · `note` · `divider` · `spacer`
+`heading` · `text` · `label` · `bullets` · `table` · `code` · `quote` ·
+`image` · `compare` · `note` · `face` · `profile` · `divider` · `spacer`
 
-`image` takes marks: a box, a numbered badge, a callout with a leader note, a
-censor bar. `compare` puts two images side by side and copies the marks onto
-both, which is what a before-and-after almost always wants.
+`image` takes marks. Some are machine-precise — a box, a numbered badge, a
+callout with a leader note, a censor bar. Some are made by a hand — a circle
+round it, an arrow at it, an underline, a highlighter swipe. The difference is
+not decoration: a box says *this rectangle, exactly*, and a circle says *this
+thing, roughly*, which is a claim about how precisely you measured.
+
+A picture can also be mounted: `polaroid`, `taped`, `torn`, `pinned`, a plain
+`keyline`, or `none`. The mount is a card the picture sits on — it tilts, it
+tears and it takes the tape, and the picture inside it is never touched.
+
+`compare` puts two images side by side and copies the marks onto both, which is
+what a before-and-after almost always wants.
+
+A page can be `blank`, `ruled`, `squared`, `graph` or `dotted` paper, with as
+much `grain` as you want and none by default. `heading` and `text` can be
+written in a hand rather than typed, and `label` is a band of flat colour with
+words across it — for the one thing on a page that matters more than the rest.
 
 ## Two properties worth knowing
 
@@ -70,7 +142,7 @@ page id. Export it again next year and nothing moves.
 ## The look
 
 Late-80s photocopied zine: Risograph flat spot inks, torn edges, tape, halftone,
-thick keylines, hard shadows with zero blur. Eight palettes, or your own.
+thick keylines, hard shadows with zero blur. Nine palettes, or your own.
 `docs/design.md` says which parts of that are style and which two are
 correctness.
 
@@ -86,9 +158,14 @@ Node 22 or newer.
 ## Working on it
 
 ```sh
-pnpm check   # typecheck, lint, test
+pnpm check   # typecheck, lint, test, build
 pnpm look    # render every palette and every block, then LOOK at them
 ```
+
+The tree has one axis, and it is purity. `src/draw/` opens no browser, touches
+no network and reads no clock; `src/host/` is where all three are allowed;
+`src/app/` is the live surface in the browser.
+`AGENTS.md` maps the rest.
 
 The look-sheet is the only instrument for problems that do not reduce to a
 number. There is deliberately no image baseline: output is stable within one
