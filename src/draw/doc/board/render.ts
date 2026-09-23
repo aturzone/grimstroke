@@ -52,32 +52,6 @@ export function workspaceExtent(spec: BoardSpec): [number, number, number, numbe
   return [x - WORKSPACE_PAD, y - WORKSPACE_PAD, w + WORKSPACE_PAD * 2, h + WORKSPACE_PAD * 2];
 }
 
-/** How close anything may come to the edge of the sheet before the sheet grows. */
-export const WORKSPACE_EDGE = 240;
-
-/**
- * The pinned extent, grown to cover whatever has been put near or past its edge -- or
- * undefined when it still fits.
- *
- * Pinned once and never touched again, a sheet stayed the size it was on the first day:
- * notes dragged to the right hung off the paper onto the desk, half on and half off. It
- * grows by a whole pad on the side that needs it, so it happens rarely. Growing right or
- * down leaves the origin where it was; growing left or up moves it, and a page holding the
- * old origin has to be re-served.
- */
-export function grownExtent(spec: BoardSpec): [number, number, number, number] | undefined {
-  if (!spec.extent || spec.items.length === 0) return undefined;
-  const [ex, ey, ew, eh] = spec.extent;
-  const { extent: _pinned, ...rest } = spec;
-  const [cx, cy, cw, ch] = extentOf(rest);
-  const left = cx - WORKSPACE_EDGE < ex ? cx - WORKSPACE_PAD : ex;
-  const top = cy - WORKSPACE_EDGE < ey ? cy - WORKSPACE_PAD : ey;
-  const right = cx + cw + WORKSPACE_EDGE > ex + ew ? cx + cw + WORKSPACE_PAD : ex + ew;
-  const bottom = cy + ch + WORKSPACE_EDGE > ey + eh ? cy + ch + WORKSPACE_PAD : ey + eh;
-  if (left === ex && top === ey && right === ex + ew && bottom === ey + eh) return undefined;
-  return [left, top, right - left, bottom - top];
-}
-
 /**
  * The rectangle to draw.
  *
@@ -172,7 +146,6 @@ export function renderBoard(spec: BoardSpec, options: BoardRenderOptions = {}): 
         '<div class="viewport" data-gs="viewport">',
         // The ruling, drawn in SCREEN space. See the stylesheet: a grid inside the scaled
         // board is resampled by the transform and comes out as plaid.
-        '<div class="gs-shadow" data-gs="shadow" aria-hidden="true"></div>',
         '<div class="gs-rule" data-gs="rule" aria-hidden="true"></div>',
         boardHtml,
         '</div>',

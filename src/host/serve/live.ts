@@ -10,7 +10,7 @@
 import type { ServerResponse } from 'node:http';
 import { resolve } from 'node:path';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
-import { grownExtent, workspaceExtent } from '~/draw/doc/board/render.ts';
+import { workspaceExtent } from '~/draw/doc/board/render.ts';
 import type { BookSpec } from '~/draw/doc/book/model.ts';
 import type { Store } from '~/host/store/store.ts';
 
@@ -75,13 +75,6 @@ export class Live {
     if (!spec.extent) {
       spec.extent = workspaceExtent(spec);
       await this.store.writeBoard(spec);
-    } else {
-      // A sheet something has outgrown -- by the CLI, an agent, or before sheets could grow.
-      const grown = grownExtent(spec);
-      if (grown) {
-        spec.extent = grown;
-        await this.store.writeBoard(spec);
-      }
     }
     this.boards.set(id, spec);
     this.seen.set(id, await this.store.boardStamp(id));

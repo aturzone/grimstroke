@@ -27,6 +27,8 @@ export const SELECT = `/* ---- selection ----
    has to be touched, not its bounding box. */
 .viewport[data-tool='eraser'] .stroke { pointer-events: auto; }
 .viewport[data-tool='eraser'] .stroke path { pointer-events: painted; }
+/* And the strokes drawn on a note, which come off the note one at a time. */
+.viewport[data-tool='eraser'] .note-ink path { pointer-events: painted; }
 .viewport[data-tool='eraser'] .item,
 .viewport[data-tool='eraser'] .stroke { cursor: cell; }
 .live .item[data-gs-locked] { cursor: not-allowed; }

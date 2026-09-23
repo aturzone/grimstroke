@@ -31,8 +31,6 @@ export interface PatchReply {
   /** Board patches only: items whose content did not change, only their position. */
   placed?: Placed[];
   reset?: boolean;
-  /** Board patches only: the sheet grew, and this is its new extent. */
-  extent?: [number, number, number, number];
 }
 
 /**

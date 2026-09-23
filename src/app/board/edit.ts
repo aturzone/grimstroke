@@ -119,7 +119,17 @@ export class Editor {
     area.style.top = `${target.offsetTop}px`;
     area.style.width = `${target.offsetWidth}px`;
     area.style.height = `${target.offsetHeight}px`;
+    // Written in either direction: the words decide, per line, as they do once rendered.
+    area.dir = 'auto';
     target.closest<HTMLElement>('[data-gs="item"]')?.append(area);
+    /*
+     * The rendered words go while the raw ones are being edited.
+     *
+     * The textarea is transparent so the paper shows through, and so did the rendered text
+     * under it -- markdown laid out one way and its source another, two sets of letters on top
+     * of each other, drifting apart line by line.
+     */
+    target.style.visibility = 'hidden';
 
     this.editing(id, true);
     this.area = area;
@@ -129,6 +139,7 @@ export class Editor {
     const done = (commit: boolean): void => {
       if (this.area !== area && !area.isConnected) return;
       area.remove();
+      target.style.visibility = '';
       if (this.area === area) this.area = undefined;
       this.editing(id, false);
       if (!commit || area.value === block.text) return;

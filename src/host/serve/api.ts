@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 import { extname, join } from 'node:path';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import { apply, type Op, PatchError, topZ } from '~/draw/doc/board/patch.ts';
-import { extentOf, grownExtent, renderBoard, renderOneItem } from '~/draw/doc/board/render.ts';
+import { extentOf, renderBoard, renderOneItem } from '~/draw/doc/board/render.ts';
 import { apply as applyBook, type BookOp, BookPatchError } from '~/draw/doc/book/patch.ts';
 import { renderCover, renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { search } from '~/draw/doc/search.ts';
@@ -240,12 +240,12 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     const spec = await live.board(id);
     // A selection travels as a list of ids rather than as a rectangle, so the export
     // captures the items that were chosen and not whatever happens to overlap them.
-    let subject: BoardSpec = spec;
+    // The pinned extent is a coordinate origin for the live page, not an edge -- the paper
+    // goes on for ever there. A picture is cut round what is on it, plus a margin.
+    const { extent: _origin, ...rest } = spec;
+    let subject: BoardSpec = rest;
     if (body.only?.length) {
       const chosen = new Set(body.only);
-      // The pinned extent goes with it: that one is the whole sheet, and an export of three
-      // notes should be three notes and a margin, not three notes adrift on it.
-      const { extent: _sheet, ...rest } = spec;
       subject = { ...rest, items: spec.items.filter((item) => chosen.has(item.id)) };
     }
     const rendered = renderBoard(subject);
@@ -296,9 +296,6 @@ async function patchBoard(ask: Ask, live: Live, id: string, ops: Op[]): Promise<
     });
     return;
   }
-  // Something went near the edge of the sheet: the sheet grows, and every page is told.
-  const grown = grownExtent(result.spec);
-  if (grown) result.spec.extent = grown;
   await live.commitBoard(result.spec);
 
   /*
@@ -326,7 +323,6 @@ async function patchBoard(ask: Ask, live: Live, id: string, ops: Op[]): Promise<
         if (drawn) live.allow(drawn.assets);
         return { id: itemId, html: drawn?.html ?? '' };
       }),
-    ...(grown ? { extent: grown } : {}),
   };
   send(ask.res, 200, payload);
   live.broadcast(`board:${id}`, 'patch', payload, header(ask.req, 'x-grimstroke-client'));

@@ -94,7 +94,18 @@ export class BoardApp implements BoardContext {
       edit: (id) => this.editor.edit(id),
       zoomed: () => this.showZoom(),
       gone: (id) => this.notes.forget(id),
+      eraseNoteInk: (id, index) => this.notes.eraseInk(id, index),
     }).bind();
+    // A press anywhere but the note being drawn on puts that note's pen down.
+    this.viewport.addEventListener(
+      'pointerdown',
+      (event) => {
+        const id = this.notes.drawing;
+        const on = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-gs="item"]');
+        if (id && on?.dataset.gsId !== id) this.notes.stopDrawing();
+      },
+      { capture: true },
+    );
     this.bindKeys();
     this.files = new Files(this, (message) => toast(message, 'error'));
     this.files.bind();
@@ -157,7 +168,10 @@ export class BoardApp implements BoardContext {
     for (const button of document.querySelectorAll<HTMLElement>('[data-gs="tool"]')) {
       button.setAttribute('aria-pressed', String(button.dataset.gsTool === tool));
     }
-    if (tool !== 'select') this.selection.clear();
+    if (tool !== 'select') {
+      this.selection.clear();
+      this.notes.stopDrawing();
+    }
   }
 
   // ---------------------------------------------------------------- tools
@@ -223,15 +237,6 @@ export class BoardApp implements BoardContext {
   // ---------------------------------------------------------------- updates
 
   private absorb(reply: PatchReply): void {
-    if (reply.extent) {
-      const [x, y, w, h] = reply.extent;
-      if (x !== this.view.origin.x || y !== this.view.origin.y) {
-        // Every position on the page is relative to the old origin. Get a page with the new one.
-        window.location.reload();
-        return;
-      }
-      this.view.resize(w, h);
-    }
     for (const id of reply.removed) {
       this.element(id)?.remove();
       this.selection.drop(id);
@@ -518,6 +523,7 @@ export class BoardApp implements BoardContext {
         return;
       }
       if (event.key === 'Escape') {
+        this.notes.stopDrawing();
         this.selection.clear();
         this.setTool('select');
         return;

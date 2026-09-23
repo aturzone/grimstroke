@@ -19,7 +19,7 @@
  *     properties. Custom properties INHERIT, so writing --pan-x on the board invalidated the
  *     computed style of every one of its nine thousand descendants on every wheel event.
  *   - Nothing here reads layout while painting. The viewport's box is cached and refreshed
- *     on resize; the sheet's size never changes after load. The old paint wrote the
+ *     on resize. The old paint wrote the
  *     transform and then read offsetWidth, which forced a synchronous layout of the whole
  *     board, once per pointer event.
  *   - Writes are batched to one per animation frame. A trackpad delivers several wheel
@@ -59,10 +59,7 @@ export class View {
   private onChange: (() => void) | undefined;
   private pending = 0;
   private box: DOMRect;
-  /** The sheet's size in board units. Read once, and changed only by resize(). */
-  private sheet: { w: number; h: number };
   private readonly rule: { wrap: HTMLElement; tile: HTMLElement } | undefined;
-  private readonly shadow: HTMLElement | null;
   private readonly base: { fine: number; coarse: number };
   private period = 0;
   private readonly listeners = new Set<() => void>();
@@ -73,14 +70,12 @@ export class View {
     const [ox, oy] = (board.dataset.gsOrigin ?? '0,0').split(',').map(Number);
     this.origin = { x: ox ?? 0, y: oy ?? 0 };
     this.box = viewport.getBoundingClientRect();
-    this.sheet = { w: board.offsetWidth, h: board.offsetHeight };
 
     const styles = getComputedStyle(board);
     this.base = {
       fine: Number.parseFloat(styles.getPropertyValue('--rule-p')) || 0,
       coarse: Number.parseFloat(styles.getPropertyValue('--rule-p2')) || 0,
     };
-    this.shadow = viewport.querySelector<HTMLElement>('[data-gs="shadow"]');
     const wrap = viewport.querySelector<HTMLElement>('[data-gs="rule"]');
     if (wrap) {
       const tile = document.createElement('div');
@@ -97,15 +92,6 @@ export class View {
     };
     window.addEventListener('resize', measure);
     new ResizeObserver(measure).observe(viewport);
-  }
-
-  /** The sheet grew. Its origin did not -- a page whose origin moved is re-served instead. */
-  resize(w: number, h: number): void {
-    const root = document.documentElement.style;
-    root.setProperty('--board-width', `${w}px`);
-    root.setProperty('--board-height', `${h}px`);
-    this.sheet = { w, h };
-    this.schedule();
   }
 
   watch(fn: () => void): void {
@@ -236,12 +222,6 @@ export class View {
     this.board.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${this.scale})`;
     // Toggled, not rewritten, so the board is only restyled when the threshold is crossed.
     this.board.toggleAttribute('data-far', this.scale < FAR);
-    if (this.shadow) {
-      // In board units, so it recedes with the sheet as the camera pulls back.
-      const dx = Math.round(x + 12 * this.scale);
-      const dy = Math.round(y + 14 * this.scale);
-      this.shadow.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${this.scale})`;
-    }
     this.paintRule(x, y);
     this.onChange?.();
     for (const fn of this.listeners) fn();
@@ -266,21 +246,13 @@ export class View {
    * twelve-item workspace panned at 19fps and hiding the layer alone took it to 60. Now the
    * tile is a fixed size that overhangs the viewport, it is shifted by a transform modulo
    * the ruling's own period -- which looks identical, because a grid shifted by one period
-   * is the same grid -- and the edge of the paper is a clip. The background itself is only
+   * is the same grid. The paper has no edge, so neither does the ruling. It is only
    * redrawn when the period steps.
    */
   private paintRule(x: number, y: number): void {
     const rule = this.rule;
     if (!rule) return;
     const { width: vw, height: vh } = this.box;
-    const right = vw - (x + this.sheet.w * this.scale);
-    const bottom = vh - (y + this.sheet.h * this.scale);
-    // Clipped to the paper, and to the viewport: the ruling belongs to the sheet, and the
-    // desk around it stays bare.
-    rule.wrap.style.clipPath =
-      `inset(${Math.max(0, y)}px ${Math.max(0, right)}px ` +
-      `${Math.max(0, bottom)}px ${Math.max(0, x)}px)`;
-
     if (!this.base.fine) return;
     // Snap to whole screen pixels. A tile of 16.2px is the plaid all over again, one tile
     // at a time.

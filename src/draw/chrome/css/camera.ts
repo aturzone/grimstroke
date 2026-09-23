@@ -9,10 +9,11 @@
 /** The live board: the viewport, the camera, the cursors. */
 export const CAMERA = `/* The workspace, as somewhere you work.
 
-   The board is a SHEET LYING ON A DESK, not an infinite plane of paper. Panning
-   past the edge shows the desk, which is honest -- the plane is unbounded, the
-   paper is not -- and it avoids the alternative, which is scaling a repeating
-   gradient by the zoom factor, something a repeating gradient cannot do.
+   The paper goes on for ever. It was a sheet lying on a desk once, and the sheet was
+   pinned at the size it had on the first day: things dragged past its edge hung off the
+   paper onto the desk, and there was no way to ask for more. Now the viewport itself is
+   the paper and the ruling is drawn over all of it, so there is always more room in every
+   direction. Only an export has an edge, and it is cut round whatever is on the board.
 
    EVERY CHROME CLASS IS PREFIXED gs-. The chrome and the documents share one
    stylesheet, so an unprefixed chrome class inherits whatever a document class
@@ -32,6 +33,11 @@ body.live {
   inset: 0;
   overflow: hidden;
   touch-action: none;
+  /* Every drag here is a tool, never a text selection. Without this a pen stroke or an
+     eraser pass that crossed a note selected the page's words as it went, and the whole
+     board lit up in the selection colour. The editor is a textarea, which selects anyway. */
+  -webkit-user-select: none;
+  user-select: none;
 }
 .viewport[data-tool='pan'] { cursor: grab; }
 .viewport[data-tool='pan'][data-dragging] { cursor: grabbing; }
@@ -66,26 +72,21 @@ body.live {
 .board[data-far] .note .actions,
 .board[data-far] .note .grips { visibility: hidden; }
 
-/* The sheet lies ON the desk, and says so the way everything else here does: a hard offset
-   with no blur, as a plain rectangle under the paper that the camera moves exactly as it
-   moves the board.
-
-   It is NOT a box-shadow, and it must never become one again. It was a 70px blur first, on
-   a ten-thousand-pixel element, and it cost more than two thousand strokes did. Made hard,
-   it was still the single most expensive thing on the page: Firefox rasterises a shadow as
-   a mask the size of the element, so an empty board panned at 8fps with it and 57 without.
-   A solid rectangle is one quad. */
-.gs-shadow {
+/* The paper, under everything, as far as the window goes. The board element itself is
+   transparent: it only carries the items, and its extent is a coordinate origin now, not
+   an edge. Its grain moves here too, onto a layer that never scales -- tooth is a property
+   of the paper, not of the zoom. */
+.live .viewport { background-color: var(--paper); }
+.live .viewport::before {
+  content: '';
   position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 0;
-  width: var(--board-width);
-  height: var(--board-height);
-  transform-origin: 0 0;
-  background: rgba(0, 0, 0, 0.3);
+  inset: 0;
   pointer-events: none;
-  will-change: transform;
+  background-image: var(--grain, none);
+  background-repeat: repeat;
+  opacity: var(--grain-opacity, 0);
 }
+.live .board { background: none; }
+.live .board::before { display: none; }
 
 `;

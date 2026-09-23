@@ -27,6 +27,8 @@ export interface GestureHost {
   zoomed(): void;
   /** An item left the board, by the eraser. */
   gone(id: string): void;
+  /** Rub out one stroke drawn on a note: the note, and which of its strokes. */
+  eraseNoteInk(id: string, index: number): void;
 }
 
 export class Gestures {
@@ -350,27 +352,53 @@ export class Gestures {
    * destroy something, and an eraser is exactly the tool it is protecting against.
    */
   private eraseAt(at: Point): void {
-    const under = document.elementFromPoint(at.x, at.y) as HTMLElement | null;
-    const hit = under?.closest<HTMLElement>('[data-gs="item"]');
-    const id = hit?.dataset.gsId;
-    if (!id || hit?.dataset.gsLocked) return;
-
     /*
-     * AN ERASER ERASES INK. IT DOES NOT DELETE YOUR WORK.
+     * Everything under the point, not only the top of it.
      *
-     * The first version removed whatever item was under the pointer, and dragging is how an
-     * eraser is used -- so one pass across a board at 30% zoom, where the whole board fits
-     * on the screen, silently deleted every note, every screenshot and the title. There was
-     * no confirmation, and reloading the page threw away the undo stack that could have
-     * brought them back.
-     *
-     * A stroke is a mark on the surface and rubbing it out is what the tool is for. A note
-     * or a photograph is an OBJECT lying on the surface: removing one is deliberate, and it
-     * has its own delete button and the Delete key, both of which act on one named thing.
+     * elementFromPoint answers with the topmost thing, and a stroke that runs under a note or
+     * a photograph was never topmost where it crossed one -- so rubbing along a line erased it
+     * nowhere near the things it touched, and not at all where it was drawn over them. The
+     * whole stack is searched for the first mark the eraser is allowed to take.
      */
-    if (!this.ctx.items().get(id)?.ink) return;
+    for (const under of document.elementsFromPoint(at.x, at.y) as HTMLElement[]) {
+      // A stroke drawn on a note belongs to the note, and comes off it one stroke at a time.
+      if (under.matches('.note-ink .ink-stroke, .note-ink path')) {
+        const item = under.closest<HTMLElement>('[data-gs="item"]');
+        const id = item?.dataset.gsId;
+        if (!id || item?.dataset.gsLocked) continue;
+        const strokes = [...(under.parentElement?.querySelectorAll('path') ?? [])];
+        this.host.eraseNoteInk(id, strokes.indexOf(under as unknown as SVGPathElement));
+        // Gone from the page now, not when the reply lands: the drag is still going, and a
+        // stale path would be counted again and take the wrong stroke with it.
+        under.remove();
+        return;
+      }
+      /*
+       * AN ERASER ERASES INK. IT DOES NOT DELETE YOUR WORK.
+       *
+       * The first version removed whatever item was under the pointer, and dragging is how an
+       * eraser is used -- so one pass across a board at 30% zoom, where the whole board fits
+       * on the screen, silently deleted every note, every screenshot and the title. There was
+       * no confirmation, and reloading the page threw away the undo stack that could have
+       * brought them back.
+       *
+       * A stroke is a mark on the surface and rubbing it out is what the tool is for. A note
+       * or a photograph is an OBJECT lying on the surface: removing one is deliberate, and it
+       * has its own delete button and the Delete key, both of which act on one named thing.
+       */
+      const hit = under.closest<HTMLElement>('[data-gs="item"]');
+      const id = hit?.dataset.gsId;
+      if (!id || hit?.dataset.gsLocked || !this.ctx.items().get(id)?.ink) continue;
+      this.eraseItem(id);
+      return;
+    }
+  }
 
+  private eraseItem(id: string): void {
     this.ctx.session.run([{ op: 'remove', id }], 'erase');
+    // Off the page at once, or the rest of the same pass finds it again and asks to remove
+    // a stroke that is already gone.
+    this.ctx.element(id)?.remove();
     this.ctx.selection.drop(id);
     this.host.gone(id);
   }

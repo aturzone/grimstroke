@@ -27,7 +27,7 @@ export const PRINT = `/* ---- print ----
   /* Browsers drop backgrounds when printing unless told otherwise, and the paper IS the
      background here -- without this the PDF is the ink with no sheet under it. */
   * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-  .gs-tray, .gs-bar, .gs-drop, .gs-marquee, .gs-editing, .gs-settings, .gs-rule, .gs-shadow { display: none !important; }
+  .gs-tray, .gs-bar, .gs-drop, .gs-marquee, .gs-editing, .gs-settings, .gs-rule { display: none !important; }
   /* Printing has no camera, so the paper draws its own ruling again. */
   .live .board { background-image: var(--paper-rule, none); background-color: var(--paper); }
   /* A printed board is paper. The note's toolbar and its grips are controls, and a control

@@ -109,6 +109,38 @@ export class Notes {
     }
   }
 
+  /** The note being drawn on, if one is. */
+  get drawing(): string | undefined {
+    return this.drawingOn;
+  }
+
+  /**
+   * Put the note's pen down.
+   *
+   * It used to be put down only by pressing the same button again. Escape, another tool, or a
+   * click anywhere else all left the note taking every press as a stroke -- and with the note's
+   * body switched off for drawing, nothing on it answered at all. It looked like a crash.
+   */
+  stopDrawing(): void {
+    const id = this.drawingOn;
+    if (!id) return;
+    this.drawingOn = undefined;
+    const live = this.live.get(id);
+    live?.sheet?.toggleAttribute('data-drawing', false);
+    live?.mark('pen', false);
+  }
+
+  /** Rub one stroke off a note's own sheet. */
+  eraseInk(id: string, index: number): void {
+    const block = this.ctx.items().get(id)?.block;
+    if (block?.kind !== 'note' || !block.ink?.[index]) return;
+    const ink = block.ink.filter((_, i) => i !== index);
+    this.ctx.session.run(
+      [{ op: 'update', id, patch: { block: { ...block, ink } } }],
+      'erase on note',
+    );
+  }
+
   /** A stroke was drawn on a note's own sheet. */
   private commitNoteInk(
     id: string,
