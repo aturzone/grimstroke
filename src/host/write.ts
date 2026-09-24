@@ -99,8 +99,9 @@ async function heights(
   book: BookSpec,
   blocks: readonly Block[],
   useBrowser = true,
+  width?: number,
 ): Promise<{ spans: Array<[number, number]>; measured: boolean }> {
-  const col = column(book);
+  const col = { ...column(book), ...(width ? { width } : {}) };
   const probe: BookSpec = {
     ...book,
     leaves: [
@@ -152,10 +153,10 @@ async function heights(
 export async function planFlow(
   book: BookSpec,
   blocks: readonly Block[],
-  options: { measure?: boolean } = {},
+  options: { measure?: boolean; width?: number } = {},
 ): Promise<FlowPlan> {
   const col = column(book);
-  const { spans, measured } = await heights(book, blocks, options.measure ?? true);
+  const { spans, measured } = await heights(book, blocks, options.measure ?? true, options.width);
   const pages: Block[][] = [];
   const warnings: string[] = [];
   let current: Block[] = [];
@@ -185,6 +186,192 @@ export async function planFlow(
       'measured by estimate: Playwright is not installed, so page breaks are approximate',
     );
   return { pages, measured, warnings };
+}
+
+/** The gap between two columns on a page. */
+export const GUTTER = 28;
+
+/** Where each column goes on a page of this notebook, for one column or two. */
+export function columns(
+  book: Pick<BookSpec, 'pageSize'>,
+  count: 1 | 2,
+): { xs: number[]; y: number; width: number; height: number } {
+  const col = column(book);
+  if (count === 1) return { xs: [col.at[0]], y: col.at[1], width: col.width, height: col.height };
+  const width = Math.floor((col.width - GUTTER) / 2);
+  return { xs: [col.at[0], col.at[0] + width + GUTTER], y: col.at[1], width, height: col.height };
+}
+
+// ---------------------------------------------------------------- a document
+
+/**
+ * What an agent sends to be written: blocks, where any figure -- a picture, a table, a listing,
+ * a comparison -- may carry a `caption`, and any text may point elsewhere with `{ref: words}`:
+ * the words of a heading or of a figure's caption, in this document or already in the notebook.
+ */
+export type WriteBlock = Block | (Exclude<Block, { kind: 'text' }> & { caption?: string });
+
+export interface Figure {
+  n: number;
+  caption: string;
+  page: number;
+}
+
+export interface WritePlan {
+  /** Each page, as its columns, each column its blocks. */
+  pages: Block[][][];
+  columns: 1 | 2;
+  measured: boolean;
+  warnings: string[];
+  figures: Figure[];
+  refs: Array<{ to: string; page?: number }>;
+}
+
+const REF = /\{ref:\s*([^}]+?)\s*\}/g;
+const FIGURES = new Set(['image', 'compare', 'table', 'code']);
+const key = (words: string): string => words.trim().toLowerCase().replace(/\s+/g, ' ');
+
+/** Every string of prose in a block, changed by `fn`: what a reference can be written in. */
+function mapText(block: Block, fn: (text: string) => string): Block {
+  switch (block.kind) {
+    case 'text':
+    case 'quote':
+    case 'note':
+    case 'label':
+      return { ...block, text: fn(block.text) };
+    case 'bullets':
+      return { ...block, items: block.items.map(fn) };
+    case 'table':
+      return { ...block, rows: block.rows.map((row) => row.map(fn)) };
+    case 'stack':
+      return { ...block, blocks: block.blocks.map((b) => mapText(b, fn)) };
+    default:
+      return block;
+  }
+}
+
+/** The headings in a block, a written stack's included. */
+function headingsIn(block: Block): string[] {
+  if (block.kind === 'heading') return [block.text];
+  if (block.kind === 'stack') return block.blocks.flatMap(headingsIn);
+  return [];
+}
+
+/**
+ * Figures numbered, captions put with what they name, references written in. A picture's caption
+ * is part of the picture; any other figure and its caption become one stack, so a page break can
+ * never come between them.
+ */
+function prepare(
+  input: readonly WriteBlock[],
+  resolve: (to: string) => string,
+): { blocks: Block[]; figures: Array<{ n: number; caption: string; at: number }> } {
+  const figures: Array<{ n: number; caption: string; at: number }> = [];
+  const blocks = input.map((raw, at): Block => {
+    // A text block's own `caption` is a flag, not a figure's words: it stays where it is.
+    const said = raw.kind !== 'text' && 'caption' in raw ? raw.caption : undefined;
+    let block: Block = raw;
+    if (said !== undefined) {
+      const { caption: _, ...rest } = raw as { caption?: string };
+      block = rest as Block;
+    }
+    const caption =
+      said ?? (block.kind === 'image' && block.image.caption ? block.image.caption : undefined);
+    if (caption && FIGURES.has(block.kind)) {
+      const n = figures.length + 1;
+      figures.push({ n, caption, at });
+      const numbered = `Figure ${n}. ${caption}`;
+      if (block.kind === 'image')
+        block = { ...block, image: { ...block.image, caption: numbered } };
+      else
+        block = { kind: 'stack', blocks: [block, { kind: 'text', text: numbered, caption: true }] };
+    }
+    return mapText(block, (text) => text.replace(REF, (_, to: string) => resolve(to)));
+  });
+  return { blocks, figures };
+}
+
+/**
+ * A document written into a notebook: numbered figures kept with their captions, one column or
+ * two, and every `{ref: ...}` turned into the page it points at once the pages are known.
+ */
+export async function planWrite(
+  book: BookSpec,
+  input: readonly WriteBlock[],
+  options: { columns?: 1 | 2; from?: number; measure?: boolean } = {},
+): Promise<WritePlan> {
+  const count = options.columns === 2 ? 2 : 1;
+  const from = options.from ?? firstEmptyPage(book);
+  const cols = columns(book, count);
+  // Laid out once with a stand-in as wide as most page numbers, to learn where things fall.
+  const draft = prepare(input, () => 'page 00');
+  const flow = await planFlow(book, draft.blocks, {
+    ...(options.measure === false ? { measure: false } : {}),
+    width: cols.width,
+  });
+  const pageOf: number[] = [];
+  flow.pages.forEach((chunk, c) => {
+    for (const _ of chunk) pageOf.push(from + Math.floor(c / count));
+  });
+
+  // What a reference can point at: headings and figures here, and headings already written.
+  const targets = new Map<string, { page: number; figure?: number }>();
+  boundLeaves(book).forEach((leaf, i) => {
+    if (i + 1 >= from) return;
+    for (const item of upgradeLeaf(leaf).items ?? []) {
+      for (const h of item.block ? headingsIn(item.block) : []) {
+        if (!targets.has(key(h))) targets.set(key(h), { page: i + 1 });
+      }
+    }
+  });
+  draft.blocks.forEach((block, i) => {
+    for (const h of headingsIn(block)) targets.set(key(h), { page: pageOf[i] ?? from });
+  });
+  for (const f of draft.figures) {
+    targets.set(key(f.caption), { page: pageOf[f.at] ?? from, figure: f.n });
+    targets.set(key(`figure ${f.n}`), { page: pageOf[f.at] ?? from, figure: f.n });
+  }
+
+  const refs: WritePlan['refs'] = [];
+  const warnings = [...flow.warnings];
+  // Exact words first; failing that, the start of exactly one heading or caption -- "Timings"
+  // for "Timings, cold and warm" -- and never a guess between two.
+  const find = (to: string): { page: number; figure?: number } | undefined => {
+    const exact = targets.get(key(to));
+    if (exact) return exact;
+    const starts = [...targets.entries()].filter(([k]) => k.startsWith(key(to)));
+    const distinct = new Set(starts.map(([, v]) => `${v.page}:${v.figure ?? ''}`));
+    return distinct.size === 1 ? starts[0]?.[1] : undefined;
+  };
+  const final = prepare(input, (to) => {
+    const hit = find(to);
+    refs.push({ to, ...(hit ? { page: hit.page } : {}) });
+    if (!hit) {
+      warnings.push(
+        `nothing called “${to}” to refer to: no heading or figure caption has those words`,
+      );
+      return 'page ?';
+    }
+    return hit.figure ? `figure ${hit.figure}, page ${hit.page}` : `page ${hit.page}`;
+  });
+
+  // The same blocks in the same chunks, now with their references written in.
+  const pages: Block[][][] = [];
+  let i = 0;
+  flow.pages.forEach((chunk, c) => {
+    const column = chunk.map(() => final.blocks[i++] as Block);
+    const p = Math.floor(c / count);
+    pages[p] ??= [];
+    pages[p].push(column);
+  });
+  return {
+    pages,
+    columns: count,
+    measured: flow.measured,
+    warnings,
+    figures: draft.figures.map((f) => ({ n: f.n, caption: f.caption, page: pageOf[f.at] ?? from })),
+    refs,
+  };
 }
 
 /** The first page number (1-based) with nothing on it, from which a flow can start. */

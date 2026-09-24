@@ -48,6 +48,17 @@ in a headless browser with the same stylesheet the page is drawn with -- and nev
 heading alone at the foot of a page. It starts on the first empty page unless `from` names one,
 and answers with the pages it wrote and an address to look at each.
 
+- **Two columns.** `"columns": 2` sets each page as two columns with a 28px gutter, filling the
+  first before the second. Good for long reference text; keep a report with pictures in one.
+- **Figures.** A `table`, `code`, `compare` or `image` block may carry `"caption"` (a picture's
+  own `image.caption` counts too). Figures are numbered in order -- "Figure 1. ..." -- and each is
+  kept on the same page as its caption. The reply lists them with the page each landed on.
+- **References.** Write `{ref: words}` in any text, bullet, quote, note or table cell, where the
+  words are a heading's or a figure caption's -- or the start of exactly one. Once the pages are
+  known it becomes "page 4", or "figure 2, page 5". Headings already in the notebook before
+  `from` can be referred to as well. A reference to nothing becomes "page ?" and is named in the
+  reply's `warnings`; fix it rather than leave it.
+
 **See where things really are.** `GET /api/layout?board=<address>` answers with every item's
 measured box, the pairs that overlap (ink over something is not counted -- that is annotation),
 the items that run over a page's edge, and on a page the clear band left below everything
@@ -99,5 +110,7 @@ the page as a card (`POST /api/remote/place`).
 - One title per page; headings say what was found, not "Section 2".
 - Evidence next to the claim: the screenshot beside the sentence that cites it.
 - Tables for anything compared; no numbers buried in paragraphs.
+- Every figure captioned, and pointed at with `{ref: ...}` from the text that relies on it.
+- No `warnings` left in the reply to `write`.
 - `layout` shows no overlaps and nothing outside the page.
 - Every page looked at.

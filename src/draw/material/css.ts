@@ -24,7 +24,12 @@ h2.block:not(.written)::after {
 h3.block { font-size: calc(var(--title-size) * 0.8); font-weight: 700; line-height: 1.25; }
 .block + h2.block, .block + h3.block,
 .stack > * + h2.block, .stack > * + h3.block { margin-block-start: 26px; }
+/* A stack inside a stack -- a figure and its caption -- is spaced like any block beside it. */
+.stack > .stack + *, .stack > * + .stack { margin-block-start: 14px; }
 h2.block + .block, h3.block + .block { margin-block-start: 10px; }
+/* A figure's caption, under what it names: small, quieter than the text, close to its figure. */
+p.block.caption { font-size: calc(var(--body-size) * 0.86); line-height: 1.4; opacity: 0.78; }
+.block + p.block.caption { margin-block-start: 6px; }
 
 ul.block { padding-inline-start: 20px; }
 ul.block li { margin-block-end: 4px; }

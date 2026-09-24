@@ -22,7 +22,6 @@ import { renderCases } from '~/draw/doc/shelf/render.ts';
 import { surface } from '~/draw/doc/surface.ts';
 import { hashString } from '~/draw/look/rng.ts';
 import { DECOR } from '~/draw/material/decor/art.ts';
-import type { Block } from '~/draw/material/model.ts';
 import { COATS } from '~/draw/material/pet/art.ts';
 import {
   DEFAULT_PET,
@@ -38,7 +37,14 @@ import { capabilities } from '~/host/serve/capabilities.ts';
 import { type Ask, header, readBody, readRaw, send } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
 import { ArchiveError, pack, readArchive, unpack } from '~/host/store/archive.ts';
-import { column, firstEmptyPage, layoutOf, planFlow, tidyMoves } from '~/host/write.ts';
+import {
+  columns,
+  firstEmptyPage,
+  layoutOf,
+  planWrite,
+  tidyMoves,
+  type WriteBlock,
+} from '~/host/write.ts';
 
 export async function api(ask: Ask, live: Live): Promise<boolean> {
   const { req, res, url, path } = ask;
@@ -575,7 +581,12 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
    * host/write.ts and docs/writing.md.
    */
   if (path === '/api/write' && req.method === 'POST') {
-    const body = (await readBody(req)) as { book?: string; blocks?: Block[]; from?: number };
+    const body = (await readBody(req)) as {
+      book?: string;
+      blocks?: WriteBlock[];
+      from?: number;
+      columns?: number;
+    };
     const book = await live.book(body.book ?? 'notebook');
     const blocks = Array.isArray(body.blocks) ? body.blocks : [];
     if (!blocks.length) {
@@ -584,25 +595,24 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
       });
       return true;
     }
-    const plan = await planFlow(book, blocks);
     const from = Math.max(1, Math.floor(body.from ?? firstEmptyPage(book)));
-    const col = column(book);
+    const count = body.columns === 2 ? 2 : 1;
+    const plan = await planWrite(book, blocks, { columns: count, from });
+    const cols = columns(book, count);
     const stamp = Date.now().toString(36);
     const leaves = boundLeaves(book);
-    const ops: BookOp[] = plan.pages.map((chunk, k) => ({
+    const ops: BookOp[] = plan.pages.map((page, k) => ({
       op: 'leaf.items',
       id: leaves[from - 1 + k]?.id ?? `blank-${from + k}`,
-      ops: [
-        {
-          op: 'add',
-          item: {
-            id: `flow-${stamp}-${k + 1}`,
-            at: col.at,
-            size: [col.width],
-            block: { kind: 'stack', blocks: chunk },
-          },
+      ops: page.map((chunk, c) => ({
+        op: 'add' as const,
+        item: {
+          id: `flow-${stamp}-${k + 1}${count === 2 ? `-${c + 1}` : ''}`,
+          at: [cols.xs[c] ?? cols.xs[0] ?? 40, cols.y] as [number, number],
+          size: [cols.width] as [number],
+          block: { kind: 'stack' as const, blocks: chunk },
         },
-      ],
+      })),
     }));
     const result = applyBook(book, ops);
     await live.commitBook(result.spec);
@@ -610,8 +620,11 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     const pages = plan.pages.map((_, k) => from + k);
     send(res, 200, {
       pages,
+      columns: count,
       measured: plan.measured,
       warnings: plan.warnings,
+      figures: plan.figures,
+      refs: plan.refs,
       look: pages.map((n) => `/page?book=${encodeURIComponent(book.id)}&leaf=${n}`),
     });
     return true;

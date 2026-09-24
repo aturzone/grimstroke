@@ -40,10 +40,8 @@ export function renderHeading(block: Extract<Block, { kind: 'heading' }>, ctx: S
 export function renderText(block: Extract<Block, { kind: 'text' }>, ctx: Surface): string {
   const d = { digits: ctx.digits };
   const ink = block.colour ? ` style="color:${escapeHtml(block.colour)}"` : '';
-  return `<p class="block${block.hand ? ' written' : ''}"${AUTO}${ink}>${inline(
-    block.text,
-    d,
-  )}</p>`;
+  const kind = block.hand ? ' written' : block.caption ? ' caption' : '';
+  return `<p class="block${kind}"${AUTO}${ink}>${inline(block.text, d)}</p>`;
 }
 
 export function renderBullets(block: Extract<Block, { kind: 'bullets' }>, ctx: Surface): string {

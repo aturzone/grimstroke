@@ -27,7 +27,7 @@ a worked example -- see [writing.md](writing.md).
 
 | | |
 |---|---|
-| `POST /api/write` `{ book, blocks, from? }` | pour blocks into a notebook, page after page, split where each page is full (measured in a headless browser), never a heading alone at a page's foot; answers with the pages written |
+| `POST /api/write` `{ book, blocks, from?, columns?: 1 \| 2 }` | pour blocks into a notebook, page after page, split where each page is full (measured in a headless browser), never a heading alone at a page's foot. A figure (`table`, `code`, `compare`, `image`) may carry `caption`: numbered, and kept with its caption. `{ref: words}` in text becomes the page of that heading or figure. Answers with `pages`, `figures`, `refs` and `warnings` |
 | `GET /api/layout?board=<address>` | every item's measured box, what overlaps, what runs over a page's edge, and the clear room left on a page |
 | `POST /api/tidy` `{ board, ids, as: "column" \| "row" \| "grid", gap?, at?, columns? }` | line items up with even gaps, by their measured sizes |
 

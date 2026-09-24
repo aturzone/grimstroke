@@ -37,7 +37,8 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
     'POST /api/patch':
       'change a board, a page ({ board, ops }) or a notebook ({ kind: "book", id, ops })',
     'POST /api/items/move': 'move items from one surface to another',
-    'POST /api/write': 'flow blocks down a page and on across the next pages, measured',
+    'POST /api/write':
+      'flow blocks across pages, measured: one column or two, numbered figures kept with their captions, {ref: words} turned into page numbers',
     'POST /api/tidy': 'move apart what overlaps on a page',
     'POST /api/assets': 'upload a picture; answers with its src',
   },

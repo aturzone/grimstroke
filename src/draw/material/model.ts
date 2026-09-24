@@ -116,7 +116,8 @@ export type LabelTone = 'highlight' | 'ink' | 'paper';
 
 export type Block =
   | { kind: 'heading'; text: string; level?: 1 | 2; hand?: boolean; colour?: string }
-  | { kind: 'text'; text: string; hand?: boolean; colour?: string }
+  /** `caption`: set small under a figure, the way a table's or a listing's caption is. */
+  | { kind: 'text'; text: string; hand?: boolean; colour?: string; caption?: boolean }
   /**
    * A marker label: a band of flat colour with words written across it.
    *

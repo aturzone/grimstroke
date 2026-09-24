@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { BookSpec } from '~/draw/doc/book/model.ts';
 import type { Block } from '~/draw/material/model.ts';
-import { column, firstEmptyPage, planFlow, tidyMoves } from '~/host/write.ts';
+import {
+  column,
+  columns,
+  firstEmptyPage,
+  planFlow,
+  planWrite,
+  tidyMoves,
+  type WriteBlock,
+} from '~/host/write.ts';
 
 const book: BookSpec = { id: 'b', minLeaves: 10, leaves: [{ id: 'l1', items: [] }] };
 const para = (n: number): Block => ({
@@ -86,5 +94,55 @@ describe('writing a document', () => {
       [210, 0],
       [0, 90],
     ]);
+  });
+});
+
+describe('a document with figures, references and columns', () => {
+  const doc: WriteBlock[] = [
+    { kind: 'heading', text: 'Setup' },
+    { kind: 'text', text: 'The numbers are in {ref: Timings}; the steps are on {ref: Steps}.' },
+    {
+      kind: 'table',
+      rows: [
+        ['run', 'ms'],
+        ['a', '12'],
+      ],
+      head: true,
+      caption: 'Timings',
+    },
+    ...Array.from({ length: 10 }, (_, i) => para(i)),
+    { kind: 'heading', text: 'Steps' },
+    { kind: 'text', text: 'Back to {ref: setup}, and {ref: nowhere}.' },
+  ];
+
+  it('numbers figures and keeps each with its caption', async () => {
+    const plan = await planWrite(book, doc, { measure: false, from: 1 });
+    expect(plan.figures).toEqual([{ n: 1, caption: 'Timings', page: 1 }]);
+    const figure = plan.pages.flat(2).find((b) => b.kind === 'stack');
+    expect(figure?.kind === 'stack' && figure.blocks.map((b) => b.kind)).toEqual(['table', 'text']);
+    expect(JSON.stringify(figure)).toContain('Figure 1. Timings');
+  });
+
+  it('writes in the page each reference points at, and says which it could not find', async () => {
+    const plan = await planWrite(book, doc, { measure: false, from: 1 });
+    const text = JSON.stringify(plan.pages);
+    const steps = plan.refs.find((r) => r.to === 'Steps')?.page;
+    expect(steps).toBeGreaterThan(1);
+    expect(text).toContain('figure 1, page 1');
+    expect(text).toContain(`on page ${steps}.`);
+    expect(text).toContain('Back to page 1');
+    expect(text).toContain('page ?');
+    expect(plan.warnings.join()).toMatch(/nowhere/);
+  });
+
+  it('sets two columns side by side and fills one before the next', async () => {
+    const two = columns(book, 2);
+    expect(two.xs).toEqual([40, 294]);
+    expect(two.width * 2 + 28).toBe(480);
+    const one = await planWrite(book, doc, { measure: false, from: 1 });
+    const plan = await planWrite(book, doc, { measure: false, from: 1, columns: 2 });
+    expect(plan.columns).toBe(2);
+    expect(plan.pages[0]?.length).toBe(2);
+    expect(plan.pages.flat(2).length).toBe(one.pages.flat(2).length);
   });
 });
