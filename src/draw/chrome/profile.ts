@@ -23,8 +23,6 @@ import { renderPortrait, renderProfile } from '~/draw/material/profile/render.ts
 import { escapeHtml } from '~/draw/type/text.ts';
 
 export interface ProfilePageOptions {
-  /** Notebooks the card could go on the cover of: id and title. */
-  books?: ReadonlyArray<{ id: string; title: string }>;
   live?: { scripts?: string[] } | undefined;
 }
 
@@ -74,9 +72,6 @@ export function renderProfilePage(
 ): RenderedPage {
   const ctx = surface('profile', { palette: 'studio' });
   const head = renderHead(ctx, 'ltr', { paper: 'blank', grain: 0.7 });
-  const books = (options.books ?? [])
-    .map((b) => `<option value="${escapeHtml(b.id)}">${escapeHtml(b.title)}</option>`)
-    .join('');
   const paper = profile.portrait?.paper ?? PAPERS[0];
 
   const pens = PENS.map(
@@ -160,21 +155,6 @@ export function renderProfilePage(
     `<div class="pf-accent-row"><span class="pf-label">card colour</span><div class="pf-accents">${accents}</div></div>`,
     '</section>',
     `<section class="pf-card-stage" aria-label="the card"><div data-gs="card">${renderProfile(profile, { flat: true })}</div></section>`,
-    '<section class="pf-place gs-card" aria-label="use the card">',
-    heading('on a notebook'),
-    books
-      ? `<div class="pf-cover-row"><select class="gs-field" data-gs="profile-book" aria-label="which notebook">${books}</select>` +
-        button({
-          gs: 'profile-cover',
-          label: 'use as its cover',
-          icon: 'cover',
-          text: 'use as cover',
-        }) +
-        '</div>'
-      : '<p class="pf-note">There are no notebooks yet. Make one on the shelf and come back.</p>',
-    '<p class="pf-note">The card goes on by value: it stays as it is now, whatever you draw ' +
-      'next. A notebook is a record, and its cover is part of it.</p>',
-    '</section>',
     '</aside>',
     '</main>',
     `<script type="application/json" data-gs="profile-data">${JSON.stringify(profile).replace(/</g, '\\u003c')}</script>`,

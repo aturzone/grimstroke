@@ -106,7 +106,8 @@ export class CoverEditor {
     this.stage = stage;
     this.panel = panel;
     this.bindStage();
-    root.addEventListener('keydown', (event) => this.key(event));
+    // On the window: every change redraws the stage, and the sticker that had focus goes with it.
+    window.addEventListener('keydown', this.onKey);
     try {
       const res = await fetch('/api/profile');
       this.profile = ((await res.json()) as { profile: Profile }).profile;
@@ -116,7 +117,10 @@ export class CoverEditor {
     await this.refresh();
   }
 
+  private readonly onKey = (event: KeyboardEvent): void => this.key(event);
+
   close(): void {
+    window.removeEventListener('keydown', this.onKey);
     this.root?.remove();
     this.root = undefined;
     this.stage = undefined;
@@ -216,16 +220,34 @@ export class CoverEditor {
     );
     section('colour', colours, inks);
 
-    // Your card on the front, as it is now -- or not. By value: redrawing the portrait later
-    // does not change a cover that was already made.
+    // Your card on the front, as it is now, placed like a sticker. By value: redrawing the
+    // portrait later does not change a cover that was already made -- until you ask it to.
     const whose = el('div', 'gs-chip-row');
     whose.dataset.gs = 'cover-profile';
-    whose.append(
-      chip('nobody', !cover.profile, () => this.setCover({ profile: null }, 'cover person')),
-      chip(cover.profile ? 'your card (update it)' : 'your card', Boolean(cover.profile), () => {
-        if (this.profile) this.setCover({ profile: this.profile }, 'cover person');
-      }),
-    );
+    const card = this.stickers.find((s) => s.kind === 'card');
+    if (!card) {
+      const put = chip('put your card on', false, () => {
+        if (!this.profile) return;
+        this.chosen = 'card';
+        this.setCover({ profile: this.profile }, 'your card');
+      });
+      put.dataset.gs = 'card-add';
+      put.disabled = !this.profile?.name && !this.profile?.portrait?.strokes.length;
+      whose.append(put);
+      if (put.disabled)
+        whose.append(el('p', 'gs-cover-hint', 'Make your card on the profile page first.'));
+    } else {
+      const update = chip('update to my current card', false, () => {
+        if (this.profile) this.setCover({ profile: this.profile }, 'update card');
+      });
+      update.dataset.gs = 'card-update';
+      const off = chip('take it off', false, () => {
+        this.chosen = undefined;
+        this.setCover({ profile: null }, 'card off');
+      });
+      off.dataset.gs = 'card-remove';
+      whose.append(update, off);
+    }
     section('whose it is', whose);
 
     // Stickers: add one, then work on whichever is chosen.
@@ -308,36 +330,24 @@ export class CoverEditor {
       }
       box.append(colours);
     }
-    const slider = (
-      name: string,
-      min: number,
-      max: number,
-      value: number,
-      set: (v: number) => void,
-    ): HTMLElement => {
-      const row = el('label', 'gs-cover-range');
-      row.append(el('span', '', name));
-      const input = el('input');
-      input.type = 'range';
-      input.min = String(min);
-      input.max = String(max);
-      input.value = String(value);
-      input.dataset.gs = `sticker-${name}`;
-      input.addEventListener('input', () => {
-        const target = this.stage?.querySelector<HTMLElement>(
-          `[data-gs-id="${CSS.escape(sticker.id)}"]`,
-        );
-        if (name === 'size') target?.style.setProperty('--sticker-width', `${input.value}%`);
-        else target?.style.setProperty('--tilt', `${input.value}deg`);
-      });
-      input.addEventListener('change', () => set(Number(input.value)));
-      row.append(input);
-      return row;
-    };
+    // Size and turn are the grips on the sticker itself, as on the board. What is left here is
+    // what has no grip: which is on top.
+    const order = el('div', 'gs-chip-row');
+    const all = this.stickers;
+    const index = all.findIndex((s) => s.id === sticker.id);
+    const forward = chip('bring forward', false, () => this.restack(sticker.id, 1));
+    forward.dataset.gs = 'sticker-forward';
+    forward.disabled = index === all.length - 1;
+    const back = chip('send back', false, () => this.restack(sticker.id, -1));
+    back.dataset.gs = 'sticker-back';
+    back.disabled = index === 0;
+    order.append(forward, back);
     box.append(
-      slider('size', 8, 90, sticker.width ?? 40, (v) => update({ width: v }, 'sticker size')),
-      slider('turn', -45, 45, sticker.rotation ?? 0, (v) =>
-        update({ rotation: v }, 'sticker turn'),
+      order,
+      el(
+        'p',
+        'gs-cover-hint',
+        'Drag it to move it; its corners resize it and the round grip turns it. [ and ] turn it too.',
       ),
     );
     const remove = el('button', 'gs-btn gs-btn-danger', 'peel it off');
@@ -346,6 +356,25 @@ export class CoverEditor {
     remove.addEventListener('click', () => this.peel(sticker));
     box.append(remove);
     return box;
+  }
+
+  /** One step up or down the pile: the stickers from there up lifted and put back in order. */
+  private restack(id: string, by: 1 | -1): void {
+    const all = [...this.stickers];
+    const from = all.findIndex((s) => s.id === id);
+    const to = from + by;
+    const sticker = all[from];
+    if (!sticker || to < 0 || to >= all.length) return;
+    all.splice(from, 1);
+    all.splice(to, 0, sticker);
+    const lifted = all.slice(Math.min(from, to));
+    this.run(
+      [
+        ...lifted.map((s): BookOp => ({ op: 'sticker.remove', id: s.id })),
+        ...lifted.map((s): BookOp => ({ op: 'sticker.add', sticker: s })),
+      ],
+      by === 1 ? 'forward' : 'back',
+    );
   }
 
   private async peel(sticker: Sticker): Promise<void> {
@@ -390,12 +419,89 @@ export class CoverEditor {
 
   // ---------------------------------------------------------------- stage
 
-  /** Show which sticker is chosen, on the cover itself. */
+  /**
+   * Show which sticker is chosen, on the cover itself -- with the same grips a board item has.
+   *
+   * The grips are chrome laid inside the chosen sticker, so they turn with it and sit on its
+   * corners whatever its angle. They were two sliders in the panel, which is not how anything
+   * else in the workspace is resized or turned.
+   */
   private mark(): void {
     for (const node of this.stage?.querySelectorAll<HTMLElement>('[data-gs="sticker"]') ?? []) {
-      node.toggleAttribute('data-chosen', node.dataset.gsId === this.chosen);
+      const chosen = node.dataset.gsId === this.chosen;
+      node.toggleAttribute('data-chosen', chosen);
       node.tabIndex = 0;
+      node.querySelector('.gs-sgrips')?.remove();
+      if (!chosen) continue;
+      const grips = el('span', 'gs-sgrips');
+      grips.setAttribute('aria-hidden', 'true');
+      for (const g of ['nw', 'ne', 'se', 'sw', 'turn']) {
+        const grip = el('span', `gs-sgrip gs-sgrip-${g}`);
+        grip.dataset.grip = g;
+        grips.append(grip);
+      }
+      node.append(grips);
     }
+  }
+
+  /**
+   * A grip on a sticker: a corner scales it about its middle, the round one turns it.
+   *
+   * Both measured from the sticker's centre, which is where a sticker is placed from, so the
+   * sticker's own angle never matters: the distance and the angle to the pointer are the same
+   * however it is turned.
+   */
+  private gripDrag(event: PointerEvent, target: HTMLElement, sticker: Sticker, grip: string): void {
+    const face = this.stage?.querySelector<HTMLElement>('.cover') ?? this.stage;
+    if (!face) return;
+    const box = face.getBoundingClientRect();
+    const c = {
+      x: box.left + (sticker.at[0] / 100) * box.width,
+      y: box.top + (sticker.at[1] / 100) * box.height,
+    };
+    const d0 = Math.hypot(event.clientX - c.x, event.clientY - c.y) || 1;
+    const a0 = Math.atan2(event.clientY - c.y, event.clientX - c.x);
+    const w0 = sticker.width ?? 40;
+    const r0 = sticker.rotation ?? 0;
+    let patch: Partial<Omit<Sticker, 'id'>> | undefined;
+    const g = event.target as HTMLElement;
+    try {
+      g.setPointerCapture(event.pointerId);
+    } catch {
+      // Without capture the gesture ends if the pointer leaves the grip.
+    }
+    target.dataset.active = grip;
+    const move = (ev: PointerEvent): void => {
+      if (grip === 'turn') {
+        const a = Math.atan2(ev.clientY - c.y, ev.clientX - c.x);
+        let r = r0 + ((a - a0) * 180) / Math.PI;
+        r = ((((r + 180) % 360) + 360) % 360) - 180;
+        r = ev.shiftKey ? Math.round(r / 15) * 15 : Math.abs(r) < 2 ? 0 : Math.round(r);
+        target.style.setProperty('--tilt', `${r}deg`);
+        target.dataset.angle = `${r}°`;
+        patch = { rotation: r };
+      } else {
+        const k = Math.hypot(ev.clientX - c.x, ev.clientY - c.y) / d0;
+        const w = Math.round(Math.min(100, Math.max(6, w0 * k)) * 10) / 10;
+        target.style.setProperty('--sticker-width', `${w}%`);
+        patch = { width: w };
+      }
+    };
+    const up = (): void => {
+      g.removeEventListener('pointermove', move);
+      g.removeEventListener('pointerup', up);
+      g.removeEventListener('pointercancel', up);
+      delete target.dataset.active;
+      delete target.dataset.angle;
+      if (patch)
+        this.run(
+          [{ op: 'sticker.update', id: sticker.id, patch }],
+          grip === 'turn' ? 'turn' : 'resize',
+        );
+    };
+    g.addEventListener('pointermove', move);
+    g.addEventListener('pointerup', up);
+    g.addEventListener('pointercancel', up);
   }
 
   /**
@@ -418,6 +524,11 @@ export class CoverEditor {
       const id = target.dataset.gsId ?? '';
       const sticker = this.stickers.find((s) => s.id === id);
       if (!sticker) return;
+      const grip = (event.target as HTMLElement).closest<HTMLElement>('.gs-sgrip')?.dataset.grip;
+      if (grip && this.chosen === id) {
+        this.gripDrag(event, target, sticker, grip);
+        return;
+      }
       if (this.chosen !== id) {
         this.chosen = id;
         this.mark();
@@ -464,11 +575,37 @@ export class CoverEditor {
       this.close();
       return;
     }
+    // Undo works in here too: the book's own keys stand aside while the editor is open.
+    if ((event.metaKey || event.ctrlKey) && event.code === 'KeyZ') {
+      event.preventDefault();
+      if (event.shiftKey) this.session.redo();
+      else this.session.undo();
+      return;
+    }
     const sticker = this.stickers.find((s) => s.id === this.chosen);
     if (!sticker) return;
     if (event.key === 'Delete' || event.key === 'Backspace') {
       event.preventDefault();
       void this.peel(sticker);
+      return;
+    }
+    if (event.code === 'BracketLeft' || event.code === 'BracketRight') {
+      event.preventDefault();
+      const step = (event.altKey ? 1 : 15) * (event.code === 'BracketLeft' ? -1 : 1);
+      const rotation = Math.round((sticker.rotation ?? 0) + step);
+      this.run([{ op: 'sticker.update', id: sticker.id, patch: { rotation } }], 'turn');
+      return;
+    }
+    if (event.key === '+' || event.key === '=' || event.key === '-') {
+      event.preventDefault();
+      const width = Math.min(
+        100,
+        Math.max(6, (sticker.width ?? 40) * (event.key === '-' ? 0.9 : 1.1)),
+      );
+      this.run(
+        [{ op: 'sticker.update', id: sticker.id, patch: { width: Math.round(width * 10) / 10 } }],
+        'resize',
+      );
       return;
     }
     const step = event.shiftKey ? 5 : 0.5;

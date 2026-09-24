@@ -143,8 +143,13 @@ describe('the workspace archive', () => {
     expect(board2?.items[0]?.block).toEqual(spec.items[0]?.block);
     const book = await to.readBook('crew');
     expect(book?.archived).toBe(true);
-    expect(book?.cover?.profile).toEqual(profile);
-    expect(book?.cover?.stickers?.map((s) => s.kind)).toEqual(['shape', 'picture', 'portrait']);
+    expect(book?.cover?.stickers?.find((s) => s.kind === 'card')?.profile).toEqual(profile);
+    expect(book?.cover?.stickers?.map((s) => s.kind)).toEqual([
+      'shape',
+      'picture',
+      'portrait',
+      'card',
+    ]);
     expect(book?.cover?.stickers?.[2]?.portrait).toEqual(profile.portrait);
     // The picture sticker points into the new store, and the bytes came with it.
     const src = book?.cover?.stickers?.[1]?.src ?? '';
@@ -208,8 +213,10 @@ describe('what the character studio left behind', () => {
       }),
     );
     const book = await store.readBook('old');
-    expect(book?.cover?.profile?.name).toBe('Rio');
-    expect(book?.cover?.stickers).toEqual([]);
+    expect(book?.cover?.stickers?.find((s) => s.kind === 'card')?.profile?.name).toBe('Rio');
+    // The face sticker is gone; the old fixed card is a card sticker, where it sat.
+    expect(book?.cover?.stickers?.map((s) => s.kind)).toEqual(['card']);
+    expect(book?.cover?.stickers?.[0]?.at).toEqual([50, 76]);
     // A page written as a column is one stack of blocks now, placed at the margins.
     expect(book?.leaves[0]?.items?.[0]?.block).toMatchObject({
       kind: 'stack',

@@ -400,21 +400,6 @@ class ProfileEditor {
       if (res.ok) window.location.href = '/';
       else toast('the card could not be put on the board', 'error');
     });
-    onClick('profile-cover', async () => {
-      const book = document.querySelector<HTMLSelectElement>('[data-gs="profile-book"]')?.value;
-      if (!book || !(await this.save())) return;
-      const res = await fetch('/api/patch', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          kind: 'book',
-          id: book,
-          ops: [{ op: 'cover', patch: { profile: this.profile } }],
-        }),
-      });
-      if (res.ok) window.location.href = `/book?id=${encodeURIComponent(book)}`;
-      else toast('the cover could not be changed', 'error');
-    });
   }
 }
 

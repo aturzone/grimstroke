@@ -350,15 +350,8 @@ export const COVER = `/* ---- the cover ---- */
   box-shadow: 1.5px 2px 0 rgba(0, 0, 0, 0.35);
 }
 
-/* Whose notebook it is: their card, pasted on below the title, slightly off true. */
-.cover-profile {
-  position: absolute;
-  inset-inline-start: 50%;
-  inset-block-end: 6%;
-  width: 54%;
-  transform: translateX(-50%) rotate(-2.5deg);
-}
-:root[dir='rtl'] .cover-profile { transform: translateX(50%) rotate(2.5deg); }
+/* Whose notebook it is: their card, pasted on wherever they put it. */
+.sticker-card > .profile { max-width: none; width: 100%; }
 .cover.has-profile .cover-title { font-size: 11.5cqw; inset-block-start: 8%; }
 .sticker-text {
   display: block;

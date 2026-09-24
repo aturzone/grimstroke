@@ -92,7 +92,47 @@ body.on-book.live { padding-block: 76px 84px; }
 }
 .gs-cover-stage .sticker { cursor: grab; }
 .gs-cover-stage .sticker:active { cursor: grabbing; }
-.gs-cover-stage .sticker[data-chosen] { outline: 2px dashed var(--gs-paper); outline-offset: 4px; }
+.gs-cover-stage .sticker[data-chosen] { outline: 1.5px solid var(--gs-paper); outline-offset: 5px; z-index: 20; }
+.gs-sgrips { position: absolute; inset: -5px; pointer-events: none; }
+.gs-sgrip {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  margin: -6px;
+  background: var(--gs-paper);
+  border: 1.5px solid var(--gs-ink);
+  pointer-events: auto;
+  touch-action: none;
+}
+.gs-sgrip-nw { left: 0; top: 0; cursor: nwse-resize; }
+.gs-sgrip-ne { left: 100%; top: 0; cursor: nesw-resize; }
+.gs-sgrip-se { left: 100%; top: 100%; cursor: nwse-resize; }
+.gs-sgrip-sw { left: 0; top: 100%; cursor: nesw-resize; }
+.gs-sgrip-turn { left: 50%; top: -30px; width: 16px; height: 16px; margin: -8px; border-radius: 50%; cursor: grab; }
+.gs-sgrip-turn::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 1.5px;
+  height: 17px;
+  background: var(--gs-paper);
+  translate: -50% 0;
+}
+.gs-cover-stage .sticker[data-angle]::after {
+  content: attr(data-angle);
+  position: absolute;
+  left: 50%;
+  top: -64px;
+  translate: -50% 0;
+  padding: 2px 8px;
+  background: var(--gs-ink);
+  color: var(--gs-paper);
+  font-family: var(--mono-font);
+  font-size: 12px;
+  white-space: nowrap;
+}
+@media (pointer: coarse) { .gs-sgrip { width: 22px; height: 22px; margin: -11px; } }
 .gs-cover-stage .sticker:focus-visible { outline: 2.5px solid var(--gs-paper); outline-offset: 4px; }
 .gs-cover-panel {
   align-self: stretch;
@@ -118,6 +158,7 @@ body.on-book.live { padding-block: 76px 84px; }
 .gs-cover-hint { padding: 10px 16px; color: var(--gs-soft); font-size: var(--gs-t1); line-height: 1.5; }
 .gs-cover-chosen { margin: 6px 8px 0; padding: 4px 0 10px; border: 1.5px dashed var(--gs-faint); border-radius: var(--gs-radius); }
 .gs-cover-chosen > .gs-btn { margin: 4px 8px 0; }
+.gs-cover-chosen > .gs-btn-danger { border: 1.5px solid var(--gs-line); color: var(--gs-hot); padding-inline: 12px; }
 .gs-cover-swatches { display: flex; flex-wrap: wrap; gap: 6px; padding: 2px 8px 8px; }
 .gs-cover-swatch {
   width: 26px;
@@ -130,8 +171,6 @@ body.on-book.live { padding-block: 76px 84px; }
 }
 .gs-cover-swatch[aria-pressed='true'] { outline: 2.5px solid var(--gs-ink); outline-offset: 2px; }
 .gs-cover-custom { width: 26px; height: 26px; padding: 0; border: 1.5px solid var(--gs-line); background: none; cursor: pointer; }
-.gs-cover-range { display: grid; grid-template-columns: 52px 1fr; align-items: center; gap: 8px; padding: 2px 8px; font-size: var(--gs-t1); }
-.gs-cover-range input { width: 100%; accent-color: var(--gs-ink); }
 .gs-field {
   display: block;
   padding: 7px 9px;

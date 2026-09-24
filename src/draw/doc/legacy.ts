@@ -11,6 +11,7 @@
 import type { BoardItem, BoardSpec } from '~/draw/doc/board/model.ts';
 import {
   type BookSpec,
+  CARD_PLACE,
   type Cover,
   LEAF_MARGIN,
   LEAF_WIDTH,
@@ -44,18 +45,24 @@ export function upgradeBoard(spec: BoardSpec): BoardSpec {
   };
 }
 
-function upgradeCover(cover: Cover | undefined): Cover | undefined {
+export function upgradeCover(cover: Cover | undefined): Cover | undefined {
   if (!cover) return cover;
   const stickers = cover.stickers?.filter(
     // A face sticker was a character's head. There is nothing honest to turn it into.
     (sticker) => (sticker as unknown as { kind: string }).kind !== 'face',
   ) as Sticker[] | undefined;
   const profile = cover.profile as (Profile & { parts?: unknown; id?: unknown }) | undefined;
-  return {
-    ...cover,
-    ...(stickers ? { stickers } : {}),
-    ...(profile ? { profile: readProfile(profile) } : {}),
-  };
+  const { profile: _, ...rest } = cover;
+  const list = (stickers ?? []).map((sticker) =>
+    sticker.kind === 'card' && sticker.profile
+      ? { ...sticker, profile: readProfile(sticker.profile) }
+      : sticker,
+  );
+  // The card had one fixed place; it is a sticker now, left exactly where it was.
+  if (profile && !list.some((sticker) => sticker.kind === 'card')) {
+    list.push({ id: 'card', kind: 'card', ...CARD_PLACE, profile: readProfile(profile) });
+  }
+  return { ...rest, ...(list.length || stickers ? { stickers: list } : {}) };
 }
 
 export function upgradeBook(spec: BookSpec): BookSpec {

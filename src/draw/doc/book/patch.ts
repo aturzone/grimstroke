@@ -22,6 +22,7 @@ import {
 import {
   type BookSpec,
   blankLeaf,
+  CARD_PLACE,
   type Cover,
   type Leaf,
   type Sticker,
@@ -185,9 +186,25 @@ export function apply(spec: BookSpec, ops: readonly BookOp[]): BookPatchResult {
         break;
       }
       case 'cover': {
-        const cover: Record<string, unknown> = { ...(book.cover ?? {}), ...op.patch };
+        const { profile, ...patch } = op.patch;
+        const cover: Record<string, unknown> = { ...(book.cover ?? {}), ...patch };
         for (const key of Object.keys(cover)) if (cover[key] == null) delete cover[key];
         book.cover = cover as Cover;
+        /*
+         * `profile` is still understood, as "the card on the cover": set, it puts the card on
+         * (or brings the one there up to date, where it is); null takes it off. The card itself
+         * is a sticker, so it can be moved, turned and resized like one.
+         */
+        if (profile !== undefined) {
+          const rest = stickers().filter((s) => s.kind !== 'card');
+          const card = stickers().find((s) => s.kind === 'card');
+          book.cover = {
+            ...book.cover,
+            stickers: profile
+              ? [...rest, { ...(card ?? { id: 'card', kind: 'card', ...CARD_PLACE }), profile }]
+              : rest,
+          };
+        }
         reset = true;
         break;
       }
@@ -281,7 +298,10 @@ export function invert(spec: BookSpec, ops: readonly BookOp[]): BookOp[] {
       case 'cover': {
         const previous: Record<string, unknown> = {};
         for (const key of Object.keys(op.patch)) {
-          previous[key] = current.cover?.[key as keyof Cover] ?? null;
+          previous[key] =
+            key === 'profile'
+              ? ((current.cover?.stickers ?? []).find((s) => s.kind === 'card')?.profile ?? null)
+              : (current.cover?.[key as keyof Cover] ?? null);
         }
         back.push({ op: 'cover', patch: previous as Loose<Cover> });
         break;

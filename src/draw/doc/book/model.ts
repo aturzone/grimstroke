@@ -39,7 +39,7 @@ export const MATERIALS: readonly CoverMaterial[] = ['card', 'cloth', 'kraft', 'l
  */
 export interface Sticker {
   id: string;
-  kind: 'label' | 'picture' | 'shape' | 'portrait';
+  kind: 'label' | 'picture' | 'shape' | 'portrait' | 'card';
   /** Percent of the cover, from its top-left. */
   at: [number, number];
   /** Width as a percent of the cover. Height follows the content. */
@@ -53,7 +53,15 @@ export interface Sticker {
   shape?: 'circle' | 'star' | 'band' | 'tape';
   /** For a portrait: the drawing, by value, as it was when it was stuck on. */
   portrait?: Portrait;
+  /**
+   * For a card: the profile card, by value, as it was when it was put on -- so the cover still
+   * says whose it was after the profile has been redrawn. A notebook is a record.
+   */
+  profile?: Profile;
 }
+
+/** Where a card sat when it had one fixed place on the cover: below the title, off true. */
+export const CARD_PLACE = { at: [50, 76] as [number, number], width: 54, rotation: -2.5 };
 
 export const SHAPES: ReadonlyArray<NonNullable<Sticker['shape']>> = [
   'circle',
@@ -73,10 +81,8 @@ export interface Cover {
   spine?: string;
   stickers?: Sticker[];
   /**
-   * Whose notebook it is: the profile card, pasted onto the front.
-   *
-   * By value, so the cover still says whose it was after the profile has been redrawn -- a
-   * notebook is a record, and its cover is part of the record.
+   * Whose notebook it is, the old way: one card in one fixed place. Read as a `card` sticker
+   * where it used to sit (see legacy.ts); a card is placed as a sticker now.
    */
   profile?: Profile;
 }

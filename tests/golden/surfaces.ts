@@ -100,7 +100,7 @@ export function surfaces(): Array<{ name: string; page: RenderedPage }> {
   });
   out.push({
     name: 'profile',
-    page: renderProfilePage(profile, { books: [{ id: 'a', title: 'A' }] }),
+    page: renderProfilePage(profile),
   });
   return out;
 }

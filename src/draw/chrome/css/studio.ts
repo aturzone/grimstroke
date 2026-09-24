@@ -101,9 +101,6 @@ body.on-profile {
 
 .pf-card-stage { justify-self: center; width: min(100%, 300px); padding: 12px 8px 4px; }
 .pf-card-stage .profile { max-width: none; }
-.pf-place { padding: 4px 0 12px; }
-.pf-cover-row { display: flex; gap: 6px; padding: 0 12px; }
-.pf-cover-row .gs-field { flex: 1; min-width: 0; margin: 0; }
 .pf-note { padding: 8px 16px 0; color: var(--gs-soft); font-size: var(--gs-t1); line-height: 1.5; }
 
 @media (max-width: 960px) {

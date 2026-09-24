@@ -25,7 +25,7 @@ import {
   spineWidth,
 } from '~/draw/doc/book/model.ts';
 import { renderHead } from '~/draw/doc/head.ts';
-import { upgradeLeaf } from '~/draw/doc/legacy.ts';
+import { upgradeCover, upgradeLeaf } from '~/draw/doc/legacy.ts';
 import type { RenderedPage } from '~/draw/doc/model.ts';
 import { type Surface, servedPath, surface } from '~/draw/doc/surface.ts';
 import { textOn } from '~/draw/look/colour.ts';
@@ -58,7 +58,9 @@ export interface BookRenderOptions {
  * why a sticker's position is a percentage and not a pixel.
  */
 export function renderCover(spec: BookSpec, ctx: Surface): string {
-  const cover: Cover = spec.cover ?? {};
+  // Upgraded here too: a cover written this minute with the old one-card field is drawn with
+  // its card as a sticker, the same as one read from disk.
+  const cover: Cover = upgradeCover(spec.cover) ?? {};
   const title = cover.title ?? spec.title ?? spec.id;
   const material = cover.material ?? 'card';
   /*
@@ -77,14 +79,11 @@ export function renderCover(spec: BookSpec, ctx: Surface): string {
     .filter(Boolean)
     .join(';');
   const stickers = (cover.stickers ?? []).map((s) => renderSticker(s, ctx)).join('');
-  const person = cover.profile
-    ? `<div class="cover-profile">${renderProfile(cover.profile)}</div>`
-    : '';
+  const card = cover.stickers?.some((s) => s.kind === 'card') === true;
   return (
-    `<div class="cover cover-${material}${cover.profile ? ' has-profile' : ''}" style="${vars}">` +
+    `<div class="cover cover-${material}${card ? ' has-profile' : ''}" style="${vars}">` +
     '<div class="cover-face">' +
     `<div class="cover-title" dir="auto">${inline(title, { digits: ctx.digits })}</div>` +
-    person +
     stickers +
     '</div>' +
     '</div>'
@@ -106,11 +105,15 @@ function renderSticker(sticker: Sticker, ctx: Surface): string {
       ? `<img src="${escapeHtml(servedPath(sticker.src ?? '', ctx))}" alt="" draggable="false">`
       : sticker.kind === 'portrait'
         ? `<span class="sticker-photo">${renderPortrait(sticker.portrait, '')}</span>`
-        : sticker.kind === 'shape'
-          ? `<span class="shape shape-${sticker.shape ?? 'circle'}"></span>`
-          : `<span class="sticker-text">${inline(sticker.text ?? '', {
-              digits: ctx.digits,
-            })}</span>`;
+        : sticker.kind === 'card'
+          ? sticker.profile
+            ? renderProfile(sticker.profile)
+            : ''
+          : sticker.kind === 'shape'
+            ? `<span class="shape shape-${sticker.shape ?? 'circle'}"></span>`
+            : `<span class="sticker-text">${inline(sticker.text ?? '', {
+                digits: ctx.digits,
+              })}</span>`;
   return (
     `<div class="sticker sticker-${sticker.kind}" data-gs="sticker" ` +
     `data-gs-id="${escapeHtml(sticker.id)}" style="${style}">${body}</div>`
