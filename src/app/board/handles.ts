@@ -31,6 +31,35 @@ export function scalePath(d: string, k: number, ox: number, oy: number): string 
   });
 }
 
+/** Every x,y pair of a path, mapped. The paths this app draws are absolute pairs throughout. */
+export function mapPath(d: string, f: (x: number, y: number) => [number, number]): string {
+  const nums: number[] = [];
+  d.replace(/-?\d*\.?\d+(?:e-?\d+)?/gi, (n) => {
+    nums.push(Number(n));
+    return n;
+  });
+  const out: number[] = [];
+  for (let i = 0; i + 1 < nums.length; i += 2) out.push(...f(nums[i] ?? 0, nums[i + 1] ?? 0));
+  let k = 0;
+  return d.replace(/-?\d*\.?\d+(?:e-?\d+)?/gi, (n) =>
+    k < out.length ? String(Math.round((out[k++] ?? 0) * 100) / 100) : n,
+  );
+}
+
+/** Turn a point about a centre by some degrees. */
+function turnPoint(x: number, y: number, cx: number, cy: number, deg: number): [number, number] {
+  const a = (deg * Math.PI) / 180;
+  const dx = x - cx;
+  const dy = y - cy;
+  return [cx + dx * Math.cos(a) - dy * Math.sin(a), cy + dx * Math.sin(a) + dy * Math.cos(a)];
+}
+
+/** An angle in (-180, 180], snapped: Shift to 15 degrees, near straight to straight. */
+function snapAngle(r: number, shift: boolean): number {
+  r = ((((r + 180) % 360) + 360) % 360) - 180;
+  return shift ? Math.round(r / 15) * 15 : Math.abs(r) < 2 ? 0 : Math.round(r * 10) / 10;
+}
+
 export class Handles {
   private readonly ctx: BoardContext;
   private readonly frame: HTMLElement;
@@ -146,7 +175,11 @@ export class Handles {
   private grab(event: PointerEvent, grip: Grip): void {
     const chosen = this.selected();
     const item = chosen[0];
-    if (chosen.length !== 1 || !item || item.locked || event.button !== 0) return;
+    if (!item || chosen.some((i) => i.locked) || event.button !== 0) return;
+    if (chosen.length > 1 || item.ink) {
+      this.grabMany(event, grip, chosen);
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
     const element = this.ctx.element(item.id);
@@ -172,11 +205,10 @@ export class Handles {
     const move = (ev: PointerEvent): void => {
       if (grip === 'turn') {
         const a = Math.atan2(ev.clientY - c.y, ev.clientX - c.x);
-        let r = r0 + ((a - a0) * 180) / Math.PI;
         // Shift snaps to fifteen degrees; near straight snaps to straight anyway, because a
         // thing meant to be square and turned by half a degree just looks crooked.
-        r = ((((r + 180) % 360) + 360) % 360) - 180;
-        r = ev.shiftKey ? Math.round(r / 15) * 15 : Math.abs(r) < 2 ? 0 : Math.round(r * 10) / 10;
+        const r = snapAngle(r0 + ((a - a0) * 180) / Math.PI, ev.shiftKey);
+        this.frame.dataset.angle = `${Math.round(r)}°`;
         element.dataset.gsRotation = String(r);
         element.style.setProperty('--tilt', `${r}deg`);
         result = { op: 'update', id: item.id, patch: { rotation: r === 0 ? null : r } };
@@ -223,6 +255,7 @@ export class Handles {
       target.removeEventListener('pointercancel', up);
       this.busy = false;
       delete this.frame.dataset.active;
+      delete this.frame.dataset.angle;
       if (item.ink) {
         element.style.transform = '';
         element.style.transformOrigin = '';
@@ -233,5 +266,213 @@ export class Handles {
     target.addEventListener('pointermove', move);
     target.addEventListener('pointerup', up);
     target.addEventListener('pointercancel', up);
+  }
+
+  /**
+   * The ops that turn some items by an angle about a point, and a preview of them.
+   *
+   * Each item's centre goes round the point and the item turns with it, so a selection turns
+   * as one thing. Ink has no centre to turn about -- a stroke is a path from its own origin --
+   * so its path is turned instead, which is exact and leaves nothing to drift.
+   */
+  private turnOps(
+    list: readonly { item: BoardItem; box: { x: number; y: number; w: number; h: number } }[],
+    deg: number,
+    cx: number,
+    cy: number,
+    preview: boolean,
+  ): Op[] {
+    const ops: Op[] = [];
+    for (const { item, box } of list) {
+      const element = this.ctx.element(item.id);
+      if (item.ink) {
+        const [ax, ay] = item.at;
+        if (preview && element) {
+          const ox = cx - ax;
+          const oy = cy - ay;
+          if (element instanceof SVGGElement) {
+            const [x, y] = (element.dataset.gsAt ?? '0,0').split(',').map(Number);
+            element.style.transform =
+              `translate(${x ?? 0}px, ${y ?? 0}px) translate(${ox}px, ${oy}px) rotate(${deg}deg) ` +
+              `translate(${-ox}px, ${-oy}px) rotate(var(--tilt, 0deg))`;
+          } else {
+            element.style.transformOrigin = `${ox}px ${oy}px`;
+            element.style.transform = `rotate(${deg}deg)`;
+          }
+        }
+        const d = mapPath(item.ink.d, (x, y) => turnPoint(x + ax, y + ay, cx, cy, deg)).trim();
+        // Re-anchored at the turned origin, so the path stays small numbers from its own corner.
+        const [nx, ny] = turnPoint(ax, ay, cx, cy, deg).map(Math.round) as [number, number];
+        ops.push({
+          op: 'update',
+          id: item.id,
+          patch: { at: [nx, ny], ink: { ...item.ink, d: mapPath(d, (x, y) => [x - nx, y - ny]) } },
+        });
+        continue;
+      }
+      const mx = box.x + box.w / 2;
+      const my = box.y + box.h / 2;
+      const [nx, ny] = turnPoint(mx, my, cx, cy, deg);
+      const at: [number, number] = [
+        Math.round(item.at[0] + nx - mx),
+        Math.round(item.at[1] + ny - my),
+      ];
+      const r = snapAngle((item.rotation ?? 0) + deg, false);
+      if (preview && element) {
+        element.dataset.gsRotation = String(r);
+        element.style.setProperty('--tilt', `${r}deg`);
+        this.ctx.place(element, at);
+      }
+      ops.push({ op: 'update', id: item.id, patch: { at, rotation: r === 0 ? null : r } });
+    }
+    return ops;
+  }
+
+  /** Put back what a preview did to the elements; the server's reply redraws them. */
+  private unpreview(items: readonly BoardItem[]): void {
+    for (const item of items) {
+      const element = this.ctx.element(item.id);
+      if (!element) continue;
+      if (item.ink) {
+        element.style.transform = '';
+        element.style.transformOrigin = '';
+        if (element instanceof SVGGElement) this.ctx.place(element, item.at);
+      }
+    }
+  }
+
+  /**
+   * Several things at once -- or one stroke: resize from the far corner, turn about the middle.
+   *
+   * A selection of several used to offer nothing but a dashed outline, and a group turned only
+   * the one member that was pressed.
+   */
+  private grabMany(event: PointerEvent, grip: Grip, chosen: readonly BoardItem[]): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const list = chosen
+      .map((item) => ({ item, box: boxes(this.ctx, [item.id])[0] }))
+      .filter((e): e is { item: BoardItem; box: NonNullable<typeof e.box> } => e.box !== undefined);
+    const all = union(list.map((e) => e.box));
+    if (!all) return;
+    const target = event.currentTarget as HTMLElement;
+    try {
+      target.setPointerCapture(event.pointerId);
+    } catch {
+      // Without capture the gesture ends if the pointer leaves the grip.
+    }
+    this.busy = true;
+    this.frame.dataset.active = grip;
+    const zoom = this.ctx.view.zoom;
+    const start = { x: event.clientX, y: event.clientY };
+    const cx = all.x + all.w / 2;
+    const cy = all.y + all.h / 2;
+    const c = this.ctx.view.toScreen({ x: cx, y: cy });
+    const a0 = Math.atan2(event.clientY - c.y, event.clientX - c.x);
+    const west = grip === 'w' || grip === 'nw' || grip === 'sw';
+    const north = grip === 'nw' || grip === 'ne';
+    // The corner that stays put is the one across from the grip.
+    const anchor = { x: west ? all.x + all.w : all.x, y: north ? all.y + all.h : all.y };
+    let ops: Op[] = [];
+
+    const move = (ev: PointerEvent): void => {
+      if (grip === 'turn') {
+        const a = Math.atan2(ev.clientY - c.y, ev.clientX - c.x);
+        const deg = snapAngle(((a - a0) * 180) / Math.PI, ev.shiftKey);
+        this.frame.dataset.angle = `${Math.round(deg)}°`;
+        this.frame.style.rotate = `${deg}deg`;
+        ops = this.turnOps(list, deg, cx, cy, true);
+        return;
+      }
+      const dx = (ev.clientX - start.x) / zoom;
+      const k = Math.min(8, Math.max(0.1, (all.w + (west ? -dx : dx)) / all.w));
+      ops = [];
+      for (const { item } of list) {
+        const element = this.ctx.element(item.id);
+        const at: [number, number] = [
+          Math.round(anchor.x + (item.at[0] - anchor.x) * k),
+          Math.round(anchor.y + (item.at[1] - anchor.y) * k),
+        ];
+        if (item.ink) {
+          if (element instanceof SVGGElement) {
+            const x = at[0] - this.ctx.view.origin.x;
+            const y = at[1] - this.ctx.view.origin.y;
+            element.style.transform = `translate(${x}px, ${y}px) scale(${k}) rotate(var(--tilt, 0deg))`;
+          } else if (element) {
+            this.ctx.place(element, at);
+            element.style.transformOrigin = '0 0';
+            element.style.transform = `scale(${k})`;
+          }
+          ops.push({
+            op: 'update',
+            id: item.id,
+            patch: {
+              at,
+              ink: {
+                ...item.ink,
+                d: scalePath(item.ink.d, k, 0, 0),
+                ...(item.ink.weight
+                  ? { weight: Math.round(item.ink.weight * Math.sqrt(k) * 10) / 10 }
+                  : {}),
+              },
+            },
+          });
+          continue;
+        }
+        const w0 = item.size?.[0] ?? boxes(this.ctx, [item.id])[0]?.w ?? MIN_WIDTH;
+        const w = Math.max(24, Math.round(w0 * k));
+        const h =
+          item.size?.[1] === undefined ? undefined : Math.max(24, Math.round(item.size[1] * k));
+        if (element) {
+          element.style.width = `${w}px`;
+          element.style.maxWidth = 'none';
+          if (h !== undefined) element.style.height = `${h}px`;
+          this.ctx.place(element, at);
+        }
+        ops.push({
+          op: 'update',
+          id: item.id,
+          patch: { at, size: h === undefined ? [w] : [w, h] },
+        });
+      }
+      const s = this.ctx.view.toScreen({
+        x: anchor.x + (all.x - anchor.x) * k,
+        y: anchor.y + (all.y - anchor.y) * k,
+      });
+      const view = this.ctx.view.screen;
+      this.frame.style.transform = `translate(${Math.round(s.x - view.left)}px, ${Math.round(s.y - view.top)}px)`;
+      this.frame.style.width = `${Math.round(all.w * k * zoom)}px`;
+      this.frame.style.height = `${Math.round(all.h * k * zoom)}px`;
+    };
+    const up = (): void => {
+      target.removeEventListener('pointermove', move);
+      target.removeEventListener('pointerup', up);
+      target.removeEventListener('pointercancel', up);
+      this.busy = false;
+      delete this.frame.dataset.active;
+      delete this.frame.dataset.angle;
+      this.frame.style.rotate = '';
+      this.unpreview(chosen);
+      // One gesture, one step of undo, however many things it moved.
+      if (ops.length) this.ctx.session.run(ops, grip === 'turn' ? 'turn' : 'resize');
+      this.update();
+    };
+    target.addEventListener('pointermove', move);
+    target.addEventListener('pointerup', up);
+    target.addEventListener('pointercancel', up);
+  }
+
+  /** Turn the selection by some degrees, from the keyboard: [ and ], Alt for one degree. */
+  turnBy(deg: number): void {
+    const chosen = this.selected();
+    if (chosen.length === 0 || chosen.some((i) => i.locked)) return;
+    const list = chosen
+      .map((item) => ({ item, box: boxes(this.ctx, [item.id])[0] }))
+      .filter((e): e is { item: BoardItem; box: NonNullable<typeof e.box> } => e.box !== undefined);
+    const all = union(list.map((e) => e.box));
+    if (!all) return;
+    const ops = this.turnOps(list, deg, all.x + all.w / 2, all.y + all.h / 2, false);
+    if (ops.length) this.ctx.session.run(ops, 'turn');
+    this.update();
   }
 }

@@ -563,6 +563,20 @@ export class BoardApp implements BoardContext {
         this.setTool('select');
         return;
       }
+      // [ and ] turn the selection fifteen degrees; with Alt, one. By the key's place, not its
+      // letter, so a Persian layout turns things too.
+      if (
+        !event.metaKey &&
+        !event.ctrlKey &&
+        (event.code === 'BracketLeft' || event.code === 'BracketRight')
+      ) {
+        if (this.selection.size > 0) {
+          event.preventDefault();
+          const step = event.altKey ? 1 : 15;
+          this.handles.turnBy(event.code === 'BracketLeft' ? -step : step);
+        }
+        return;
+      }
       const mod = event.metaKey || event.ctrlKey;
       const letter = letterOf(event);
       if (mod && !event.altKey) {

@@ -181,10 +181,15 @@ export class Gestures {
     }
 
     const selection = this.ctx.selection;
-    if (hit?.dataset.gsId && !hit.dataset.gsLocked) {
-      if (!event.shiftKey && !selection.has(hit.dataset.gsId)) selection.clear();
+    const hitId = hit
+      ? hit.dataset.gsLocked
+        ? undefined
+        : hit.dataset.gsId
+      : this.strokeAt(this.start);
+    if (hitId) {
+      if (!event.shiftKey && !selection.has(hitId)) selection.clear();
       // A group is picked up whole: that is what grouping them was for.
-      for (const id of withGroups(this.ctx, [hit.dataset.gsId])) selection.set(id, true);
+      for (const id of withGroups(this.ctx, [hitId])) selection.set(id, true);
       const items = this.ctx.items();
       this.moving = selection
         .list()
@@ -400,6 +405,46 @@ export class Gestures {
       if (!id || hit?.dataset.gsLocked || !this.ctx.items().get(id)?.ink) continue;
       this.eraseItem(id);
       return;
+    }
+  }
+
+  /**
+   * The stroke under a press on the bare board, if there is one.
+   *
+   * Strokes take no pointer events, so that a line across a note never swallows a press meant
+   * for the note -- which also meant a stroke could not be picked up at all, only caught in a
+   * marquee. A press that lands on nothing else asks, for that moment only, whether a line runs
+   * within a few pixels of it.
+   */
+  private strokeAt(at: Point): string | undefined {
+    const viewport = this.ctx.viewport;
+    viewport.toggleAttribute('data-hit-ink', true);
+    try {
+      const reach: ReadonlyArray<readonly [number, number]> = [
+        [0, 0],
+        [3, 0],
+        [-3, 0],
+        [0, 3],
+        [0, -3],
+        [5, 5],
+        [-5, -5],
+        [5, -5],
+        [-5, 5],
+        [7, 0],
+        [-7, 0],
+        [0, 7],
+        [0, -7],
+      ];
+      for (const [dx, dy] of reach) {
+        for (const under of document.elementsFromPoint(at.x + dx, at.y + dy)) {
+          const item = under.closest<HTMLElement>('[data-gs="item"]');
+          if (!item?.matches('.stroke') || item.dataset.gsLocked) continue;
+          return item.dataset.gsId;
+        }
+      }
+      return undefined;
+    } finally {
+      viewport.toggleAttribute('data-hit-ink', false);
     }
   }
 

@@ -26,6 +26,7 @@ export const SELECT = `/* ---- selection ----
    eraser is held, and only then, ink answers the pointer. The value 'painted' means the line itself
    has to be touched, not its bounding box. */
 .viewport[data-tool='eraser'] .stroke { pointer-events: auto; }
+.viewport[data-hit-ink] .stroke path { pointer-events: stroke; }
 .viewport[data-tool='eraser'] .stroke path { pointer-events: painted; }
 /* And the strokes drawn on a note, which come off the note one at a time. */
 .viewport[data-tool='eraser'] .note-ink path { pointer-events: painted; }
@@ -218,13 +219,23 @@ export const HANDLES = `/* ---- the frame and its grips ----
 .gs-handles[data-active='turn'] .gs-grip-turn { cursor: grabbing; background: var(--gs-hot); }
 /* What is not offered is not drawn: a group has no single size, a note keeps its own grips,
    a stroke is turned by nobody, and a locked thing is not changed at all. */
-.gs-handles[data-many] .gs-grip,
 .gs-handles[data-locked] .gs-grip,
-.gs-handles[data-note] .gs-grip:not(.gs-grip-turn),
-.gs-handles[data-ink] .gs-grip-turn,
-.gs-handles[data-ink] .gs-grip-w,
-.gs-handles[data-ink] .gs-grip-nw,
-.gs-handles[data-ink] .gs-grip-sw { display: none; }
+.gs-handles[data-note] .gs-grip:not(.gs-grip-turn) { display: none; }
+/* The angle, read out while turning. */
+.gs-handles[data-angle]::after {
+  content: attr(data-angle);
+  position: absolute;
+  inset-block-start: -78px;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  padding: 2px 8px;
+  background: var(--gs-ink);
+  color: var(--mat-paper);
+  font-family: var(--mono-font);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
 @media (pointer: coarse) {
   .gs-grip { width: 20px; height: 20px; margin: -10px; }
   .gs-grip-turn { width: 24px; height: 24px; margin-left: -12px; top: -44px; }
