@@ -56,7 +56,18 @@ export class Carry {
     // Carrying one of the chosen carries all of them.
     const ids = this.app.selected.has(id) ? [...this.app.selected] : [id];
 
+    // Carried near the top or bottom of the window, the page scrolls, so any shelf can be reached.
+    let edge = 0;
+    let lastY = start.y;
+    const scroll = (): void => {
+      const band = 70;
+      const v = lastY > window.innerHeight - band ? 14 : lastY < band + 60 ? -14 : 0;
+      if (v && carry) window.scrollBy(0, v);
+      edge = carry ? requestAnimationFrame(scroll) : 0;
+    };
     const move = (ev: PointerEvent): void => {
+      lastY = ev.clientY;
+      if (carry && !edge) edge = requestAnimationFrame(scroll);
       if (!carry) {
         if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < LIFT) return;
         carry = this.lift(spine, ids);
@@ -71,6 +82,8 @@ export class Carry {
       document.removeEventListener('pointerup', up);
       document.removeEventListener('pointercancel', up);
       marker?.remove();
+      cancelAnimationFrame(edge);
+      edge = 0;
       this.app.cat.follow();
       for (const s of document.querySelectorAll('[data-over]')) s.removeAttribute('data-over');
       if (!carry) {

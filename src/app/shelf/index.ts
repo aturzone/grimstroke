@@ -92,7 +92,12 @@ export class ShelfApp {
      * can be read at, so nothing scrolls sideways.
      */
     const narrow = vw < 760;
-    const scale = narrow ? 0.72 : Math.max(0.56, Math.min(1, (vw - 32) / 1140));
+    // The bookcase in use fits the window's height too, so its lower shelves are not below the
+    // fold with nothing to say they are there -- down to a size a spine can still be read at.
+    const shelves = room.querySelectorAll('.bookcase-use [data-gs="shelf"]').length || 3;
+    const tall = shelves * 298 + 110;
+    const byHeight = (window.innerHeight - 110) / tall;
+    const scale = narrow ? 0.72 : Math.max(0.56, Math.min(1, (vw - 32) / 1140, byHeight));
     const width = narrow ? Math.max(280, Math.floor((vw - 20) / scale) - 150) : undefined;
     room.style.setProperty('--case-scale', scale.toFixed(3));
     document
