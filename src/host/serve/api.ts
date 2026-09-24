@@ -143,6 +143,65 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     return true;
   }
 
+  // Thrown away, into the trash for thirty days -- not archived, which is only put away.
+  if (path === '/api/books' && req.method === 'DELETE') {
+    const id = url.searchParams.get('id') ?? '';
+    const name = await live.trashBook(id);
+    if (!name) send(res, 404, { error: `no notebook called ${id}` });
+    else send(res, 200, { trashed: id, trash: name });
+    return true;
+  }
+
+  /*
+   * Several notebooks at once: archive, unarchive or throw away. Each is done on its own, so
+   * one that is missing does not stop the rest, and the reply says what happened to each.
+   */
+  if (path === '/api/books/batch' && req.method === 'POST') {
+    const body = (await readBody(req)) as { ids?: unknown; action?: unknown };
+    const ids = Array.isArray(body.ids)
+      ? body.ids.filter((x): x is string => typeof x === 'string')
+      : [];
+    const action = body.action;
+    if (action !== 'archive' && action !== 'unarchive' && action !== 'delete') {
+      send(res, 400, { error: 'action is archive, unarchive or delete' });
+      return true;
+    }
+    const done: string[] = [];
+    const missing: string[] = [];
+    const trash: Record<string, string> = {};
+    const known = new Set(await store.listBooks());
+    for (const id of ids) {
+      if (!known.has(id)) {
+        missing.push(id);
+        continue;
+      }
+      if (action === 'delete') {
+        const name = await live.trashBook(id);
+        if (name) trash[id] = name;
+      } else {
+        const spec = await live.book(id);
+        const { archived: _, ...rest } = spec;
+        await live.commitBook(action === 'archive' ? { ...rest, archived: true } : rest);
+      }
+      done.push(id);
+    }
+    send(res, 200, { action, done, missing, ...(action === 'delete' ? { trash } : {}) });
+    return true;
+  }
+
+  if (path === '/api/trash' && req.method === 'GET') {
+    send(res, 200, { trash: await store.listTrash() });
+    return true;
+  }
+
+  if (path === '/api/trash/restore' && req.method === 'POST') {
+    const body = (await readBody(req)) as { name?: string; id?: string };
+    const id = await store.untrash(body.name ?? body.id ?? '');
+    if (!id) send(res, 404, { error: 'nothing like that in the trash' });
+    else send(res, 200, { restored: id });
+    return true;
+  }
+
   if (path === '/api/books') {
     send(res, 200, { books: await store.listBooks() });
     return true;

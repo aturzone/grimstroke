@@ -197,6 +197,14 @@ export class Live {
     await this.store.writeBook(spec);
   }
 
+  /** A notebook thrown away: out of memory, and anyone watching it is sent to the shelf. */
+  async trashBook(id: string): Promise<string | undefined> {
+    this.books.delete(id);
+    const name = await this.store.trashBook(id);
+    if (name) this.broadcast(id, 'gone', { id, trash: name });
+    return name;
+  }
+
   /** Whatever was cached is now wrong: the files under it have been replaced. */
   forget(): void {
     this.boards.clear();

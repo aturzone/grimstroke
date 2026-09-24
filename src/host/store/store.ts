@@ -30,6 +30,25 @@ export interface StoreOptions {
   dir?: string;
 }
 
+/** How long a notebook thrown away can still be brought back. */
+export const TRASH_DAYS = 30;
+
+export interface TrashEntry {
+  /** The file's name in trash/, which is what restores exactly this one. */
+  name: string;
+  id: string;
+  title: string;
+  at: Date;
+}
+
+/** `<id>--2026-09-24T10-11-12-345Z.json` back into an id and a moment. */
+function parseTrashName(name: string): { id: string; at: Date } | undefined {
+  const m = /^(.*)--(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z\.json$/.exec(name);
+  if (!m) return undefined;
+  const at = new Date(`${m[2]}T${m[3]}:${m[4]}:${m[5]}.${m[6]}Z`);
+  return Number.isNaN(at.getTime()) ? undefined : { id: m[1] ?? '', at };
+}
+
 export interface Settings {
   /** The board to open when none is named. */
   last?: string;
@@ -213,6 +232,87 @@ export class Store {
   async writeBook(spec: BookSpec): Promise<void> {
     await this.ready();
     await atomically(this.bookPath(spec.id), `${JSON.stringify(spec, null, 2)}\n`);
+  }
+
+  // ---------------------------------------------------------------- trash
+
+  get trashDir(): string {
+    return join(this.dir, 'trash');
+  }
+
+  /**
+   * Throw a notebook away -- into the trash, not into nothing.
+   *
+   * Archive is "put away"; this is "I do not want it". Even so the file is moved, not deleted:
+   * it sits in trash/ for thirty days under its id and the moment it went, and `grimstroke
+   * untrash` or POST /api/trash/restore puts it back. After thirty days it is gone for good.
+   */
+  async trashBook(id: string, now = new Date()): Promise<string | undefined> {
+    const from = this.bookPath(id);
+    if (!existsSync(from)) return undefined;
+    await mkdir(this.trashDir, { recursive: true });
+    const name = `${safe(id)}--${now.toISOString().replace(/[:.]/g, '-')}.json`;
+    await rename(from, join(this.trashDir, name));
+    await this.purgeTrash(now);
+    return name;
+  }
+
+  /** What is in the trash, newest first, with the title each notebook had. */
+  async listTrash(now = new Date()): Promise<TrashEntry[]> {
+    await this.purgeTrash(now);
+    let names: string[];
+    try {
+      names = (await readdir(this.trashDir)).filter((n) => n.endsWith('.json'));
+    } catch {
+      return [];
+    }
+    const out: TrashEntry[] = [];
+    for (const name of names) {
+      const parsed = parseTrashName(name);
+      if (!parsed) continue;
+      let title = parsed.id;
+      try {
+        const spec = JSON.parse(await readFile(join(this.trashDir, name), 'utf8')) as BookSpec;
+        title = spec.cover?.title ?? spec.title ?? spec.id;
+      } catch {
+        // A file that cannot be read is still listed, by its id, so it can be restored or left.
+      }
+      out.push({ name, id: parsed.id, title, at: parsed.at });
+    }
+    return out.sort((a, b) => b.at.getTime() - a.at.getTime());
+  }
+
+  /**
+   * Put a notebook back from the trash: by its trash name, or by its id (the newest one).
+   * If its id has been taken since, it comes back under a new one. Answers with the id.
+   */
+  async untrash(which: string): Promise<string | undefined> {
+    const all = await this.listTrash();
+    const entry = all.find((e) => e.name === which) ?? all.find((e) => e.id === which);
+    if (!entry) return undefined;
+    const taken = new Set(await this.listBooks());
+    let id = entry.id;
+    for (let n = 2; taken.has(id); n += 1) id = `${entry.id}-${n}`;
+    const spec = JSON.parse(await readFile(join(this.trashDir, entry.name), 'utf8')) as BookSpec;
+    await this.writeBook({ ...spec, id });
+    await rm(join(this.trashDir, entry.name), { force: true });
+    return id;
+  }
+
+  /** Anything in the trash for more than thirty days goes for good. */
+  private async purgeTrash(now: Date): Promise<void> {
+    let names: string[];
+    try {
+      names = await readdir(this.trashDir);
+    } catch {
+      return;
+    }
+    for (const name of names) {
+      const parsed = parseTrashName(name);
+      if (parsed && now.getTime() - parsed.at.getTime() > TRASH_DAYS * 86_400_000) {
+        await rm(join(this.trashDir, name), { force: true });
+      }
+    }
   }
 
   // ---------------------------------------------------------------- profile

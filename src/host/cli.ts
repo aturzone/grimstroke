@@ -17,7 +17,7 @@ import { exportPages } from '~/host/export.ts';
 import { redactImage } from '~/host/redact.ts';
 import { serve } from '~/host/serve/server.ts';
 import { type Archive, pack, readArchive, unpack } from '~/host/store/archive.ts';
-import { Store } from '~/host/store/store.ts';
+import { Store, TRASH_DAYS } from '~/host/store/store.ts';
 
 declare const __VERSION__: string;
 const VERSION = typeof __VERSION__ === 'string' ? __VERSION__ : '0.0.0-dev';
@@ -33,6 +33,8 @@ const USAGE = `grimstroke ${VERSION} — a notebook for agents
   grimstroke save   <file.grimstroke>       write everything to one file
   grimstroke open   <file.grimstroke>       read one back in
   grimstroke search <words>                 boards, notebooks, the archive and the profile
+  grimstroke trash                          notebooks thrown away, still recoverable
+  grimstroke untrash <name|id>              put one back
   grimstroke history [board]                past versions still on disk
   grimstroke rollback <board> [version]     put one of them back
   grimstroke palettes                       list the palettes
@@ -196,6 +198,37 @@ async function main(argv: string[]): Promise<number> {
         `  ${hit.kind.padEnd(8)} ${hit.docTitle} · ${hit.title}\n           ${text}\n           ${hit.href}\n`,
       );
     }
+    return 0;
+  }
+
+  if (verb === 'trash') {
+    const store = new Store(options.dir === undefined ? {} : { dir: options.dir });
+    const all = await store.listTrash();
+    if (all.length === 0) {
+      process.stdout.write('the trash is empty\n');
+      return 0;
+    }
+    process.stdout.write(`thrown away, newest first (kept ${TRASH_DAYS} days)\n`);
+    for (const one of all) {
+      process.stdout.write(
+        `  ${one.at.toISOString().replace('T', ' ').slice(0, 19)}  ${one.title}\n           ${one.name}\n`,
+      );
+    }
+    return 0;
+  }
+
+  if (verb === 'untrash') {
+    const store = new Store(options.dir === undefined ? {} : { dir: options.dir });
+    if (!file) {
+      process.stderr.write('untrash needs a name from `grimstroke trash`, or a notebook id\n');
+      return 2;
+    }
+    const id = await store.untrash(file);
+    if (!id) {
+      process.stderr.write(`nothing called ${file} in the trash\n`);
+      return 1;
+    }
+    process.stdout.write(`back on the shelf as ${id}\n`);
     return 0;
   }
 

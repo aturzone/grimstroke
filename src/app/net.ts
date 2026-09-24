@@ -241,6 +241,12 @@ export class Session<S extends Doc, O> {
     source.addEventListener('reload', () => {
       window.location.reload();
     });
+    // The notebook was thrown away, here or elsewhere: nothing left to write in. Stopping the
+    // stream first, so a later write cannot quietly bring it back into being.
+    source.addEventListener('gone', () => {
+      source.close();
+      window.location.href = '/shelf?gone=1';
+    });
     return source;
   }
 
