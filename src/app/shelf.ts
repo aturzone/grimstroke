@@ -27,7 +27,7 @@ export function bootShelf(): boolean {
       return;
     }
     const { id } = (await res.json()) as { id: string };
-    window.location.href = `/book?id=${encodeURIComponent(id)}`;
+    window.location.href = `/book?id=${encodeURIComponent(id)}&opening`;
   });
   return true;
 }

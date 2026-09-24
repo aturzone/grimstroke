@@ -47,7 +47,10 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
     const rendered = renderSpread(spec, {
       leaf: Number(url.searchParams.get('leaf') ?? 0),
       // Arriving from the shelf, it is shut; arriving at a page, it is open at it.
-      closed: !url.searchParams.has('leaf'),
+      // Shut only on the way in from the shelf, which asks for the opening to be played. A
+      // notebook visited directly opens straight onto its pages: the shut state lives on the
+      // shelf, not in the place where the pages are written.
+      closed: url.searchParams.has('opening') && !url.searchParams.has('leaf'),
       live: { chrome: bookChrome(spec), scripts: APP },
     });
     live.allow(rendered.assets);

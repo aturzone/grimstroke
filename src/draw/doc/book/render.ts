@@ -185,7 +185,7 @@ export function renderShelf(
   // Live, every book is a link into itself; an export of the shelf is a picture of one.
   const shelved = (b: BookSpec, i: number): string =>
     live
-      ? `<a class="shelf-link" href="/book?id=${encodeURIComponent(b.id)}" ` +
+      ? `<a class="shelf-link" href="/book?id=${encodeURIComponent(b.id)}&amp;opening" ` +
         `aria-label="${escapeHtml(bookTitle(b))}${b.archived ? ', archived' : ''}">` +
         `${renderBook3d(b, ctx, i)}</a>`
       : renderBook3d(b, ctx, i);
@@ -277,8 +277,11 @@ export function renderSpread(spec: BookSpec, options: BookRenderOptions = {}): R
     '<div class="book-gutter" aria-hidden="true"></div>' +
     (options.closed
       ? '<div class="book-closed" data-gs="closed" role="button" tabindex="0" ' +
-        `aria-label="open the notebook">${renderCover(spec, ctx)}` +
-        '<span class="book-closed-hint">open</span></div>'
+        (spec.cover?.colour ? `style="--cover:${escapeHtml(spec.cover.colour)}" ` : '') +
+        'aria-label="open the notebook">' +
+        `<div class="book-face">${renderCover(spec, ctx)}` +
+        '<span class="book-closed-hint">open</span></div>' +
+        '<div class="book-inside" aria-hidden="true"></div></div>'
       : '') +
     '</div>';
 

@@ -136,9 +136,25 @@ export class BookApp {
   open(): boolean {
     const shut = this.book.querySelector<HTMLElement>('[data-gs="closed"]');
     if (!shut || shut.classList.contains('is-opening')) return false;
+    /*
+     * In stages, so nothing is seen before its time: the page under the cover as it lifts;
+     * the left-hand page only once the cover has passed upright and is over it; then the
+     * inside of the board gives way to that page and the cover is gone.
+     */
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.book.removeAttribute('data-closed');
-    shut.classList.add('is-opening');
-    window.setTimeout(() => shut.remove(), 950);
+    this.book.toggleAttribute('data-opening', true);
+    this.book.toggleAttribute('data-lifting', true);
+    // One frame with the spread laid out beneath, then the swing.
+    requestAnimationFrame(() => shut.classList.add('is-opening'));
+    const upright = reduced ? 0 : 470;
+    const landed = reduced ? 240 : 900;
+    window.setTimeout(() => this.book.toggleAttribute('data-lifting', false), upright);
+    window.setTimeout(() => shut.classList.add('is-landed'), landed);
+    window.setTimeout(() => {
+      shut.remove();
+      this.book.toggleAttribute('data-opening', false);
+    }, landed + 280);
     return true;
   }
 
@@ -297,6 +313,13 @@ export class BookApp {
         : `${this.leaf + 1}–${Math.min(this.leaf + 2, of)} of ${of}`;
     }
     const shut = this.book.querySelector<HTMLElement>('[data-gs="closed"]');
+    // Arriving from the shelf: the opening plays by itself, once. A reload lands on the pages.
+    if (shut && new URLSearchParams(location.search).has('opening')) {
+      const url = new URL(location.href);
+      url.searchParams.delete('opening');
+      history.replaceState(history.state, '', url);
+      window.setTimeout(() => this.open(), 260);
+    }
     shut?.addEventListener('click', (event) => {
       event.stopPropagation();
       this.open();

@@ -132,6 +132,9 @@ body.on-book { display: grid; place-content: center; }
 .book[data-closed] .book-spread,
 .book[data-closed] .book-gutter { visibility: hidden; }
 .book[data-closed]::before { inset-inline-start: calc(50% - 8px); }
+/* While the cover swings, the page under it is there (the cover hides it until it lifts), and
+   the left-hand page is not until the cover has passed upright and is about to land on it. */
+.book:not([data-single])[data-lifting] .leaf-verso { visibility: hidden; }
 .book-closed {
   position: absolute;
   z-index: 6;
@@ -139,17 +142,31 @@ body.on-book { display: grid; place-content: center; }
   inset-inline-start: 50%;
   inset-inline-end: 24px;
   transform-origin: left center;
+  transform: perspective(3000px) rotateY(0deg);
+  /* Nothing on this element may flatten it -- no opacity, no filter, no overflow. Opacity was
+     what broke it: a fading hinge is drawn flat, so both faces were drawn on one plane and the
+     front showed through the back, mirrored, halfway over. */
   transform-style: preserve-3d;
   cursor: pointer;
-  box-shadow: 14px 18px 0 rgba(0, 0, 0, 0.35);
-  transition:
-    transform 900ms cubic-bezier(0.55, 0.08, 0.2, 1),
-    box-shadow 900ms linear,
-    opacity 220ms linear 680ms;
+  transition: transform 900ms cubic-bezier(0.55, 0.08, 0.2, 1);
 }
 :root[dir='rtl'] .book-closed { transform-origin: right center; }
+.book-face, .book-inside {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+/* Everything on the cover that has a transform of its own -- a sticker, the tilted hint -- is
+   its own layer in Firefox, and would show through from behind unless it says so too. */
+.book-face * { backface-visibility: hidden; }
+.book-closed.is-opening .book-closed-hint { opacity: 0; }
+.book-face {
+  box-shadow: 14px 18px 0 rgba(0, 0, 0, 0.35);
+  transition: box-shadow 900ms linear;
+}
+.book-face > .cover { position: absolute; inset: 0; }
 /* A spine edge on the hinge side, so it reads as a board with thickness rather than a card. */
-.book-closed::before {
+.book-face::before {
   content: '';
   position: absolute;
   z-index: 2;
@@ -159,32 +176,44 @@ body.on-book { display: grid; place-content: center; }
   background: linear-gradient(to right, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.05) 70%, transparent);
   pointer-events: none;
 }
-/* The inside of the cover: an endpaper, seen as it swings over. Without it the back of the
-   front face showed through, mirrored -- the title backwards across the spread. */
-.book-closed > .cover { backface-visibility: hidden; }
-.book-closed::after {
-  content: '';
-  position: absolute;
-  inset: 0;
+:root[dir='rtl'] .book-face::before {
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.05) 70%, transparent);
+}
+/* The inside of the front board: an endpaper on the cloth, its own face, turned away. */
+.book-inside {
   transform: rotateY(180deg);
-  backface-visibility: hidden;
-  background-color: color-mix(in oklab, var(--paper) 86%, var(--cover, var(--accent)));
+  background-color: color-mix(in oklab, var(--paper) 80%, var(--cover, var(--accent)));
   background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 9px);
   box-shadow: inset 0 0 0 10px var(--cover, var(--accent));
-}
-:root[dir='rtl'] .book-closed::before {
-  background: linear-gradient(to left, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.05) 70%, transparent);
+  transition: opacity 260ms linear;
 }
 .book-closed:hover { transform: perspective(3000px) rotateY(-7deg); }
 :root[dir='rtl'] .book-closed:hover { transform: perspective(3000px) rotateY(7deg); }
 .book-closed:focus-visible { outline: 3px solid var(--paper); outline-offset: 6px; }
-.book-closed.is-opening {
-  transform: perspective(3000px) rotateY(-178deg);
-  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
-  opacity: 0;
+.book-closed.is-opening,
+.book-closed.is-opening:hover { transform: perspective(3000px) rotateY(-180deg); pointer-events: none; }
+:root[dir='rtl'] .book-closed.is-opening,
+:root[dir='rtl'] .book-closed.is-opening:hover { transform: perspective(3000px) rotateY(180deg); }
+.book-closed.is-opening .book-face { box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
+/* Landed: the inside of the board gives way to the first page beneath it. */
+/* The front is put away first: in Firefox a face turned away shows through a fading sibling,
+   mirrored, whatever backface-visibility says. */
+.book-closed.is-landed .book-face { visibility: hidden; }
+.book-closed.is-landed .book-inside { opacity: 0; }
+/* The lifting board's shadow sweeps across the page it uncovers. */
+.book[data-opening] .leaf-recto::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 5;
   pointer-events: none;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.28), transparent 60%);
+  animation: gs-lift-shade 900ms cubic-bezier(0.55, 0.08, 0.2, 1) forwards;
 }
-:root[dir='rtl'] .book-closed.is-opening { transform: perspective(3000px) rotateY(178deg); }
+:root[dir='rtl'] .book[data-opening] .leaf-recto::before {
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.28), transparent 60%);
+}
+@keyframes gs-lift-shade { from { opacity: 1; } to { opacity: 0; } }
 .book-closed-hint {
   position: absolute;
   z-index: 3;
@@ -205,9 +234,15 @@ body.on-book { display: grid; place-content: center; }
    spread that is not being shown. */
 .book[data-single] .book-closed { inset-inline-start: 24px; }
 .book[data-single][data-closed]::before { inset-inline-start: 12px; }
+/* On a phone the cover is the whole book; it swings open a little way and is gone. */
+.book[data-single] .book-closed.is-opening { transform: perspective(1600px) rotateY(-96deg); }
+:root[dir='rtl'] .book[data-single] .book-closed.is-opening { transform: perspective(1600px) rotateY(96deg); }
 @media (prefers-reduced-motion: reduce) {
-  .book-closed { transition: opacity 200ms linear; }
-  .book-closed.is-opening { transform: none; }
+  .book-closed, .book-closed:hover { transition: opacity 220ms linear; transform: none; }
+  .book-closed.is-opening,
+  :root[dir='rtl'] .book-closed.is-opening,
+  .book[data-single] .book-closed.is-opening { transform: none; opacity: 0; }
+  .book[data-opening] .leaf-recto::before { display: none; }
 }
 
 .book-gutter {
