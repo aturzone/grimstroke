@@ -225,6 +225,9 @@ export const TRAY = `/* ---- the tray ---- */
 @media (max-width: 760px) {
   /* On a phone the desk stands at the top right; the slip goes above the tray instead. */
   .gs-repo-guide { top: auto; bottom: 64px; }
+  /* The desk stands at the top right on a phone, where the drawer's close button is: the
+     drawer comes over it while it is open. */
+  .gs-drawer { z-index: 52; top: 62px; right: 8px; bottom: 64px; width: calc(100vw - 16px); }
 }
 .gs-tracker { width: min(620px, calc(100vw - 24px)); }
 .gs-tracker .gs-drawer-note { padding: 6px 16px 0; }

@@ -650,7 +650,8 @@ export const PAGES = `/* ---- every page at once ----
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   align-content: start;
   gap: 14px;
-  padding: 84px 28px 28px;
+  /* The turner stands over the bottom edge; the last row scrolls up clear of it. */
+  padding: 84px 28px 96px;
   overflow: auto;
   background: color-mix(in oklab, var(--desk) 88%, #000);
 }
@@ -669,8 +670,8 @@ export const PAGES = `/* ---- every page at once ----
 }
 .page-thumb .gs-leaf-edit, .page-thumb .leaf-folio { display: none; }
 .page-cell .page-number, .page-cell .page-hint { position: relative; z-index: 1; }
-.page-cell .page-number {
-  justify-self: start;
+.page-cell .page-number, .page-cell .page-hint {
+  align-self: flex-start;
   padding: 0 4px;
   background: var(--paper);
 }

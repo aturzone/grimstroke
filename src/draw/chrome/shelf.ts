@@ -38,7 +38,13 @@ export function shelfChrome(count: number, pet?: Pet): string {
           text: 'new notebook',
           tone: 'gs-btn-primary',
         }),
+      // Everything on the bar is in the menu too: decorating and feeding were missing from it,
+      // so on a phone or a tablet there was no way to either.
       compact:
+        (pet && pet.on !== false
+          ? item({ gs: 'pet-feed', text: `feed ${petName}`, icon: 'plus' })
+          : '') +
+        item({ gs: 'shelf-decorate', text: 'decorate the bookcase', icon: 'sticker' }) +
         item({ gs: 'shelf-select', text: 'choose several', icon: 'check' }) +
         item({ gs: 'book-new', text: 'a new notebook', icon: 'plus' }),
     }),

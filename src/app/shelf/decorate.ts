@@ -171,7 +171,9 @@ export class Decorate {
     this.holding = what;
     document.body.toggleAttribute('data-placing', true);
     this.hint?.close();
-    this.hint = toast(`press the bookcase where ${label} should go (Escape to cancel)`);
+    this.hint = toast(
+      `press the bookcase where ${label} should go (press beside it, or Escape, to cancel)`,
+    );
   }
 
   private drop(): void {
@@ -186,9 +188,13 @@ export class Decorate {
     const holding = this.holding;
     if (!holding) return;
     const target = event.target as HTMLElement;
-    if (target.closest('.gs-decorate, .gs-top')) return;
+    if (target.closest('.gs-decorate, .gs-top, .gs-toasts')) return;
     const room = this.app.room;
-    if (!room || !target.closest('[data-gs="room"]')) return;
+    // A press beside the bookcase puts it back: a phone has no Escape key.
+    if (!room || !target.closest('[data-gs="room"]')) {
+      this.drop();
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
     this.drop();

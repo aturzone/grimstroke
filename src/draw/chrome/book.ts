@@ -68,7 +68,7 @@ export function bookChrome(spec: BookSpec): string {
     '<label class="gs-jump">',
     `<span class="gs-jump-label">page</span>`,
     `<input type="number" min="1" max="${leaves}" value="1" data-gs="jump" aria-label="go to page">`,
-    `<span data-gs="place">1–2 of ${leaves}</span>`,
+    `<span data-gs="place" dir="ltr">1–2 of ${leaves}</span>`,
     '</label>',
     button({ gs: 'next', label: 'next page', icon: 'next', key: '→' }),
     '</div>',

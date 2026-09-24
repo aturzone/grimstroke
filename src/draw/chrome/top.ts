@@ -49,7 +49,7 @@ export interface TopOptions {
 export function topBar(o: TopOptions): string {
   const places = PLACES.map(
     (p) =>
-      `<a class="gs-place" href="${p.href}" data-gs="place-${p.place}"` +
+      `<a class="gs-place" href="${p.href}" data-gs="place-${p.place}" title="${p.text}"` +
       `${p.place === o.place ? ' aria-current="page"' : ''}>` +
       `${icon(p.icon)}<span>${p.text}</span></a>`,
   ).join('');

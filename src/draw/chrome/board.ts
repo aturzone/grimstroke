@@ -164,7 +164,7 @@ function pageNav(sheet: NonNullable<BoardSpec['sheet']>): string {
   return (
     '<span class="gs-page-nav">' +
     link(sheet.index - 1, 'page-prev', 'the page before', 'prev') +
-    `<span class="gs-page-no" data-gs="page-no">${sheet.index + 1} of ${sheet.count}</span>` +
+    `<span class="gs-page-no" data-gs="page-no" dir="ltr">${sheet.index + 1} of ${sheet.count}</span>` +
     link(sheet.index + 1, 'page-next', 'the page after', 'next') +
     '</span>'
   );

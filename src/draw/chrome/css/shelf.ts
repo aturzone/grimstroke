@@ -193,6 +193,12 @@ body[data-feeding] .spine { cursor: copy; }
   align-content: start;
   gap: 4px;
 }
+@media (max-width: 760px) {
+  /* On a phone the panel covers the bookcase, and what was picked goes on the bookcase: while
+     something is held the panel steps aside, and comes back once it is put down. */
+  .gs-decorate { top: 62px; right: 8px; bottom: 8px; width: calc(100vw - 16px); }
+  :where(body[data-placing]) .gs-decorate { display: none; }
+}
 .gs-decorate-head { display: flex; align-items: center; justify-content: space-between; }
 .gs-decorate-head h2 { margin: 0; font-family: var(--hand-font); font-size: 22px; }
 .gs-decorate-section { padding: 6px 0; border-block-end: 1px dashed var(--gs-faint); }

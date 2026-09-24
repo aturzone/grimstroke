@@ -21,7 +21,7 @@ export const TURNER = `/* ---- the turner ---- */
   user-select: none;
 }
 :root[dir='rtl'] .gs-turner { transform: translateX(50%); }
-.gs-jump { display: flex; align-items: center; gap: 8px; padding-inline: 8px; font-variant-numeric: tabular-nums; }
+.gs-jump { display: flex; align-items: center; gap: 8px; padding-inline: 8px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .gs-jump-label { color: var(--gs-soft); font-size: var(--gs-t1); letter-spacing: 0.08em; text-transform: uppercase; }
 .gs-jump input {
   width: 58px;
@@ -241,6 +241,14 @@ body.on-book.live { padding-block: 76px 84px; }
 .gs-repo-name { font-family: var(--ui-font); font-size: var(--gs-t2); font-weight: 700; }
 .gs-repo-host { font-family: var(--ui-font); font-size: var(--gs-t1); color: var(--gs-soft); }
 .gs-repo-tab:hover { transform: translate(-1px, -1px); }
+/* A long owner/name must not reach the turner in the middle. */
+.gs-repo-name, .gs-repo-host { max-width: calc(50vw - 200px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 760px) {
+  /* On a phone the turner takes the middle, so the tab is the service's mark alone. */
+  .gs-repo-tab { bottom: 8px; left: 8px; grid-template-columns: 30px; padding: 7px; }
+  .gs-repo-mark { width: 30px; }
+  .gs-repo-name, .gs-repo-host { display: none; }
+}
 /* ---- connecting a repository ---- */
 .gs-repo { width: min(560px, calc(100vw - 24px)); }
 .gs-repo-steps { display: flex; gap: 4px; margin: 0; padding: 10px 16px 0; list-style: none; counter-reset: step; }

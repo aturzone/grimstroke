@@ -154,12 +154,20 @@ export const TOP = `/* ---- the top ----
   .gs-acts-own:has(> .gs-btn:nth-of-type(4)) > .gs-btn:not(.gs-btn-primary) .gs-btn-text { display: none; }
   .gs-acts-own:has(> .gs-btn:nth-of-type(4)) > .gs-btn:not(.gs-btn-primary) { padding-inline: 8px; }
 }
+@media (max-width: 1240px) {
+  /* The places give up their words, all but the one you are in, before anything overlaps: a
+     right-to-left notebook's longer name met them at 1024px. */
+  .gs-place:not([aria-current]) > span { display: none; }
+  .gs-place:not([aria-current]) { padding-inline: 9px; }
+}
 @media (max-width: 1180px) {
   .gs-brand-word { display: none; }
   .gs-search-open { min-width: 0; }
   .gs-search-open .gs-btn-text { display: none; }
 }
-@media (max-width: 900px) {
+/* A notebook with a long name in a right-to-left script still met the places at 915px, so the
+   bar folds into the menu from 1000px down. */
+@media (max-width: 1000px) {
   .gs-top { display: flex; justify-content: space-between; }
   .gs-places { display: none; }
   .gs-menu-places { display: block; }
