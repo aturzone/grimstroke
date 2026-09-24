@@ -59,7 +59,6 @@ export type { BookRenderOptions } from '~/draw/doc/book/render.ts';
 export {
   renderBook3d,
   renderCover,
-  renderShelf,
   renderSpread,
   shelfLean,
 } from '~/draw/doc/book/render.ts';
@@ -69,6 +68,8 @@ export type { Direction, RenderedPage } from '~/draw/doc/model.ts';
 export { Notebook, notebook, Page, page } from '~/draw/doc/page/build.ts';
 export type { Chip, NotebookSpec, PageSpec } from '~/draw/doc/page/model.ts';
 export { renderPage } from '~/draw/doc/page/render.ts';
+export type { ShelfLayout, ShelfSlot } from '~/draw/doc/shelf/model.ts';
+export { renderShelf } from '~/draw/doc/shelf/render.ts';
 // -- draw/look: the visual vocabulary ---------------------------------
 export { contrast, luminance, rgb, textOn } from '~/draw/look/colour.ts';
 export type { Frame, FrameKind, FrameOptions, PlacedTape } from '~/draw/look/frame.ts';

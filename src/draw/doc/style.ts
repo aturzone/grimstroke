@@ -19,6 +19,7 @@ import { PRINT } from '~/draw/chrome/css/print.ts';
 import { SCREEN } from '~/draw/chrome/css/screen.ts';
 import { EDITOR, HANDLES, SELECT } from '~/draw/chrome/css/select.ts';
 import { SETTINGS } from '~/draw/chrome/css/settings.ts';
+import { SHELF_CHROME } from '~/draw/chrome/css/shelf.ts';
 import { STUDIO } from '~/draw/chrome/css/studio.ts';
 import { TOP } from '~/draw/chrome/css/top.ts';
 import { TRAY } from '~/draw/chrome/css/tray.ts';
@@ -26,6 +27,7 @@ import { BOARD } from '~/draw/doc/board/css.ts';
 import { BOOK_SCALE, COVER, FLIP, PAGES, SHELF, SPREAD } from '~/draw/doc/book/css.ts';
 import { DESK, RESET, SCRIPT } from '~/draw/doc/css.ts';
 import { PAGE_LAYOUT, PAGE_SHEET } from '~/draw/doc/page/css.ts';
+import { BOOKCASE } from '~/draw/doc/shelf/css.ts';
 import { BLOCKS, CODE, TAPE } from '~/draw/material/css.ts';
 import { NOTE } from '~/draw/material/note/css.ts';
 import { MOUNT, PLATE, PLATE_LAYER, REDACT } from '~/draw/material/plate/css.ts';
@@ -38,7 +40,7 @@ export const BASE = [RESET, PAGE_LAYOUT, BLOCKS, PLATE, CODE, MOUNT].join('');
 export const ZINE = [PAGE_SHEET, PLATE_LAYER, TAPE, REDACT].join('');
 
 /** The notebook: the desk, the spread, covers, the shelf, the turn. */
-export const BOOK = [DESK, SPREAD, COVER, SHELF, FLIP, PAGES, BOOK_SCALE].join('');
+export const BOOK = [DESK, SPREAD, COVER, SHELF, BOOKCASE, FLIP, PAGES, BOOK_SCALE].join('');
 
 /** The live surface: the camera, the tray, the bar, and every panel. */
 export const LIVE = [
@@ -52,6 +54,7 @@ export const LIVE = [
   HANDLES,
   PANELS,
   STUDIO,
+  SHELF_CHROME,
   SETTINGS,
   EDITOR,
   SCREEN,
@@ -80,6 +83,7 @@ export const PIECES: Readonly<Record<string, string>> = {
   SPREAD,
   COVER,
   SHELF,
+  BOOKCASE,
   FLIP,
   PAGES,
   BOOK_SCALE,

@@ -27,6 +27,7 @@ import {
 import { renderHead } from '~/draw/doc/head.ts';
 import { upgradeCover, upgradeLeaf } from '~/draw/doc/legacy.ts';
 import type { RenderedPage } from '~/draw/doc/model.ts';
+import { pagesOf } from '~/draw/doc/shelf/render.ts';
 import { type Surface, servedPath, surface } from '~/draw/doc/surface.ts';
 import { textOn } from '~/draw/look/colour.ts';
 import { ruling } from '~/draw/look/grid.ts';
@@ -160,79 +161,9 @@ export function renderBook3d(spec: BookSpec, ctx: Surface, order = 0): string {
     '</div>' +
     '<div class="book3d-shadow" aria-hidden="true"></div>' +
     `<p class="book3d-caption"><b dir="auto">${inline(bookTitle(spec), { digits: ctx.digits })}</b>` +
-    `<span>${pages(spec)}</span>${put}</p>` +
+    `<span>${pagesOf(spec).text}</span>${put}</p>` +
     '</div>'
   );
-}
-
-/** How much is written in it: the pages with something on them, out of how many. */
-function pages(spec: BookSpec): string {
-  const written = spec.leaves.filter(
-    (leaf) => (leaf.items?.length ?? 0) + (leaf.blocks?.length ?? 0) > 0,
-  ).length;
-  const total = Math.max(spec.leaves.length, spec.minLeaves ?? 0);
-  return written === 0 ? `${total} blank pages` : `${written} of ${total} pages written`;
-}
-
-/** A shelf of books: the ones in use, and the ones put away. */
-export function renderShelf(
-  books: readonly BookSpec[],
-  options: { id?: string; live?: { chrome?: string; scripts?: string[] } | undefined } = {},
-): RenderedPage {
-  const ctx = surface(options.id ?? 'shelf', { palette: books[0]?.palette ?? 'studio' });
-  const head = renderHead(ctx, 'ltr', { paper: 'blank', grain: 0.7 });
-  const open = books.filter((b) => !b.archived);
-  const put = books.filter((b) => b.archived);
-
-  const live = options.live;
-  // Live, every book is a link into itself; an export of the shelf is a picture of one.
-  const shelved = (b: BookSpec, i: number): string =>
-    live
-      ? `<a class="shelf-link" href="/book?id=${encodeURIComponent(b.id)}&amp;opening" ` +
-        `aria-label="${escapeHtml(bookTitle(b))}${b.archived ? ', archived' : ''}">` +
-        `${renderBook3d(b, ctx, i)}</a>`
-      : renderBook3d(b, ctx, i);
-  const section = (name: string, list: readonly BookSpec[]): string =>
-    list.length === 0
-      ? ''
-      : `<section class="shelf"><h2 class="shelf-name">${label(name, ctx.uppercase)}</h2>` +
-        `<div class="shelf-row">${list.map(shelved).join('')}</div>` +
-        '</section>';
-  const empty =
-    books.length === 0
-      ? '<div class="shelf-empty"><p class="shelf-empty-title">an empty shelf</p>' +
-        '<p>A notebook is a sequence you turn through: findings in order, a log, a diary of a ' +
-        'bug. Make one, or let an agent make one over the API.</p></div>'
-      : '';
-
-  const html = [
-    '<!doctype html>',
-    '<html lang="en" dir="ltr" data-script="latin" data-uppercase="on">',
-    head,
-    live ? '<body class="on-shelf is-live">' : '<body class="on-shelf">',
-    halftoneDefs(),
-    '<div class="shelves" data-gs="shelves">',
-    empty,
-    section('in use', open),
-    section('archive', put),
-    '</div>',
-    live?.chrome ?? '',
-    ...(live?.scripts ?? []).map(
-      (src) => `<script type="module" src="${escapeHtml(src)}"></script>`,
-    ),
-    '</body>',
-    '</html>',
-  ].join('\n');
-
-  return {
-    id: ctx.id,
-    html: `${html}\n`,
-    assets: ctx.assets,
-    width: 1200,
-    selector: '.shelves',
-    warnings: ctx.warnings,
-    autofit: true,
-  };
 }
 
 // ---------------------------------------------------------------- spread

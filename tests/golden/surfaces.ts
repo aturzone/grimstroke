@@ -13,9 +13,10 @@ import { shelfChrome } from '~/draw/chrome/shelf.ts';
 import { board } from '~/draw/doc/board/build.ts';
 import { renderBoard } from '~/draw/doc/board/render.ts';
 import type { BookSpec } from '~/draw/doc/book/model.ts';
-import { renderShelf, renderSpread } from '~/draw/doc/book/render.ts';
+import { renderSpread } from '~/draw/doc/book/render.ts';
 import type { RenderedPage } from '~/draw/doc/model.ts';
 import { notebook } from '~/draw/doc/page/build.ts';
+import { renderShelf } from '~/draw/doc/shelf/render.ts';
 import type { Profile } from '~/draw/material/profile/model.ts';
 import { UI } from '../fixtures/index.ts';
 

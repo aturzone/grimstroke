@@ -234,6 +234,15 @@ export class Store {
     await atomically(this.bookPath(spec.id), `${JSON.stringify(spec, null, 2)}\n`);
   }
 
+  /** When a notebook's file was last written, or undefined if there is none. */
+  async bookEdited(id: string): Promise<Date | undefined> {
+    try {
+      return (await stat(this.bookPath(id))).mtime;
+    } catch {
+      return undefined;
+    }
+  }
+
   // ---------------------------------------------------------------- trash
 
   get trashDir(): string {

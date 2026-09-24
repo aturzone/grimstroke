@@ -11,7 +11,8 @@ import { bookChrome } from '~/draw/chrome/book.ts';
 import { renderProfilePage } from '~/draw/chrome/profile.ts';
 import { shelfChrome } from '~/draw/chrome/shelf.ts';
 import { renderBoard } from '~/draw/doc/board/render.ts';
-import { renderShelf, renderSpread } from '~/draw/doc/book/render.ts';
+import { renderSpread } from '~/draw/doc/book/render.ts';
+import { renderShelf } from '~/draw/doc/shelf/render.ts';
 import { type Ask, html } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
 
@@ -74,9 +75,13 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
   }
 
   if (path === '/shelf') {
-    const ids = await live.store.listBooks();
-    const all = await Promise.all(ids.map((id) => live.book(id)));
-    const rendered = renderShelf(all, { live: { chrome: shelfChrome(all.length), scripts: APP } });
+    const { books: all, layout, edited, trash } = await live.shelf();
+    const rendered = renderShelf(all, {
+      layout,
+      edited,
+      trash,
+      live: { chrome: shelfChrome(all.length), scripts: APP },
+    });
     live.allow(rendered.assets);
     html(res, rendered.html);
     return true;

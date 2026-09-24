@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { BookSpec } from '~/draw/doc/book/model.ts';
 import { blankLeaf, boundLeaves, isFull, MAX_SPINE, spineWidth } from '~/draw/doc/book/model.ts';
-import { renderShelf, renderSpread } from '~/draw/doc/book/render.ts';
+import { renderSpread } from '~/draw/doc/book/render.ts';
 
 const book = (over: Partial<BookSpec> = {}): BookSpec => ({
   id: 'b',
@@ -78,37 +78,18 @@ describe('a notebook, as HTML', () => {
   });
 
   it('puts a sticker on the cover in percent, so it holds at any size', () => {
-    // Pixels would move every sticker when the book is drawn on a shelf.
-    const html = renderShelf([
+    // Pixels would move every sticker when the cover is drawn at another size.
+    const html = renderSpread(
       book({
         cover: {
           colour: '#1f3fd0',
           stickers: [{ id: 's', kind: 'label', at: [70, 74], width: 40, text: 'live' }],
         },
       }),
-    ]).html;
+      { closed: true },
+    ).html;
     expect(html).toContain('left:70%');
     expect(html).toContain('top:74%');
     expect(html).toContain('--sticker-width:40%');
-  });
-
-  it('separates the books in use from the ones put away', () => {
-    // The archive is a library of finished notebooks, not a bin.
-    const html = renderShelf([
-      book({ id: 'open', title: 'Open one' }),
-      book({ id: 'done', title: 'Done one', archived: true }),
-    ]).html;
-    expect(html).toContain('IN USE');
-    expect(html).toContain('ARCHIVE');
-    expect(html.indexOf('Open one')).toBeLessThan(html.indexOf('Done one'));
-    expect(html).toContain('is-archived');
-  });
-
-  it('leans each book by its own seed, and always the same way', () => {
-    const one = renderShelf([book({ id: 'a' })]).html;
-    const two = renderShelf([book({ id: 'a' })]).html;
-    const lean = (s: string) => /--lean:(-?[\d.]+)deg/.exec(s)?.[1];
-    expect(lean(one)).toBe(lean(two));
-    expect(lean(one)).not.toBe(lean(renderShelf([book({ id: 'z' })]).html));
   });
 });

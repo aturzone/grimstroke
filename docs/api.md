@@ -70,11 +70,29 @@ on the event stream.
 | leaf.blocks | `{ "op": "leaf.blocks", "id", "blocks": [...] }` -- a column, folded into one movable stack |
 | leaf.replace | `{ "op": "leaf.replace", "leaf": {...} }` |
 | cover | `{ "op": "cover", "patch": { "title"?, "colour"?, "ink"?, "material"?, "profile"? } }` |
-| sticker.add / .update / .remove | `label`, `picture`, `shape` (`circle`, `star`, `band`, `tape`), `portrait` |
+| sticker.add / .update / .remove | `label`, `picture`, `shape` (`circle`, `star`, `band`, `tape`), `portrait`, `card` -- each `{ id, kind, at: [x%, y%], width?: %, rotation? }`, placed from its centre |
 | book | `{ "op": "book", "patch": { "title"?, "palette"?, "paper"?, "minLeaves"? } }` |
 | archive | `{ "op": "archive", "archived": true }` -- put away, never thrown away |
 
+The card on a cover is a `card` sticker holding the profile by value (`profile`), so it is moved,
+turned and resized like any sticker. `cover` with `profile` still works: set, it puts the card on
+(or brings the one there up to date, where it is); `null` takes it off.
+
 `POST /api/books` with `{ "title" }` makes a notebook and answers with its id.
+
+## The bookcase, and throwing away
+
+| | |
+|---|---|
+| `GET /api/shelf` | `{ rows, archive, trash, html }` -- the shelves in use, top first; a slot is `{ id }` standing or `{ id, flat: x }` lying flat x pixels along |
+| `POST /api/shelf` `{ rows }` | put the shelves in a new order |
+| `POST /api/shelf/drop` `{ ids, to: "use" \| "archive", row, x }` | put books down as a hand does: near the run on shelf `row` they join it at `x`; out along the shelf, where nothing holds them up, they lie flat; on the archive they are archived, and off it, taken out |
+| `DELETE /api/books?id=` | throw a notebook away: into the trash for thirty days |
+| `POST /api/books/batch` `{ ids, action }` | `archive`, `unarchive` or `delete` several at once; answers with `done` and `missing` |
+| `GET /api/trash` | what is in the trash, newest first |
+| `POST /api/trash/restore` `{ name }` or `{ id }` | bring one back; a taken id gets a new one |
+
+From the command line: `grimstroke trash` and `grimstroke untrash <name|id>`.
 
 ## The profile
 

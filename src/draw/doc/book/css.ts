@@ -383,11 +383,7 @@ export const COVER = `/* ---- the cover ---- */
 `;
 
 /** The shelf, and books stood up in three dimensions. */
-export const SHELF = `/* ---- the shelf ---- */
-.shelves { padding: 40px 44px 60px; container-type: inline-size; }
-.is-live .shelves { padding-block-start: 104px; }
-.shelf-link { display: block; color: inherit; text-decoration: none; border-radius: 2px; }
-.shelf-link:focus-visible { outline: 2.5px solid var(--paper); outline-offset: 10px; }
+export const SHELF = `/* ---- a book stood up in 3D, and the empty shelf ---- */
 .shelf-empty {
   max-width: 440px;
   margin: 8vh auto 0;
@@ -402,22 +398,6 @@ export const SHELF = `/* ---- the shelf ---- */
   transform: rotate(-1deg);
 }
 .shelf-empty-title { font-family: var(--marker-font); font-size: 34px; line-height: 1; margin-block-end: 10px; }
-.shelf { margin-block-end: 44px; }
-.shelf-name {
-  margin-block-end: 18px;
-  font-family: var(--mono-font);
-  font-size: var(--label-size);
-  letter-spacing: var(--label-tracking);
-  color: color-mix(in oklab, var(--paper) 86%, var(--desk));
-}
-.shelf-row {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 48px 54px;
-  padding: 8px 18px 0;
-}
 /* The books stand on something. A row of floating covers is a grid of rectangles; a plank
    under them -- a lit top edge and a dark front lip -- is a shelf. Each book carries its own
    length of plank, reaching into the gaps either side, so every row that wraps is a shelf
@@ -465,8 +445,6 @@ export const SHELF = `/* ---- the shelf ---- */
   transition: transform 420ms cubic-bezier(0.2, 0.8, 0.25, 1);
 }
 /* Pointed at, it is pulled a little out of the row and turned to show its cover. */
-.shelf-link:hover .book3d-stage,
-.shelf-link:focus-visible .book3d-stage,
 .book3d:hover .book3d-stage {
   transform: translate3d(0, -10px, 26px) rotateX(-4deg) rotateY(8deg);
 }
@@ -535,7 +513,6 @@ export const SHELF = `/* ---- the shelf ---- */
   filter: blur(2px);
   transition: transform 420ms cubic-bezier(0.2, 0.8, 0.25, 1), opacity 420ms linear;
 }
-.shelf-link:hover .book3d-shadow,
 .book3d:hover .book3d-shadow { transform: scale(0.86); opacity: 0.6; }
 
 .book3d-caption {

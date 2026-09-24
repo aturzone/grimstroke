@@ -15,6 +15,8 @@ import { extentOf, renderBoard, renderOneItem } from '~/draw/doc/board/render.ts
 import { apply as applyBook, type BookOp, BookPatchError } from '~/draw/doc/book/patch.ts';
 import { renderCover, renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { search } from '~/draw/doc/search.ts';
+import { settle } from '~/draw/doc/shelf/model.ts';
+import { renderCases } from '~/draw/doc/shelf/render.ts';
 import { surface } from '~/draw/doc/surface.ts';
 import { hashString } from '~/draw/look/rng.ts';
 import { type Profile, readProfile } from '~/draw/material/profile/model.ts';
@@ -186,6 +188,49 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
       done.push(id);
     }
     send(res, 200, { action, done, missing, ...(action === 'delete' ? { trash } : {}) });
+    return true;
+  }
+
+  /*
+   * The bookcase. GET answers with the shelves as they are -- every notebook in use, in order,
+   * top shelf first -- and the room drawn; POST { rows } puts them in a new order and answers
+   * with the room redrawn. A slot is { id } for a book standing, { id, flat: x } for one lying
+   * flat x pixels along its shelf.
+   */
+  if (path === '/api/shelf/drop' && req.method === 'POST') {
+    const body = (await readBody(req)) as {
+      ids?: unknown;
+      to?: unknown;
+      row?: unknown;
+      x?: unknown;
+    };
+    const ids = Array.isArray(body.ids)
+      ? body.ids.filter((x): x is string => typeof x === 'string')
+      : [];
+    await live.dropBooks(
+      ids,
+      body.to === 'archive' ? 'archive' : 'use',
+      Number(body.row) || 0,
+      Number(body.x) || 0,
+    );
+  }
+
+  if (path === '/api/shelf' || path === '/api/shelf/drop') {
+    if (path === '/api/shelf' && req.method === 'POST') {
+      const body = (await readBody(req)) as { rows?: unknown };
+      await live.saveShelf(body.rows);
+    }
+    const { books, layout, edited, trash } = await live.shelf();
+    const rows = settle(
+      layout,
+      books.filter((b) => !b.archived),
+    );
+    send(res, 200, {
+      rows,
+      archive: books.filter((b) => b.archived).map((b) => b.id),
+      trash,
+      html: renderCases(books, { layout: { rows }, edited, trash }),
+    });
     return true;
   }
 

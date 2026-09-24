@@ -21,6 +21,7 @@ import {
 import { apply as applyBook } from '~/draw/doc/book/patch.ts';
 import { renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { upgradeLeaf } from '~/draw/doc/legacy.ts';
+import { dropInto, readLayout, type ShelfLayout, settle } from '~/draw/doc/shelf/model.ts';
 import type { Store } from '~/host/store/store.ts';
 
 interface Client {
@@ -195,6 +196,77 @@ export class Live {
   async commitBook(spec: BookSpec): Promise<void> {
     this.books.set(spec.id, spec);
     await this.store.writeBook(spec);
+  }
+
+  /**
+   * Everything the bookcase needs, in one place: every notebook, the saved order of the shelves,
+   * when each was last written, and how many are in the trash.
+   */
+  async shelf(): Promise<{
+    books: BookSpec[];
+    layout: ShelfLayout;
+    edited: Record<string, string>;
+    trash: number;
+  }> {
+    const ids = await this.store.listBooks();
+    const books = await Promise.all(ids.map((id) => this.book(id)));
+    const edited: Record<string, string> = {};
+    for (const id of ids) {
+      const at = await this.store.bookEdited(id);
+      if (at) edited[id] = at.toISOString().slice(0, 10);
+    }
+    const settings = await this.store.readSettings();
+    return {
+      books,
+      layout: readLayout(settings.shelf),
+      edited,
+      trash: (await this.store.listTrash()).length,
+    };
+  }
+
+  /** Save the order of the shelves: only notebooks that exist, each once. */
+  async saveShelf(rows: unknown): Promise<ShelfLayout> {
+    const { books } = await this.shelf();
+    const layout = {
+      rows: settle(
+        readLayout({ rows }),
+        books.filter((b) => !b.archived),
+      ),
+    };
+    await this.store.writeSettings({ ...(await this.store.readSettings()), shelf: layout });
+    return layout;
+  }
+
+  /**
+   * Books put down somewhere on the bookcase, the way a hand puts them: onto a shelf in use at x
+   * along it -- joining the run, or lying flat where nothing holds them up -- or onto the archive,
+   * which puts them away. Taking one off the archive and onto a shelf takes it out again.
+   */
+  async dropBooks(
+    ids: readonly string[],
+    to: 'use' | 'archive',
+    row: number,
+    x: number,
+  ): Promise<void> {
+    const { books, layout } = await this.shelf();
+    const known = new Set(books.map((b) => b.id));
+    const moving = ids.filter((id) => known.has(id));
+    for (const id of moving) {
+      const spec = await this.book(id);
+      const archived = to === 'archive';
+      if (Boolean(spec.archived) === archived) continue;
+      const { archived: _, ...rest } = spec;
+      await this.commitBook(archived ? { ...rest, archived: true } : rest);
+    }
+    const open = (await Promise.all([...known].map((id) => this.book(id)))).filter(
+      (b) => !b.archived,
+    );
+    const rows = settle(layout, open);
+    const next =
+      to === 'archive'
+        ? rows.map((r) => r.filter((s) => !moving.includes(s.id)))
+        : dropInto(rows, open, moving, Math.max(0, Math.floor(row)), x);
+    await this.store.writeSettings({ ...(await this.store.readSettings()), shelf: { rows: next } });
   }
 
   /** A notebook thrown away: out of memory, and anyone watching it is sent to the shelf. */

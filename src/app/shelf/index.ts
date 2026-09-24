@@ -1,0 +1,456 @@
+/**
+ * The bookcase, live: take a book down to look at it, carry it somewhere else, choose several,
+ * make a new one, and fish one out of the trash.
+ *
+ * The bookcase itself is drawn by the server -- where each book stands, leans or lies comes from
+ * one pure layout -- and every change here is sent as what a hand did ("put these down on the
+ * third shelf, 400 pixels along") and answered with the room redrawn.
+ */
+
+import { confirmCard, toast } from '~/app/chrome.ts';
+import { onClick, typing } from '~/app/dom.ts';
+import { Carry } from '~/app/shelf/carry.ts';
+import { ShelfCat } from '~/app/shelf/cat.ts';
+import { Preview } from '~/app/shelf/preview.ts';
+
+export interface BookInfo {
+  id: string;
+  title: string;
+  pages: string;
+  edited?: string | undefined;
+  whose?: string | undefined;
+  archived: boolean;
+}
+
+/** What a spine says about its book, read from the markup the server drew. */
+export function infoOf(spine: HTMLElement): BookInfo {
+  return {
+    id: spine.dataset.gsId ?? '',
+    title: spine.dataset.title ?? '',
+    pages: spine.dataset.pages ?? '',
+    edited: spine.dataset.edited,
+    whose: spine.dataset.whose,
+    archived: spine.hasAttribute('data-archived'),
+  };
+}
+
+interface ShelfReply {
+  html: string;
+  trash: number;
+}
+
+export class ShelfApp {
+  readonly selected = new Set<string>();
+  private readonly preview: Preview;
+  private readonly cat: ShelfCat;
+  private bar: HTMLElement | undefined;
+
+  constructor() {
+    this.preview = new Preview(this);
+    this.cat = new ShelfCat();
+    new Carry(this).bind();
+  }
+
+  get room(): HTMLElement | null {
+    return document.querySelector<HTMLElement>('[data-gs="room"]');
+  }
+
+  get selecting(): boolean {
+    return document.body.hasAttribute('data-selecting');
+  }
+
+  spine(id: string): HTMLElement | null {
+    return document.querySelector<HTMLElement>(`.spine[data-gs-id="${CSS.escape(id)}"]`);
+  }
+
+  boot(): void {
+    this.fit();
+    window.addEventListener('resize', () => this.fit());
+    this.bindNew();
+    this.bindTrash();
+    onClick('shelf-select', () => this.setSelecting(!this.selecting));
+    window.addEventListener('keydown', (event) => this.key(event));
+    this.cat.start(this.room);
+    if (new URLSearchParams(location.search).has('gone')) {
+      toast('that notebook was thrown away; it is in the trash for thirty days');
+      history.replaceState(history.state, '', '/shelf');
+    }
+  }
+
+  /**
+   * The room is drawn at the bookcase's own size and zoomed to the window, so every book is in
+   * the pixels the layout was worked out in. On a phone it stops shrinking at a size a spine can
+   * still be read at, and the shelves scroll sideways instead.
+   */
+  private fit(): void {
+    const room = this.room;
+    if (!room) return;
+    const wide = 1140;
+    const scale = Math.max(0.56, Math.min(1, (window.innerWidth - 32) / wide));
+    room.style.setProperty('--case-scale', scale.toFixed(3));
+    document
+      .querySelector<HTMLElement>('.case-trash')
+      ?.style.setProperty('--case-scale', scale.toFixed(3));
+  }
+
+  get scale(): number {
+    return Number(this.room?.style.getPropertyValue('--case-scale')) || 1;
+  }
+
+  // ---------------------------------------------------------------- a press on a spine
+
+  /** A spine pressed and let go without being carried. */
+  pressed(spine: HTMLElement, event: MouseEvent | KeyboardEvent): void {
+    const id = spine.dataset.gsId ?? '';
+    if (this.selecting || event.shiftKey || event.ctrlKey || event.metaKey) {
+      this.toggle(id);
+      return;
+    }
+    this.preview.open(spine);
+  }
+
+  toggle(id: string, on = !this.selected.has(id)): void {
+    if (on) this.selected.add(id);
+    else this.selected.delete(id);
+    if (this.selected.size > 0 && !this.selecting) this.setSelecting(true);
+    this.showSelection();
+  }
+
+  setSelecting(on: boolean): void {
+    document.body.toggleAttribute('data-selecting', on);
+    document.querySelector('[data-gs="shelf-select"]')?.setAttribute('aria-pressed', String(on));
+    if (!on) this.selected.clear();
+    this.showSelection();
+  }
+
+  private showSelection(): void {
+    for (const spine of document.querySelectorAll<HTMLElement>('.spine')) {
+      spine.toggleAttribute('data-selected', this.selected.has(spine.dataset.gsId ?? ''));
+    }
+    this.drawBar();
+  }
+
+  /** The bar of what can be done to the chosen notebooks. */
+  private drawBar(): void {
+    if (!this.selecting) {
+      this.bar?.remove();
+      this.bar = undefined;
+      return;
+    }
+    if (!this.bar) {
+      this.bar = document.createElement('div');
+      this.bar.className = 'gs-shelfbar gs-card';
+      this.bar.setAttribute('role', 'toolbar');
+      this.bar.setAttribute('aria-label', 'the chosen notebooks');
+      document.body.append(this.bar);
+    }
+    const chosen = [...this.selected]
+      .map((id) => this.spine(id))
+      .filter((s): s is HTMLElement => s !== null);
+    const anyOpen = chosen.some((s) => !s.hasAttribute('data-archived'));
+    const anyPut = chosen.some((s) => s.hasAttribute('data-archived'));
+    const n = chosen.length;
+    this.bar.replaceChildren();
+    const count = document.createElement('span');
+    count.className = 'gs-shelfbar-count';
+    count.textContent = n === 0 ? 'choose notebooks' : n === 1 ? 'one chosen' : `${n} chosen`;
+    this.bar.append(count);
+    const act = (label: string, gs: string, enabled: boolean, run: () => void, tone = ''): void => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = `gs-btn ${tone}`.trim();
+      b.dataset.gs = gs;
+      b.textContent = label;
+      b.disabled = !enabled;
+      b.addEventListener('click', run);
+      this.bar?.append(b);
+    };
+    act('archive', 'batch-archive', anyOpen, () => void this.batch('archive'));
+    act('take out', 'batch-unarchive', anyPut, () => void this.batch('unarchive'));
+    act('throw away', 'batch-delete', n > 0, () => void this.batch('delete'), 'gs-btn-danger');
+    act('all', 'batch-all', true, () => {
+      for (const s of document.querySelectorAll<HTMLElement>('.spine'))
+        this.selected.add(s.dataset.gsId ?? '');
+      this.showSelection();
+    });
+    act('done', 'batch-done', true, () => this.setSelecting(false), 'gs-btn-primary');
+  }
+
+  private async batch(action: 'archive' | 'unarchive' | 'delete'): Promise<void> {
+    const ids = [...this.selected];
+    if (ids.length === 0) return;
+    if (action === 'delete') {
+      const titles = ids.map((id) => this.spine(id)?.dataset.title ?? id);
+      const yes = await confirmCard({
+        title:
+          ids.length === 1 ? `throw away “${titles[0]}”?` : `throw away ${ids.length} notebooks?`,
+        body:
+          (ids.length > 1 ? `${titles.join(', ')}. ` : '') +
+          'They go to the trash for thirty days -- bring them back from the trash below the ' +
+          'bookcase, or with grimstroke untrash. After that they are gone for good.',
+        yes: 'throw away',
+      });
+      if (!yes) return;
+    }
+    const res = await fetch('/api/books/batch', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ ids, action }),
+    });
+    if (!res.ok) {
+      toast('that could not be done', 'error');
+      return;
+    }
+    const reply = (await res.json()) as { done: string[]; trash?: Record<string, string> };
+    this.selected.clear();
+    await this.refresh();
+    const n = reply.done.length;
+    const what = n === 1 ? 'one notebook' : `${n} notebooks`;
+    if (action === 'delete') {
+      toast(`${what} thrown away`, 'info', {
+        label: 'undo',
+        run: () => void this.restore(Object.values(reply.trash ?? {})),
+      });
+    } else {
+      toast(action === 'archive' ? `${what} archived` : `${what} taken out of the archive`);
+    }
+  }
+
+  async restore(names: readonly string[]): Promise<void> {
+    for (const name of names) {
+      await fetch('/api/trash/restore', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+    }
+    await this.refresh();
+  }
+
+  // ---------------------------------------------------------------- the room, redrawn
+
+  /**
+   * Lay in the room the server drew, and move every book from where it was to where it is now,
+   * so the others visibly make room and a book put down in the open visibly tips over.
+   */
+  absorb(reply: ShelfReply, from?: { id: string; rect: DOMRect }): void {
+    const room = this.room;
+    if (!room) return;
+    const before = new Map<string, { rect: DOMRect; flat: boolean }>();
+    for (const spine of room.querySelectorAll<HTMLElement>('.spine')) {
+      before.set(spine.dataset.gsId ?? '', {
+        rect: spine.getBoundingClientRect(),
+        flat: spine.hasAttribute('data-flat'),
+      });
+    }
+    if (from) before.set(from.id, { rect: from.rect, flat: false });
+    const scale = room.style.getPropertyValue('--case-scale');
+    const holder = document.createElement('div');
+    // Our own server's markup, drawn by the same code that drew the page.
+    holder.innerHTML = reply.html;
+    const next = holder.firstElementChild as HTMLElement | null;
+    if (!next) return;
+    next.style.setProperty('--case-scale', scale);
+    room.replaceWith(next);
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    for (const spine of next.querySelectorAll<HTMLElement>('.spine')) {
+      const id = spine.dataset.gsId ?? '';
+      const was = before.get(id);
+      if (!was || reduced) continue;
+      const now = spine.getBoundingClientRect();
+      const s = Number(scale) || 1;
+      const dx = (was.rect.left - now.left) / s;
+      const dy = (was.rect.bottom - now.bottom) / s;
+      if (spine.hasAttribute('data-flat') && !was.flat) {
+        // Stood up where it was let go, then over it goes.
+        spine.toggleAttribute('data-fell', true);
+        spine.addEventListener('animationend', () => spine.removeAttribute('data-fell'), {
+          once: true,
+        });
+        continue;
+      }
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
+      spine.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], {
+        duration: 380,
+        easing: 'cubic-bezier(0.2, 0.8, 0.25, 1)',
+      });
+    }
+    const count = document.querySelector<HTMLElement>('[data-gs="trash-count"]');
+    if (count) count.textContent = String(reply.trash);
+    document
+      .querySelector<HTMLElement>('[data-gs="trash-open"]')
+      ?.toggleAttribute('hidden', !reply.trash);
+    for (const id of [...this.selected]) if (!this.spine(id)) this.selected.delete(id);
+    this.showSelection();
+    this.cat.start(next);
+    const title = document.querySelector<HTMLElement>('.gs-top-title');
+    const n = next.querySelectorAll('.spine').length;
+    if (title) title.textContent = n === 1 ? 'one notebook' : `${n} notebooks`;
+  }
+
+  async refresh(): Promise<void> {
+    const res = await fetch('/api/shelf');
+    if (res.ok) this.absorb((await res.json()) as ShelfReply);
+  }
+
+  /** Put books down: on a shelf in use at x along it, or onto the archive. */
+  async drop(
+    ids: readonly string[],
+    to: 'use' | 'archive',
+    row: number,
+    x: number,
+    from?: { id: string; rect: DOMRect },
+  ): Promise<void> {
+    const res = await fetch('/api/shelf/drop', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ ids, to, row, x }),
+    });
+    if (!res.ok) {
+      toast('the bookcase could not be rearranged', 'error');
+      await this.refresh();
+      return;
+    }
+    this.absorb((await res.json()) as ShelfReply, from);
+  }
+
+  // ---------------------------------------------------------------- keys
+
+  private key(event: KeyboardEvent): void {
+    if (typing(event.target) || this.preview.isOpen) return;
+    if (event.key === 'Escape' && this.selecting) {
+      this.setSelecting(false);
+      return;
+    }
+    const spine = (event.target as HTMLElement | null)?.closest<HTMLElement>('.spine');
+    if (!spine) return;
+    // Alt and an arrow carries the focused book: along its shelf, or up and down a shelf.
+    if (event.altKey && event.key.startsWith('Arrow')) {
+      event.preventDefault();
+      void this.nudge(spine, event.key);
+      return;
+    }
+    if (event.key === 'Delete' || event.key === 'Backspace') {
+      event.preventDefault();
+      this.selected.clear();
+      this.selected.add(spine.dataset.gsId ?? '');
+      void this.batch('delete');
+    }
+  }
+
+  private async nudge(spine: HTMLElement, key: string): Promise<void> {
+    const shelf = spine.closest<HTMLElement>('[data-gs="shelf"]');
+    if (!shelf || shelf.dataset.shelf !== 'use') return;
+    const id = spine.dataset.gsId ?? '';
+    const row = Number(shelf.dataset.row) || 0;
+    const standing = [...shelf.querySelectorAll<HTMLElement>('.spine:not([data-flat])')];
+    const at = standing.indexOf(spine);
+    const x = (s: HTMLElement | undefined): number =>
+      Number.parseFloat(s?.style.getPropertyValue('--x') ?? '0');
+    const w = (s: HTMLElement | undefined): number =>
+      Number.parseFloat(s?.style.getPropertyValue('--w') ?? '0');
+    let target = row;
+    let along = 0;
+    if (key === 'ArrowLeft') along = at > 0 ? x(standing[at - 1]) + 1 : 0;
+    else if (key === 'ArrowRight') {
+      const next = standing[at + 1];
+      along = next ? x(next) + w(next) - 1 : x(spine) + w(spine);
+    } else {
+      target = key === 'ArrowUp' ? Math.max(0, row - 1) : row + 1;
+      const there = document.querySelector<HTMLElement>(`[data-shelf="use"][data-row="${target}"]`);
+      const run = [...(there?.querySelectorAll<HTMLElement>('.spine:not([data-flat])') ?? [])];
+      const last = run[run.length - 1];
+      along = last ? x(last) + w(last) : 0;
+    }
+    await this.drop([id], 'use', target, along);
+    this.spine(id)?.focus();
+  }
+
+  // ---------------------------------------------------------------- new, and the trash
+
+  private bindNew(): void {
+    const dialog = document.querySelector<HTMLDialogElement>('[data-gs="book-new-dialog"]');
+    if (!dialog) return;
+    const input = dialog.querySelector<HTMLInputElement>('[data-gs="book-new-title"]');
+    onClick('book-new', () => {
+      if (input) input.value = '';
+      dialog.showModal();
+    });
+    dialog.addEventListener('close', async () => {
+      if (dialog.returnValue !== 'make' || !input?.value.trim()) return;
+      const res = await fetch('/api/books', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ title: input.value.trim() }),
+      });
+      if (!res.ok) {
+        toast('the notebook could not be made', 'error');
+        return;
+      }
+      const { id } = (await res.json()) as { id: string };
+      window.location.href = `/book?id=${encodeURIComponent(id)}&opening`;
+    });
+  }
+
+  /** The trash: what was thrown away in the last thirty days, each with a way back. */
+  private bindTrash(): void {
+    onClick('trash-open', async () => {
+      const res = await fetch('/api/trash');
+      if (!res.ok) return;
+      const { trash } = (await res.json()) as {
+        trash: Array<{ name: string; title: string; at: string }>;
+      };
+      const dialog = document.createElement('dialog');
+      dialog.className = 'gs-dialog gs-trash';
+      dialog.setAttribute('aria-label', 'the trash');
+      const head = document.createElement('header');
+      head.className = 'gs-dialog-head';
+      head.innerHTML = '<h2>the trash</h2>';
+      const list = document.createElement('ul');
+      list.className = 'gs-trash-list';
+      for (const one of trash) {
+        const li = document.createElement('li');
+        const words = document.createElement('span');
+        const title = document.createElement('b');
+        title.textContent = one.title;
+        const when = document.createElement('small');
+        when.textContent = `thrown away ${one.at.slice(0, 10)}`;
+        words.append(title, when);
+        const back = document.createElement('button');
+        back.type = 'button';
+        back.className = 'gs-btn';
+        back.textContent = 'bring it back';
+        back.dataset.gs = 'trash-restore';
+        back.addEventListener('click', async () => {
+          await this.restore([one.name]);
+          li.remove();
+          toast(`${one.title} is back on the shelf`);
+          if (!list.children.length) dialog.close();
+        });
+        li.append(words, back);
+        list.append(li);
+      }
+      const note = document.createElement('p');
+      note.className = 'gs-trash-note';
+      note.textContent = 'Kept for thirty days after it was thrown away, then gone for good.';
+      const actions = document.createElement('div');
+      actions.className = 'gs-dialog-actions';
+      const close = document.createElement('button');
+      close.type = 'button';
+      close.className = 'gs-btn gs-btn-primary';
+      close.textContent = 'close';
+      close.addEventListener('click', () => dialog.close());
+      actions.append(close);
+      dialog.append(head, list, note, actions);
+      dialog.addEventListener('close', () => dialog.remove());
+      document.body.append(dialog);
+      dialog.showModal();
+    });
+  }
+}
+
+export function bootShelf(): boolean {
+  if (!document.querySelector('[data-gs="shelves"]')) return false;
+  new ShelfApp().boot();
+  return true;
+}

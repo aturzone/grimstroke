@@ -352,6 +352,13 @@ export class BookApp {
     onClick('archive', () => this.archive());
     onClick('pages', () => this.togglePages());
     onClick('cover-open', () => void this.cover.open());
+    // Asked for from the shelf's "the cover": straight into the cover editor, once.
+    if (new URLSearchParams(location.search).has('cover')) {
+      const url = new URL(location.href);
+      url.searchParams.delete('cover');
+      history.replaceState(history.state, '', url);
+      void this.cover.open();
+    }
 
     const jump = document.querySelector<HTMLInputElement>('[data-gs="jump"]');
     jump?.addEventListener('change', () => void this.goto(Number(jump.value) - 1));

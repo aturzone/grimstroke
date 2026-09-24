@@ -11,14 +11,18 @@ export function shelfChrome(count: number): string {
     topBar({
       place: 'shelf',
       title: count === 1 ? 'one notebook' : `${count} notebooks`,
-      actions: button({
-        gs: 'book-new',
-        label: 'a new notebook',
-        icon: 'plus',
-        text: 'new notebook',
-        tone: 'gs-btn-primary',
-      }),
-      compact: item({ gs: 'book-new', text: 'a new notebook', icon: 'plus' }),
+      actions:
+        button({ gs: 'shelf-select', label: 'choose several', icon: 'check', text: 'choose' }) +
+        button({
+          gs: 'book-new',
+          label: 'a new notebook',
+          icon: 'plus',
+          text: 'new notebook',
+          tone: 'gs-btn-primary',
+        }),
+      compact:
+        item({ gs: 'shelf-select', text: 'choose several', icon: 'check' }) +
+        item({ gs: 'book-new', text: 'a new notebook', icon: 'plus' }),
     }),
     // A native form in a native dialog: Enter submits and Escape cancels with no script.
     '<dialog class="gs-dialog gs-ask" data-gs="book-new-dialog" aria-label="a new notebook">',
