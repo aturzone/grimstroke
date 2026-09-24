@@ -139,7 +139,6 @@ export const EDITOR = `/* Inside the item, in the item's own coordinates -- so i
    transform exactly as the text under it is, and cannot be left behind. */
 .gs-editing {
   position: absolute;
-  z-index: 8;
   z-index: 70;
   margin: 0;
   border: 0;
@@ -147,10 +146,17 @@ export const EDITOR = `/* Inside the item, in the item's own coordinates -- so i
   color: inherit;
   font: inherit;
   resize: none;
-  overflow: hidden;
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  overflow: auto;
+  scrollbar-width: thin;
+  outline: none;
+  box-shadow: none;
+  caret-color: var(--accent);
 }
+.gs-editing::selection { background: color-mix(in oklab, var(--accent) 30%, transparent); }
+/* Editing is writing on the paper: no selection ring, no handles, no toolbar over the note. */
+.live .item[data-editing] .note .paper-fill { stroke: none; }
+.live .item[data-editing] { outline: none; }
+[data-gs-editing] .gs-handles, [data-gs-editing] .gs-selbar { visibility: hidden; }
 
 `;
 

@@ -121,7 +121,15 @@ export class Editor {
     area.style.height = `${target.offsetHeight}px`;
     // Written in either direction: the words decide, per line, as they do once rendered.
     area.dir = 'auto';
-    target.closest<HTMLElement>('[data-gs="item"]')?.append(area);
+    // Beside the body, in the body's own positioned parent, so every transform the sheet
+    // carries -- its lean, its curl, the item's turn -- carries the words being typed too.
+    const host = target.closest<HTMLElement>('[data-gs="item"]');
+    (target.offsetParent instanceof HTMLElement && host?.contains(target.offsetParent)
+      ? target.offsetParent
+      : host
+    )?.append(area);
+    host?.toggleAttribute('data-editing', true);
+    document.body.toggleAttribute('data-gs-editing', true);
     /*
      * The rendered words go while the raw ones are being edited.
      *
@@ -133,13 +141,21 @@ export class Editor {
 
     this.editing(id, true);
     this.area = area;
+    /*
+     * The caret goes where the words end, not a selection over all of them.
+     *
+     * Selecting everything painted the whole text as one highlighted block the moment the note
+     * opened, which read as a second box laid over the note -- the thing people kept reporting.
+     */
     area.focus();
-    area.select();
+    area.setSelectionRange(area.value.length, area.value.length);
 
     const done = (commit: boolean): void => {
       if (this.area !== area && !area.isConnected) return;
       area.remove();
       target.style.visibility = '';
+      host?.toggleAttribute('data-editing', false);
+      document.body.toggleAttribute('data-gs-editing', false);
       if (this.area === area) this.area = undefined;
       this.editing(id, false);
       if (!commit || area.value === block.text) return;
