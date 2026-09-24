@@ -12,7 +12,7 @@ import { extname, join } from 'node:path';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import { apply, type Op, PatchError, topZ } from '~/draw/doc/board/patch.ts';
 import { extentOf, renderBoard, renderOneItem } from '~/draw/doc/board/render.ts';
-import { boundLeaves } from '~/draw/doc/book/model.ts';
+import { bookTitle, boundLeaves } from '~/draw/doc/book/model.ts';
 import { apply as applyBook, type BookOp, BookPatchError } from '~/draw/doc/book/patch.ts';
 import { renderCover, renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { search } from '~/draw/doc/search.ts';
@@ -33,6 +33,7 @@ import {
 import { renderProfile } from '~/draw/material/profile/render.ts';
 import { PACKS } from '~/draw/material/sticker/packs.ts';
 import { exportPages } from '~/host/export.ts';
+import { capabilities } from '~/host/serve/capabilities.ts';
 import { type Ask, header, readBody, readRaw, send } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
 import { ArchiveError, pack, readArchive, unpack } from '~/host/store/archive.ts';
@@ -164,6 +165,28 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
   }
 
   /** A new notebook, named. The id is made from the name and never collides with another. */
+  if (path === '/api/capabilities') {
+    send(res, 200, capabilities());
+    return true;
+  }
+
+  // Every notebook, for an agent that has not seen the bookcase.
+  if (path === '/api/books' && req.method === 'GET') {
+    const books = [];
+    for (const id of await store.listBooks()) {
+      const spec = await live.book(id);
+      books.push({
+        id,
+        title: bookTitle(spec),
+        pages: spec.leaves.length,
+        ...(spec.archived ? { archived: true } : {}),
+        ...(spec.remote ? { remote: spec.remote } : {}),
+      });
+    }
+    send(res, 200, { books });
+    return true;
+  }
+
   if (path === '/api/books' && req.method === 'POST') {
     const body = (await readBody(req)) as { title?: string; palette?: string };
     const title = (body.title ?? '').trim().slice(0, 80) || 'Untitled';

@@ -12,6 +12,14 @@ T=...   # the token from `grimstroke serve`
 curl -s "http://127.0.0.1:$PORT/api/state?board=workspace" -H "x-grimstroke-token: $T"
 ```
 
+Start with `GET /api/capabilities`: every endpoint with what it is for, and every closed
+vocabulary there is to choose from -- block kinds, palettes, rulings, page templates and sizes,
+tracker columns, cover materials, sticker marks and packs, the bookcase's woods, backs and
+objects, the pet's animals and coats, the profile's accents, the repository services. They come
+from the same constants the interface draws from, so nothing it lists is refused. `GET
+/api/books` lists every notebook with its title, pages, whether it is archived and the
+repository it is connected to.
+
 To write a document that reads well -- the page grid, the type, measured flow across pages, and
 a worked example -- see [writing.md](writing.md).
 
@@ -56,7 +64,7 @@ page by its `book:` address: the same patch operations, the same events, the sam
 | update | `{ "op": "update", "id", "patch": { ... } }` -- a field set to `null` is removed |
 | remove | `{ "op": "remove", "id" }` |
 | order | `{ "op": "order", "id", "z" }` |
-| board | `{ "op": "board", "patch": { "palette"?, "paper"?, "title"?, ... } }` -- on a page, only `paper` and `template` (`cornell`, `kanban`, or `null` for the book's) are the page's own |
+| board | `{ "op": "board", "patch": { "palette"?, "paper"?, "title"?, ... } }` -- on a page, only `paper`, `template` (`cornell`, `kanban`, or `null` for the book's) and `tracker` are the page's own; `tracker` is a Kanban page's columns, each `{ title, state: "open" \| "closed", labels?, limit? }` |
 
 A `block` is anything a page can hold: `heading`, `text`, `label`, `bullets`, `table`, `code`,
 `quote`, `image`, `compare`, `note` (its text is markdown, and `:rocket:`-style shortcodes are

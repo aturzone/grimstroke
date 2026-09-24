@@ -87,7 +87,7 @@ tests/                  mirrors src/: tests/draw/..., tests/host/...
   fixtures/index.ts     every fixture path, resolved once
 tools/                  build.ts, look.ts, and the TypeScript loader they need
 assets/fonts/           the vendored faces. Nothing is resolved from the system.
-docs/api.md             every endpoint and operation an agent can use
+docs/api.md             every endpoint and operation an agent can use (GET /api/capabilities lists them live)
 docs/writing.md         how an agent writes a page that reads well
 ```
 
