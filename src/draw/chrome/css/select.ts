@@ -231,7 +231,7 @@ export const HANDLES = `/* ---- the frame and its grips ----
   padding: 2px 8px;
   background: var(--gs-ink);
   color: var(--mat-paper);
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: 12px;
   white-space: nowrap;
   pointer-events: none;

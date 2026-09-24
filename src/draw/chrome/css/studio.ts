@@ -103,7 +103,7 @@ body.on-profile {
 .pf-paper-row .gs-btn { margin-inline-start: auto; }
 .pf-label {
   color: var(--gs-soft);
-  font: 700 var(--gs-t1) / 1.4 var(--mono-font);
+  font: 700 var(--gs-t1) / 1.4 var(--ui-font);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }

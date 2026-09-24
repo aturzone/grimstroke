@@ -23,7 +23,7 @@ export const SETTINGS = `/* ---- a note's own settings ----
   background: var(--mat-paper);
   border: var(--keyline) solid var(--edge);
   box-shadow: 6px 7px 0 rgba(0, 0, 0, .34);
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: 12px;
   color: var(--ink);
   scrollbar-width: thin;
@@ -57,7 +57,7 @@ export const SETTINGS = `/* ---- a note's own settings ----
 .gs-set-section { padding: 8px 12px 2px; }
 .gs-set-section h3 {
   margin: 0 0 6px;
-  font: 700 10px/1.4 var(--mono-font);
+  font: 700 10px/1.4 var(--ui-font);
   letter-spacing: .12em;
   text-transform: uppercase;
   opacity: .62;

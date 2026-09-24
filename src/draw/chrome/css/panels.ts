@@ -25,7 +25,7 @@ export const PANELS = `/* ---- search ---- */
   border: 0;
   background: transparent;
   color: var(--gs-ink);
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: var(--gs-t4);
   outline: none;
 }
@@ -135,7 +135,7 @@ export const PANELS = `/* ---- search ---- */
   color: var(--gs-ink);
   border: 1.5px solid var(--gs-line);
   box-shadow: var(--gs-shadow-up);
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: var(--gs-t2);
   line-height: 1.7;
   transform: translate(-50%, -50%) rotate(-1.2deg);

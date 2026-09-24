@@ -57,7 +57,7 @@ export const KIT = `/* ---- the parts ---- */
   border: 1.5px solid var(--gs-line);
   border-radius: var(--gs-radius);
   box-shadow: var(--gs-shadow);
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: var(--gs-t2);
   line-height: 1.3;
 }
@@ -157,7 +157,7 @@ export const KIT = `/* ---- the parts ---- */
   padding: 5px 8px;
   background: var(--gs-ink);
   color: var(--gs-paper);
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: var(--gs-t1);
   letter-spacing: 0.03em;
   white-space: nowrap;
@@ -187,7 +187,7 @@ export const KIT = `/* ---- the parts ---- */
   border-radius: 3px;
   background: var(--gs-paper);
   color: var(--gs-soft);
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
@@ -231,7 +231,7 @@ export const KIT = `/* ---- the parts ---- */
   border: 1.5px solid var(--gs-line);
   border-radius: var(--gs-radius);
   box-shadow: var(--gs-shadow-up);
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: var(--gs-t2);
   animation: gs-drop var(--gs-mid) var(--gs-ease);
   overscroll-behavior: contain;
@@ -288,7 +288,7 @@ export const KIT = `/* ---- the parts ---- */
   border: 1.5px solid var(--gs-line);
   border-radius: var(--gs-radius);
   box-shadow: 8px 10px 0 rgba(0, 0, 0, 0.35);
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: var(--gs-t2);
   overflow: auto;
 }

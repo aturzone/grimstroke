@@ -128,7 +128,7 @@ body.on-book.live { padding-block: 76px 84px; }
   padding: 2px 8px;
   background: var(--gs-ink);
   color: var(--gs-paper);
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: 12px;
   white-space: nowrap;
 }
@@ -238,8 +238,8 @@ body.on-book.live { padding-block: 76px 84px; }
   cursor: pointer;
 }
 .gs-repo-mark { grid-row: 1 / 3; width: 26px; }
-.gs-repo-name { font-family: var(--mono-font); font-size: var(--gs-t2); font-weight: 700; }
-.gs-repo-host { font-family: var(--mono-font); font-size: var(--gs-t1); color: var(--gs-soft); }
+.gs-repo-name { font-family: var(--ui-font); font-size: var(--gs-t2); font-weight: 700; }
+.gs-repo-host { font-family: var(--ui-font); font-size: var(--gs-t1); color: var(--gs-soft); }
 .gs-repo-tab:hover { transform: translate(-1px, -1px); }
 /* ---- connecting a repository ---- */
 .gs-repo { width: min(560px, calc(100vw - 24px)); }
@@ -249,7 +249,7 @@ body.on-book.live { padding-block: 76px 84px; }
   padding: 4px 0 6px;
   border-block-end: 3px solid var(--gs-faint);
   color: var(--gs-soft);
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: var(--gs-t1);
   letter-spacing: var(--label-tracking);
   text-transform: uppercase;
@@ -287,18 +287,18 @@ body.on-book.live { padding-block: 76px 84px; }
 .gs-repo-list { display: grid; gap: 4px; max-height: 260px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
 .gs-btn.gs-repo-pick { height: auto; white-space: normal; display: grid; justify-items: start; gap: 2px; width: 100%; padding: 6px 10px; border: 1px solid var(--gs-faint); border-radius: var(--gs-radius); text-align: start; }
 .gs-repo-pick:hover { border-color: var(--gs-line); background: var(--gs-wash); }
-.gs-repo-pick b { font-family: var(--mono-font); font-size: var(--gs-t2); }
+.gs-repo-pick b { font-family: var(--ui-font); font-size: var(--gs-t2); }
 .gs-repo-pick small { color: var(--gs-soft); font-size: var(--gs-t1); }
-.gs-repo-private { font-family: var(--mono-font); font-size: 9.5px; text-transform: uppercase; color: var(--gs-soft); }
+.gs-repo-private { font-family: var(--ui-font); font-size: 9.5px; text-transform: uppercase; color: var(--gs-soft); }
 .gs-repo-next { display: grid; gap: 6px; margin: 0; padding-inline-start: 18px; font-size: var(--gs-t2); line-height: 1.5; }
 .gs-repo-current { display: flex; align-items: center; gap: 12px; padding: 12px 0 4px; }
 .gs-repo-current .gs-repo-service-mark { width: 44px; }
-.gs-repo-current b { display: block; font-family: var(--mono-font); font-size: var(--gs-t3); }
+.gs-repo-current b { display: block; font-family: var(--ui-font); font-size: var(--gs-t3); }
 .gs-repo-current small { color: var(--gs-soft); }
 .gs-repo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .gs-repo-actions .gs-btn { border: 1.5px solid var(--gs-line); }
 .gs-repo-actions .gs-btn-danger { color: var(--gs-hot); }
 .gs-repo .gs-dialog-actions { padding: 6px 0 0; }
-.gs-repo-code { margin: 0; font-family: var(--mono-font); font-size: 28px; letter-spacing: 0.2em; text-align: center; padding: 8px; border: 2px dashed var(--gs-line); }
+.gs-repo-code { margin: 0; font-family: var(--ui-font); font-size: 28px; letter-spacing: 0.2em; text-align: center; padding: 8px; border: 2px dashed var(--gs-line); }
 .gs-repo-signin { display: grid; gap: 8px; justify-items: start; }
 `;

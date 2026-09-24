@@ -106,7 +106,7 @@ body.live {
 .gs-page-nav { display: flex; align-items: center; gap: 2px; }
 .gs-page-no {
   min-width: 64px;
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: var(--gs-t1);
   text-align: center;
   color: var(--gs-soft);

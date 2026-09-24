@@ -84,7 +84,7 @@ export const SHELF_CHROME = `/* ---- a book taken down ---- */
 }
 .gs-preview-card dt {
   color: var(--gs-soft);
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: var(--gs-t1);
   letter-spacing: var(--label-tracking);
   text-transform: uppercase;
@@ -119,7 +119,7 @@ export const SHELF_CHROME = `/* ---- a book taken down ---- */
 }
 .gs-shelfbar-count {
   padding: 0 10px 0 6px;
-  font-family: var(--mono-font);
+  font-family: var(--ui-font);
   font-size: var(--gs-t2);
   color: var(--gs-soft);
 }
@@ -130,7 +130,7 @@ export const SHELF_CHROME = `/* ---- a book taken down ---- */
 .gs-trash-list { list-style: none; margin: 0; padding: 4px 16px; max-height: 50vh; overflow-y: auto; }
 .gs-trash-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-block-end: 1px solid var(--gs-faint); }
 .gs-trash-list b { display: block; font-family: var(--hand-font); font-size: 18px; }
-.gs-trash-list small { color: var(--gs-soft); font-family: var(--mono-font); font-size: var(--gs-t1); }
+.gs-trash-list small { color: var(--gs-soft); font-family: var(--ui-font); font-size: var(--gs-t1); }
 .gs-trash-list .gs-btn { border: 1.5px solid var(--gs-line); flex: none; }
 .gs-trash-note { padding: 8px 16px 0; color: var(--gs-soft); font-size: var(--gs-t1); }
 
@@ -145,7 +145,7 @@ export const SHELF_CHROME = `/* ---- a book taken down ---- */
   border-radius: 12px;
   background: var(--gs-hot);
   color: var(--gs-on-hot);
-  font: 700 13px/24px var(--mono-font);
+  font: 700 13px/24px var(--ui-font);
   text-align: center;
 }
 

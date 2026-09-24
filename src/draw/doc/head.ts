@@ -15,7 +15,7 @@ import { textOn } from '~/draw/look/colour.ts';
 import { grain } from '~/draw/look/grain.ts';
 import type { PaperKind } from '~/draw/look/grid.ts';
 import { ruling } from '~/draw/look/grid.ts';
-import { FACES, facePath, fontFamily, weightRule } from '~/draw/type/faces.ts';
+import { FACES, facePath, fontFamily, uiFontFamily, weightRule } from '~/draw/type/faces.ts';
 
 export interface HeadOptions {
   paper?: PaperKind | undefined;
@@ -75,6 +75,7 @@ export function styleVars(
     '--rule': 'color-mix(in oklab, var(--ink) 30%, transparent)',
     '--body-font': fontFamily('body', fonts, direction),
     '--mono-font': fontFamily('mono', fonts, direction),
+    '--ui-font': uiFontFamily(fonts, direction),
     '--hand-font': fontFamily('hand', fonts, direction),
     '--marker-font': fontFamily('marker', fonts, direction),
     '--body-size': '15px',

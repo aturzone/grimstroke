@@ -181,7 +181,7 @@ export const TRAY = `/* ---- the tray ---- */
   padding: 10px 12px 12px;
 }
 .gs-drawer-head { display: flex; align-items: center; gap: 10px; }
-.gs-drawer-head b { display: block; font-family: var(--mono-font); font-size: var(--gs-t2); }
+.gs-drawer-head b { display: block; font-family: var(--ui-font); font-size: var(--gs-t2); }
 .gs-drawer-head small { color: var(--gs-soft); font-size: var(--gs-t1); }
 .gs-drawer-head .gs-btn-icon { margin-inline-start: auto; font-size: 18px; }
 .gs-drawer-mark { width: 28px; flex: none; }
@@ -201,7 +201,7 @@ export const TRAY = `/* ---- the tray ---- */
 .gs-drawer-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #15803d; }
 .gs-drawer-row.is-closed .gs-drawer-dot { background: #7c3aed; }
 .gs-drawer-row.is-merged .gs-drawer-dot { background: #6b21a8; }
-.gs-drawer-n { flex: none; font-family: var(--mono-font); font-size: var(--gs-t1); color: var(--gs-soft); }
+.gs-drawer-n { flex: none; font-family: var(--ui-font); font-size: var(--gs-t1); color: var(--gs-soft); }
 .gs-drawer-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--gs-t2); }
 .gs-drawer-add { flex: none; font-size: 18px; }
 .gs-drawer-foot { display: flex; flex-wrap: wrap; gap: 6px; }

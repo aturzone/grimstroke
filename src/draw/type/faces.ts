@@ -92,6 +92,17 @@ export function stack(role: Role, override: Roles = {}, direction: Direction = '
   return families;
 }
 
+/**
+ * The chrome's face: the mono stack, with the Persian face behind it. Chrome text is a name, a
+ * title, a label typed by a person -- never code -- so a Persian notebook title in a field must
+ * not fall through to whatever the system has, with its own spacing.
+ */
+export function uiFontFamily(override: Roles = {}, direction: Direction = 'ltr'): string {
+  const families = stack('mono', override, direction);
+  if (!families.includes(PERSIAN)) families.push(PERSIAN);
+  return [...families.map((f) => `'${f}'`), GENERIC.mono].join(', ');
+}
+
 /** The same stack as a CSS `font-family` value. */
 export function fontFamily(role: Role, override: Roles = {}, direction: Direction = 'ltr'): string {
   return [...stack(role, override, direction).map((f) => `'${f}'`), GENERIC[role]].join(', ');
