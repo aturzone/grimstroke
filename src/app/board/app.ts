@@ -118,6 +118,7 @@ export class BoardApp implements BoardContext {
     this.session.listen();
     this.setTool('select');
     this.fitAll();
+    this.refitOnResize();
     this.showEmpty();
     this.focusFromAddress();
   }
@@ -548,6 +549,25 @@ export class BoardApp implements BoardContext {
   /** Frame everything on the board. Named fitAll because a bare `fit` reads as
    * a focused test to the linter, which is a fair thing for it to think. */
   private fitAll(): void {
+    this.fitAllOnce();
+    this.fitted = `${this.view.zoom},${this.view.pan.x},${this.view.pan.y}`;
+  }
+
+  /** The camera as the last fit left it; while it is unmoved, a resized window fits again. */
+  private fitted = '';
+
+  private refitOnResize(): void {
+    let wait = 0;
+    window.addEventListener('resize', () => {
+      window.clearTimeout(wait);
+      wait = window.setTimeout(() => {
+        if (this.fitted === `${this.view.zoom},${this.view.pan.x},${this.view.pan.y}`)
+          this.fitAll();
+      }, 160);
+    });
+  }
+
+  private fitAllOnce(): void {
     // A page has an edge, and "everything" on it is the whole sheet.
     const sheet = this.board.dataset.gsSheet?.split(',').map(Number);
     if (sheet && sheet.length === 2) {

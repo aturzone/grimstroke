@@ -14,6 +14,7 @@
 import type { BoardContext } from '~/app/board/context.ts';
 import { confirmCard, toast } from '~/app/chrome.ts';
 import { typing } from '~/app/dom.ts';
+import { letterOf } from '~/app/keys.ts';
 import type { BoardItem } from '~/draw/doc/board/model.ts';
 import { type Provider, type RemoteLink, refFromUrl } from '~/draw/doc/remote/model.ts';
 import { DEFAULT_COLUMNS, type TrackerColumn } from '~/draw/look/template.ts';
@@ -62,6 +63,8 @@ async function post<T>(
 export class RemoteCards {
   private readonly ctx: BoardContext;
   private drawer: HTMLElement | undefined;
+  /** The slip on an empty page of a connected notebook, saying where the repository is. */
+  private guide: HTMLElement | undefined;
   private providers = new Map<string, Provider>();
   /** Which Kanban column each issue card was in, to see it move to another. */
   private columns = new Map<string, number>();
@@ -125,6 +128,26 @@ export class RemoteCards {
     viewport.addEventListener('pointerup', () => window.setTimeout(() => this.afterGesture(), 80));
     for (const b of document.querySelectorAll<HTMLElement>('[data-gs="repo-drawer"]')) {
       b.addEventListener('click', () => this.toggleDrawer());
+    }
+    // R for the repository, on any page of a notebook -- by position too, for a Persian layout.
+    if (this.ctx.session.spec.sheet) {
+      window.addEventListener('keydown', (event) => {
+        if (typing(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
+        if (document.querySelector('dialog[open]') || letterOf(event) !== 'r') return;
+        event.preventDefault();
+        this.toggleDrawer();
+      });
+    }
+    // Sent here to work with the repository: the drawer is open on arrival, once.
+    const params = new URLSearchParams(location.search);
+    if (params.has('drawer')) {
+      params.delete('drawer');
+      const url = new URL(location.href);
+      url.search = params.toString();
+      history.replaceState(history.state, '', url);
+      this.toggleDrawer();
+    } else {
+      this.showGuide();
     }
     this.rememberColumns();
     // Strokes already on the page are not crossings; only one drawn from now on can be.
@@ -238,7 +261,53 @@ export class RemoteCards {
 
   // ---------------------------------------------------------------- the drawer
 
+  /**
+   * An empty page in a connected notebook says what it can hold. Connecting a notebook and
+   * then finding nothing on its pages to show for it was the whole complaint.
+   */
+  private showGuide(): void {
+    const link = this.link;
+    if (!link || this.ctx.session.spec.items.length > 0) return;
+    const guide = el('aside', 'gs-repo-guide gs-card');
+    guide.dataset.gs = 'repo-guide';
+    const mark = el('span', 'gs-drawer-mark');
+    mark.innerHTML = renderStickerFace({ mark: link.provider });
+    const words = el('div');
+    const open = el('button', 'gs-btn gs-btn-primary', 'open the drawer');
+    open.type = 'button';
+    open.dataset.gs = 'repo-guide-open';
+    open.addEventListener('click', () => this.toggleDrawer());
+    const line = el('p');
+    line.append(
+      'This notebook is about ',
+      el('b', '', link.repo),
+      '. Press ',
+      el('kbd', 'gs-kbd', 'R'),
+      ' for its issues, merge requests and commits, or paste an address onto the page.',
+    );
+    words.append(line, open);
+    const close = el('button', 'gs-btn gs-btn-icon', '×');
+    close.type = 'button';
+    close.setAttribute('aria-label', 'close');
+    close.addEventListener('click', () => this.hideGuide());
+    guide.append(mark, words, close);
+    document.body.append(guide);
+    this.guide = guide;
+    // The first thing put on the page answers the question the slip asked.
+    this.ctx.viewport.addEventListener('pointerup', () => {
+      window.setTimeout(() => {
+        if (this.ctx.session.spec.items.length > 0) this.hideGuide();
+      }, 200);
+    });
+  }
+
+  private hideGuide(): void {
+    this.guide?.remove();
+    this.guide = undefined;
+  }
+
   private toggleDrawer(): void {
+    this.hideGuide();
     if (this.drawer) {
       this.drawer.remove();
       this.drawer = undefined;

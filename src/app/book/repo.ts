@@ -117,9 +117,40 @@ export class RepoSetup {
   /** This tab, so the server can tell every other tab on the notebook to reload, and not this. */
   private readonly client: string;
 
-  constructor(book: BookSpec, client = '') {
+  /** The page open on the spread, to go straight to with the drawer open. */
+  private readonly pageHref: string | undefined;
+
+  constructor(book: BookSpec, client = '', page?: string) {
     this.book = book;
     this.client = client;
+    this.pageHref = page;
+  }
+
+  /**
+   * What to do now that the notebook is connected. The drawer lives on a page, not on the
+   * spread, and nobody could be expected to guess that: so the way there is a button.
+   */
+  private nextSteps(): HTMLElement {
+    const box = el('section', 'gs-repo-now');
+    box.dataset.gs = 'repo-now';
+    box.append(el('h3', 'gs-menu-head', 'what now'));
+    if (this.pageHref) {
+      const go = el('a', 'gs-btn gs-btn-primary', 'open this page with the repository drawer');
+      go.href = `${this.pageHref}&drawer`;
+      go.dataset.gs = 'repo-go';
+      box.append(go);
+    }
+    const what = el('ul', 'gs-repo-next');
+    for (const line of [
+      'On any page, press R (or the branch button in the tray) for the drawer: search issues, merge requests and commits, and drag them onto the page as cards.',
+      'Paste an address -- an issue, a merge request, a commit, a pipeline -- straight onto a page.',
+      'Tick a card to close its issue, write on its reply line to comment, or make a new issue from the drawer. Cards on an open page stay up to date by themselves.',
+      'In the drawer, “make this page a tracker” lays out columns of issues on the page, kept in step with the service.',
+    ]) {
+      what.append(el('li', '', line));
+    }
+    box.append(what);
+    return box;
   }
 
   async open(): Promise<void> {
@@ -567,15 +598,14 @@ export class RepoSetup {
       `Connected to ${remote.repo}`,
       'This notebook is now about that repository.',
     );
-    const what = el('ul', 'gs-repo-next');
-    for (const line of [
-      'Open any page and use the repository drawer in the tray: search issues, merge requests and commits, and put them on the page as cards.',
-      'Or paste an address -- an issue, a merge request, a commit, a pipeline -- straight onto a page.',
-      'Tick a card to close its issue, write on its reply line to comment, or make a new issue from the drawer. Cards on an open page stay up to date by themselves.',
-      'The service’s mark is on the cover as a sticker; move it or peel it off like any other.',
-    ]) {
-      what.append(el('li', '', line));
-    }
+    const what = this.nextSteps();
+    what.append(
+      el(
+        'p',
+        'gs-repo-lead',
+        'The service’s mark is on the cover as a sticker; move it or peel it off like any other.',
+      ),
+    );
     const finish = button('done', 'repo-done', 'gs-btn-primary');
     finish.addEventListener('click', () => {
       this.dialog?.close();
@@ -642,7 +672,7 @@ export class RepoSetup {
     });
     const actions = el('div', 'gs-repo-actions');
     actions.append(site, change, newKey, off);
-    box.append(actions);
+    box.append(this.nextSteps(), actions);
     this.body?.replaceChildren(box);
   }
 }

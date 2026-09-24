@@ -401,13 +401,20 @@ export class BookApp {
     onClick('archive', () => this.archive());
     onClick('pages', () => this.togglePages());
     onClick('page-setup', () => this.pageSetup());
-    onClick('repo-open', () => void new RepoSetup(this.session.spec, this.session.client).open());
+    const repo = (): RepoSetup => {
+      const leaf = this.leaves[Math.min(this.leaf, this.leaves.length - 1)]?.id;
+      const page = leaf
+        ? `/page?book=${encodeURIComponent(this.session.spec.id)}&leaf=${encodeURIComponent(leaf)}`
+        : undefined;
+      return new RepoSetup(this.session.spec, this.session.client, page);
+    };
+    onClick('repo-open', () => void repo().open());
     // Sent here from a page's drawer, to connect: straight into the setup, once.
     if (new URLSearchParams(location.search).has('repo')) {
       const url = new URL(location.href);
       url.searchParams.delete('repo');
       history.replaceState(history.state, '', url);
-      void new RepoSetup(this.session.spec, this.session.client).open();
+      void repo().open();
     }
     onClick('cover-open', () => void this.cover.open());
     // Asked for from the shelf's "the cover": straight into the cover editor, once.

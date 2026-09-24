@@ -295,6 +295,8 @@ body.on-book.live { padding-block: 76px 84px; }
 .gs-repo-current .gs-repo-service-mark { width: 44px; }
 .gs-repo-current b { display: block; font-family: var(--ui-font); font-size: var(--gs-t3); }
 .gs-repo-current small { color: var(--gs-soft); }
+.gs-repo-now { display: grid; gap: 8px; margin-block: 4px 12px; }
+.gs-repo-now .gs-btn-primary { justify-self: start; height: auto; min-height: 34px; white-space: normal; text-align: start; }
 .gs-repo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .gs-repo-actions .gs-btn { border: 1.5px solid var(--gs-line); }
 .gs-repo-actions .gs-btn-danger { color: var(--gs-hot); }

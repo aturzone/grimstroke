@@ -86,8 +86,9 @@ export const TRAY = `/* ---- the tray ---- */
 .gs-paper-swatch:hover { transform: rotate(-3deg); }
 .gs-paper-swatch[aria-pressed='true'] { outline: 2.5px solid var(--gs-ink); outline-offset: 2px; }
 
-@media (max-width: 1180px) {
-  /* The tray is centred and wide, so on a tablet the desk card steps up out of its way. */
+@media (max-width: 1340px) {
+  /* The tray is centred and up to 740px wide with every ink and the repository button, and the
+     desk is 280px from the left: below about 1320px they meet, so the desk steps up. */
   .gs-desk { inset-block-end: 80px; }
 }
 /* One row on a phone, and nothing out of sight.
@@ -206,6 +207,25 @@ export const TRAY = `/* ---- the tray ---- */
 .gs-drawer-add { flex: none; font-size: 18px; }
 .gs-drawer-foot { display: flex; flex-wrap: wrap; gap: 6px; }
 .gs-drawer-foot .gs-btn { border: 1.5px solid var(--gs-line); }
+.gs-repo-guide {
+  position: fixed;
+  z-index: 44;
+  top: 78px;
+  left: 50%;
+  translate: -50% 0;
+  width: min(460px, calc(100vw - 28px));
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+}
+.gs-repo-guide p { margin: 0 0 8px; font-size: var(--gs-t2); line-height: 1.5; }
+.gs-repo-guide .gs-btn-icon { margin-inline-start: auto; font-size: 18px; }
+.gs-repo-guide .gs-btn-primary { height: auto; min-height: 32px; }
+@media (max-width: 760px) {
+  /* On a phone the desk stands at the top right; the slip goes above the tray instead. */
+  .gs-repo-guide { top: auto; bottom: 64px; }
+}
 .gs-tracker { width: min(620px, calc(100vw - 24px)); }
 .gs-tracker .gs-drawer-note { padding: 6px 16px 0; }
 .gs-tracker-rows { display: grid; gap: 6px; padding: 10px 16px; }

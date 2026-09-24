@@ -199,6 +199,7 @@ export function helpDialog(): string {
     keys('a notebook', [
       ['→ / ←', 'turn the page'],
       ['Home / End', 'first and last page'],
+      ['R', 'the repository drawer, on a page'],
     ]) +
     '</div></dialog>'
   );
