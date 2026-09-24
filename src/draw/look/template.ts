@@ -57,7 +57,7 @@ export function templateLayer(
       text(28, foot + 20, 'SUMMARY');
   } else {
     const cols = (columns?.length ? columns : DEFAULT_COLUMNS).map(
-      (c) => `${c.title.toUpperCase()}${c.limit ? `  ·  MAX ${c.limit}` : ''}`,
+      (c) => `${c.title.toUpperCase()}${c.limit ? ` \u2264${c.limit}` : ''}`,
     );
     const w = (width - 48) / cols.length;
     body = cols
