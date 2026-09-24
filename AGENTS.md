@@ -158,8 +158,10 @@ pnpm build && pnpm perf --headed   # a real window, so this machine's GPU does t
 
 A board of 200 items and 2000 strokes, panned and zoomed by script, frames counted as the
 browser paints them. Measured on 2026-09-24, Firefox 155, integrated Intel graphics:
-headless 36 fps panning at fit / 43 at 100% / 39 zooming; headed 77 / 60 / 51. Keep panning
-at fit at 60 or better on real hardware.
+headless 36 fps panning at fit / 43 at 100% / 39 zooming; headed 77 / 60 / 51 -- and after
+zooming was drawn from a held layer (view.ts), headed 85 / 99 / 67. Keep panning and zooming at
+60 or better on real hardware. `--probe` reruns the zoom with filters, shadows, grain or masks
+switched off, to see what a change costs.
 
 ## When you change how it looks
 

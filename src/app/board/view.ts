@@ -60,6 +60,10 @@ export class View {
   private readonly base: { fine: number; coarse: number };
   private period = 0;
   private readonly listeners = new Set<() => void>();
+  private zoomAnim: Animation | undefined;
+  private drawnScale = 1;
+  private settle = 0;
+  private lastTransform = '';
 
   constructor(viewport: HTMLElement, board: HTMLElement) {
     this.viewport = viewport;
@@ -216,7 +220,31 @@ export class View {
     }
     const x = Math.round(this.panX);
     const y = Math.round(this.panY);
-    this.board.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${this.scale})`;
+    const transform = `translate3d(${x}px, ${y}px, 0) scale(${this.scale})`;
+    /*
+     * Zooming is drawn from a held picture, and made sharp when it stops.
+     *
+     * A transform whose scale changes on every frame makes the browser draw the whole board
+     * again at each new scale -- two thousand strokes and every line of text, sixty times a
+     * second. While the scale is moving, the transform is driven by a running animation instead,
+     * which Firefox scales from the layer it already has; a moment after the last change the
+     * animation goes and the board is drawn once, crisp, at the scale it settled on.
+     */
+    if (this.scale !== this.drawnScale || this.zoomAnim) {
+      const frames = [{ transform }, { transform }];
+      if (!this.zoomAnim) {
+        this.zoomAnim = this.board.animate(frames, { duration: 1e9, fill: 'forwards' });
+      } else (this.zoomAnim.effect as KeyframeEffect | null)?.setKeyframes(frames);
+      this.drawnScale = this.scale;
+      window.clearTimeout(this.settle);
+      this.settle = window.setTimeout(() => {
+        this.board.style.transform = this.lastTransform;
+        this.zoomAnim?.cancel();
+        this.zoomAnim = undefined;
+      }, 180);
+    }
+    this.lastTransform = transform;
+    this.board.style.transform = transform;
     // Toggled, not rewritten, so the board is only restyled when the threshold is crossed.
     this.board.toggleAttribute('data-far', this.scale < FAR);
     this.paintRule(x, y);

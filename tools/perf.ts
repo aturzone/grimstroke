@@ -157,12 +157,30 @@ async function main(): Promise<void> {
   results.push(
     await run('pan at 100%', 'app.view.moveBy(Math.sin(i / 20) * 14, Math.cos(i / 25) * 9);'),
   );
-  results.push(
-    await run(
-      'zoom in and out',
-      'app.view.zoomTo(0.35 + 0.6 * (0.5 + 0.5 * Math.sin(i / 30)), { x: 720, y: 450 });',
-    ),
-  );
+  const zoomScript =
+    'app.view.zoomTo(0.35 + 0.6 * (0.5 + 0.5 * Math.sin(i / 30)), { x: 720, y: 450 });';
+  results.push(await run('zoom in and out', zoomScript));
+  // --probe: the same zoom with one kind of effect switched off at a time, to see what costs.
+  if (process.argv.includes('--probe')) {
+    for (const [label, css] of [
+      ['no filters', '.viewport * { filter: none !important; }'],
+      ['no shadows', '.viewport * { box-shadow: none !important; }'],
+      [
+        'no grain',
+        '.viewport *::before, .viewport *::after { background-image: none !important; }',
+      ],
+      ['no masks', '.viewport * { mask-image: none !important; clip-path: none !important; }'],
+    ] as const) {
+      await page.evaluate((text) => {
+        const style = document.createElement('style');
+        style.id = 'probe';
+        style.textContent = text;
+        document.head.append(style);
+      }, css);
+      results.push(await run(`zoom, ${label}`, zoomScript));
+      await page.evaluate(() => document.getElementById('probe')?.remove());
+    }
+  }
 
   const gpu = await page.evaluate(() => {
     const c = document.createElement('canvas').getContext('webgl');
