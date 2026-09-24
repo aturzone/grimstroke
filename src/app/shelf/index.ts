@@ -42,7 +42,7 @@ interface ShelfReply {
 export class ShelfApp {
   readonly selected = new Set<string>();
   private readonly preview: Preview;
-  private readonly cat: ShelfCat;
+  readonly cat: ShelfCat;
   private bar: HTMLElement | undefined;
 
   constructor() {
