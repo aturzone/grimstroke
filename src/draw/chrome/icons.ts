@@ -90,6 +90,10 @@ export const ICONS = {
   archive: 'M3.5 5 H20.5 V9 H3.5 Z M5 9 V19.5 H19 V9 M10 13 H14',
   sticker:
     'M12 3.5 L14.4 9 L20.3 9.4 L15.8 13.3 L17.2 19.1 L12 16 L6.8 19.1 L8.2 13.3 L3.7 9.4 L9.6 9 Z',
+  // A branch: two commits on a line, and one off to the side.
+  branch:
+    'M7 3.5 A2.2 2.2 0 1 1 7 7.9 A2.2 2.2 0 1 1 7 3.5 Z M7 16.1 A2.2 2.2 0 1 1 7 20.5 A2.2 2.2 0 1 1 7 16.1 Z ' +
+    'M17 6 A2.2 2.2 0 1 1 17 10.4 A2.2 2.2 0 1 1 17 6 Z M7 7.9 V16.1 M17 10.4 C17 13.5 7 12.5 7 16.1',
   prev: 'M15 5 L8 12 L15 19',
   next: 'M9 5 L16 12 L9 19',
 

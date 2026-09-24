@@ -14,6 +14,7 @@
 
 import type { BoardItem } from '~/draw/doc/board/model.ts';
 import type { Direction } from '~/draw/doc/model.ts';
+import type { RemoteLink } from '~/draw/doc/remote/model.ts';
 import type { PaperKind } from '~/draw/look/grid.ts';
 import type { PageTemplate } from '~/draw/look/template.ts';
 import type { Block } from '~/draw/material/model.ts';
@@ -124,6 +125,11 @@ export interface BookSpec {
   template?: PageTemplate;
   /** How big the pages are. A5 when it is not said. */
   pageSize?: PageSize;
+  /**
+   * The repository this notebook is about, if it is connected to one. Which one, never the key
+   * to it: a notebook is a document that travels, and the key stays on this machine.
+   */
+  remote?: RemoteLink;
   grain?: boolean | number;
   fonts?: { body?: string; mono?: string; hand?: string; marker?: string };
   digits?: 'latn' | 'arab' | 'arabext';

@@ -10,6 +10,7 @@
  * anywhere" includes ones that only know how to write a file and run a command.
  */
 
+import type { Issue, Merge, RemoteQuery, RemoteRef, Seen } from '~/draw/doc/remote/model.ts';
 import type { FrameKind } from '~/draw/look/frame.ts';
 import type { NoteStyle } from '~/draw/material/note/model.ts';
 import type { Profile } from '~/draw/material/profile/model.ts';
@@ -162,7 +163,23 @@ export type Block =
    * A die-cut sticker: a mark from the sheet (a stamp, a symbol, a service's logo), an emoji, or
    * a few words as a stamp. See material/sticker/marks.ts for the names.
    */
-  | { kind: 'sticker'; mark?: string; emoji?: string; words?: string; colour?: string };
+  | { kind: 'sticker'; mark?: string; emoji?: string; words?: string; colour?: string }
+  /**
+   * A card for something in a repository -- an issue, a merge request, a commit, a pipeline --
+   * or a live list of them. It keeps the reference AND a snapshot of what it last saw, so it
+   * reads correctly in an export or with no network; the server keeps the snapshot fresh.
+   */
+  | {
+      kind: 'remote';
+      ref?: RemoteRef;
+      query?: RemoteQuery;
+      seen?: Seen;
+      rows?: Array<Issue | Merge>;
+      seenAt?: string;
+      error?: string;
+      /** A commit on the same page that says it closes this issue. */
+      fixedBy?: string;
+    };
 
 /**
  * A stroke drawn on a note.

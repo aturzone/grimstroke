@@ -18,6 +18,7 @@
  */
 
 import { CoverEditor } from '~/app/book/cover.ts';
+import { RepoSetup } from '~/app/book/repo.ts';
 import { toast } from '~/app/chrome.ts';
 import { go, must, onClick, typing } from '~/app/dom.ts';
 import { letterOf } from '~/app/keys.ts';
@@ -352,6 +353,14 @@ export class BookApp {
     onClick('archive', () => this.archive());
     onClick('pages', () => this.togglePages());
     onClick('page-setup', () => this.pageSetup());
+    onClick('repo-open', () => void new RepoSetup(this.session.spec, this.session.client).open());
+    // Sent here from a page's drawer, to connect: straight into the setup, once.
+    if (new URLSearchParams(location.search).has('repo')) {
+      const url = new URL(location.href);
+      url.searchParams.delete('repo');
+      history.replaceState(history.state, '', url);
+      void new RepoSetup(this.session.spec, this.session.client).open();
+    }
     onClick('cover-open', () => void this.cover.open());
     // Asked for from the shelf's "the cover": straight into the cover editor, once.
     if (new URLSearchParams(location.search).has('cover')) {

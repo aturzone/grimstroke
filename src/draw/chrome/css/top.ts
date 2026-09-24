@@ -148,6 +148,12 @@ export const TOP = `/* ---- the top ----
 /* On a wide screen the places are tabs and the menu does not repeat them. */
 .gs-menu-places { display: none; }
 
+/* A surface with many things to do -- a notebook has six -- gives up their words before it lets
+   the cards overlap: the places used to slide over the notebook's own name. */
+@media (max-width: 1600px) {
+  .gs-acts-own:has(> .gs-btn:nth-of-type(4)) > .gs-btn:not(.gs-btn-primary) .gs-btn-text { display: none; }
+  .gs-acts-own:has(> .gs-btn:nth-of-type(4)) > .gs-btn:not(.gs-btn-primary) { padding-inline: 8px; }
+}
 @media (max-width: 1180px) {
   .gs-brand-word { display: none; }
   .gs-search-open { min-width: 0; }

@@ -106,6 +106,37 @@ turned and resized like any sticker. `cover` with `profile` still works: set, it
 
 From the command line: `grimstroke trash` and `grimstroke untrash <name|id>`.
 
+## Repositories
+
+A notebook can be connected to one repository on GitHub, GitLab (gitlab.com or a company's
+own) or Gitea/Forgejo. The notebook stores which repository; the key to it is kept on this
+machine in `tokens.json` (mode 0600), never in a notebook, a backup or the browser. The server
+talks to the service; nothing else does.
+
+| | |
+|---|---|
+| `GET /api/remote/keys` | which hosts have a key (never the keys), whether the GitHub CLI can lend one (`gh`), whether browser sign-in is set up (`device`) |
+| `POST /api/remote/keys` `{ provider, host, token }` or `{ provider: "github", gh: true }` | test a key and keep it; answers with `user`, `scopes`, `canWrite`. A refused key is not kept |
+| `DELETE /api/remote/keys?host=` | forget a host's key |
+| `GET /api/remote/repos?provider=&host=&q=` | the repositories the key can see |
+| `POST /api/remote/connect` `{ book, provider, host, repo }` | connect a notebook (the repository is checked first); puts the service's mark on the cover |
+| `POST /api/remote/disconnect` `{ book }` | cards keep what they last saw |
+| `GET /api/remote/list?board=<page>&of=issues\|merges\|commits&state=&q=&assignee=me&labels=` | the drawer's lists |
+| `POST /api/remote/place` `{ board, url }`, `{ board, kind, id }`, `{ board, ref }` or `{ board, query }` | put a card on a page: an issue, merge request, commit, pipeline, or a live list |
+| `POST /api/remote/act` `{ board, id, action, body?, add?, remove?, people? }` | `close`, `reopen`, `comment`, `label`, `assign` the issue on card `id`; the card shows the result, or the service's own error |
+| `POST /api/remote/create` `{ board, title, body?, labels? }` | a new issue, from a page of a connected notebook, placed as a card |
+| `POST /api/remote/refresh` `{ board }` | ask about every card on the page again (the server also does this every minute for open pages, with ETags) |
+| `POST /api/remote/keys/hook` `{ host }` | make a webhook secret; `POST /api/remote/hook?host=` then refreshes open pages for signed deliveries only |
+
+A card is the `remote` block: `{ "kind": "remote", "ref": { provider, host, repo, kind, id } }`
+or `{ "kind": "remote", "query": { provider, host, repo, of, state?, labels?, assignee?, search?, limit?, title? } }`,
+with the server-kept snapshot (`seen` or `rows`, `seenAt`, `error?`, `fixedBy?`). A commit card
+that says it closes #n marks the card for #n on the same page as fixed by it.
+
+Signing in with the browser needs an app registered with the service:
+`GRIMSTROKE_GITHUB_CLIENT_ID` (GitHub device flow) or `GRIMSTROKE_GITLAB_APP_<HOST>` (GitLab,
+PKCE, redirect `http://127.0.0.1:<port>/api/remote/oauth/callback`). Without one, a pasted token.
+
 ## The profile
 
 One per workspace: a name, a role, a sentence, details, a card colour and a drawn portrait.

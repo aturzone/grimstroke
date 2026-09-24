@@ -9,6 +9,8 @@
 import { button, item } from '~/draw/chrome/parts.ts';
 import { helpDialog, searchDialog, topBar } from '~/draw/chrome/top.ts';
 import { type BookSpec, bookTitle } from '~/draw/doc/book/model.ts';
+import { renderStickerFace } from '~/draw/material/sticker/render.ts';
+import { escapeHtml } from '~/draw/type/text.ts';
 
 export function bookChrome(spec: BookSpec): string {
   const leaves = Math.max(spec.leaves.length, spec.minLeaves ?? 0);
@@ -17,6 +19,12 @@ export function bookChrome(spec: BookSpec): string {
     button({ gs: 'add-leaf', label: 'add a leaf', icon: 'leaf', text: 'leaf' }) +
     button({ gs: 'cover-open', label: 'the cover', icon: 'cover', text: 'cover' }) +
     button({ gs: 'page-setup', label: 'page size and template', icon: 'leaf', text: 'page' }) +
+    button({
+      gs: 'repo-open',
+      label: spec.remote ? `connected to ${spec.remote.repo}` : 'connect a repository',
+      icon: 'branch',
+      text: spec.remote ? 'repository' : 'connect',
+    }) +
     button({
       gs: 'archive',
       label: spec.archived ? 'take it out of the archive' : 'put it in the archive',
@@ -28,6 +36,11 @@ export function bookChrome(spec: BookSpec): string {
     item({ gs: 'add-leaf', text: 'add a leaf', icon: 'leaf' }) +
     item({ gs: 'cover-open', text: 'the cover', icon: 'cover' }) +
     item({ gs: 'page-setup', text: 'page size and template', icon: 'leaf' }) +
+    item({
+      gs: 'repo-open',
+      text: spec.remote ? 'the repository' : 'connect a repository',
+      icon: 'branch',
+    }) +
     item({
       gs: 'archive',
       text: spec.archived ? 'take out of the archive' : 'archive it',
@@ -42,6 +55,13 @@ export function bookChrome(spec: BookSpec): string {
       actions,
       compact,
     }),
+    // A connected notebook says so, and which repository, on a tab by the page.
+    spec.remote
+      ? `<button type="button" class="gs-repo-tab gs-card" data-gs="repo-open" aria-label="the repository">` +
+        `<span class="gs-repo-mark">${renderStickerFace({ mark: spec.remote.provider })}</span>` +
+        `<span class="gs-repo-name">${escapeHtml(spec.remote.repo)}</span>` +
+        `<span class="gs-repo-host">${escapeHtml(spec.remote.host)}</span></button>`
+      : '',
     // The turner. Low, central, and out of the way of the page.
     '<div class="gs-turner gs-card" data-gs="turner" role="toolbar" aria-label="pages">',
     button({ gs: 'prev', label: 'previous page', icon: 'prev', key: '←' }),

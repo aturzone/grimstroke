@@ -167,4 +167,43 @@ export const TRAY = `/* ---- the tray ---- */
 /* A stamp is words, so it is given two cells' width. */
 .gs-sheet-pick:has(.dcut-stamp) { grid-column: span 2; aspect-ratio: 2.2; }
 .gs-sheet-pick .dcut-stamp .dcut-words { font-size: 22cqw; }
+/* ---- the repository drawer ---- */
+.gs-drawer {
+  position: fixed;
+  z-index: 45;
+  top: 78px;
+  right: 14px;
+  bottom: 90px;
+  width: min(360px, calc(100vw - 28px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 12px;
+}
+.gs-drawer-head { display: flex; align-items: center; gap: 10px; }
+.gs-drawer-head b { display: block; font-family: var(--mono-font); font-size: var(--gs-t2); }
+.gs-drawer-head small { color: var(--gs-soft); font-size: var(--gs-t1); }
+.gs-drawer-head .gs-btn-icon { margin-inline-start: auto; font-size: 18px; }
+.gs-drawer-mark { width: 28px; flex: none; }
+.gs-drawer-title { margin: 0; font-family: var(--hand-font); font-size: 22px; }
+.gs-drawer-tabs, .gs-drawer-filters { display: flex; flex-wrap: wrap; gap: 5px; }
+.gs-drawer-note { margin: 0; color: var(--gs-soft); font-size: var(--gs-t1); line-height: 1.5; }
+.gs-drawer-list { flex: 1; min-height: 0; margin: 0; padding: 0; overflow-y: auto; list-style: none; border-block: 1px solid var(--gs-faint); }
+.gs-drawer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 2px;
+  border-block-end: 1px dashed var(--gs-faint);
+  cursor: grab;
+}
+.gs-drawer-row:hover { background: var(--gs-wash); }
+.gs-drawer-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #15803d; }
+.gs-drawer-row.is-closed .gs-drawer-dot { background: #7c3aed; }
+.gs-drawer-row.is-merged .gs-drawer-dot { background: #6b21a8; }
+.gs-drawer-n { flex: none; font-family: var(--mono-font); font-size: var(--gs-t1); color: var(--gs-soft); }
+.gs-drawer-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--gs-t2); }
+.gs-drawer-add { flex: none; font-size: 18px; }
+.gs-drawer-foot { display: flex; flex-wrap: wrap; gap: 6px; }
+.gs-drawer-foot .gs-btn { border: 1.5px solid var(--gs-line); }
 `;

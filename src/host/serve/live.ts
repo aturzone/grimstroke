@@ -16,6 +16,7 @@ import { apply as applyBook } from '~/draw/doc/book/patch.ts';
 import { renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { upgradeLeaf } from '~/draw/doc/legacy.ts';
 import { dropInto, readLayout, type ShelfLayout, settle } from '~/draw/doc/shelf/model.ts';
+import { RemoteService } from '~/host/remote/service.ts';
 import type { Store } from '~/host/store/store.ts';
 
 interface Client {
@@ -46,8 +47,18 @@ export class Live {
   /** Every path the renderer said it needs, and nothing else. */
   private readonly served = new Map<string, string>();
 
+  /** The repositories notebooks are connected to: keys, adapters, and every call to them. */
+  readonly remote: RemoteService;
+
   constructor(store: Store) {
     this.store = store;
+    this.remote = new RemoteService(store.dir);
+    void this.remote.refreshProviders();
+  }
+
+  /** The addresses somebody is looking at right now, for keeping their cards fresh. */
+  watched(): string[] {
+    return [...this.clients.entries()].filter(([, set]) => set.size > 0).map(([id]) => id);
   }
 
   // ---------------------------------------------------------------- boards
@@ -127,6 +138,7 @@ export class Live {
         leaf: leaf.id,
         index: Math.max(0, index),
         count: leaves.length,
+        ...(book.remote ? { remote: book.remote } : {}),
       },
     };
   }

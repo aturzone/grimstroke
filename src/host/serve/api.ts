@@ -448,7 +448,7 @@ async function patchBoard(ask: Ask, live: Live, id: string, ops: Op[]): Promise<
   send(ask.res, 200, payload);
 }
 
-type BoardReply = {
+export type BoardReply = {
   version: number;
   removed: string[];
   reset: boolean;
@@ -457,7 +457,7 @@ type BoardReply = {
 };
 
 /** Apply board operations to a board or a page, write them through, and tell its watchers. */
-async function applyBoard(
+export async function applyBoard(
   live: Live,
   id: string,
   ops: Op[],

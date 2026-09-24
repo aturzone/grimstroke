@@ -32,6 +32,7 @@ import {
 } from '~/host/serve/http.ts';
 import { Live } from '~/host/serve/live.ts';
 import { pages } from '~/host/serve/pages.ts';
+import { keepFresh, oauthCallback, remoteApi } from '~/host/serve/remote.ts';
 import { Store } from '~/host/store/store.ts';
 
 export interface ServeOptions {
@@ -59,6 +60,8 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
   const token = options.token ?? randomBytes(24).toString('base64url');
   const host = options.host ?? '127.0.0.1';
   const live = new Live(store);
+  // Cards on open pages are asked about again every minute.
+  const stopFresh = keepFresh(live);
 
   const server = createServer((req, res) => {
     handle(req, res).catch((error) => {
@@ -73,6 +76,12 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
     // The token may arrive in the URL once, and is then kept in a cookie so
     // that every later request -- including the ones the browser makes for
     // fonts and images -- carries it without it being in the address bar.
+    // The one path a service sends a browser back to, without the workspace token: it proves
+    // itself with a single-use state instead (see oauthCallback).
+    if (path === '/api/remote/oauth/callback') {
+      await oauthCallback({ req, res, url, path, board: options.board ?? 'workspace' }, live);
+      return;
+    }
     const supplied =
       url.searchParams.get('t') ?? header(req, 'x-grimstroke-token') ?? cookie(req, 'gs');
     if (!accepted(supplied, token)) {
@@ -105,6 +114,7 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
 
     const ask: Ask = { req, res, url, path, board: options.board ?? 'workspace' };
     if (await pages(ask, live)) return;
+    if (await remoteApi(ask, live)) return;
     if (await api(ask, live)) return;
     send(res, 404, { error: 'no such thing here' });
   }
@@ -117,6 +127,7 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
     store,
     close: () =>
       new Promise<void>((done) => {
+        stopFresh();
         live.close();
         server.close(() => done());
       }),

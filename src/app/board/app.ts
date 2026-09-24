@@ -24,6 +24,7 @@ import { Files } from '~/app/board/files.ts';
 import { Gestures } from '~/app/board/gestures.ts';
 import { Handles } from '~/app/board/handles.ts';
 import { Notes } from '~/app/board/notes.ts';
+import { RemoteCards } from '~/app/board/remote.ts';
 import { Selection } from '~/app/board/select.ts';
 import { DRAWING, type Tool } from '~/app/board/tools.ts';
 import { type Point, View } from '~/app/board/view.ts';
@@ -110,6 +111,7 @@ export class BoardApp implements BoardContext {
       { capture: true },
     );
     this.bindKeys();
+    new RemoteCards(this).bind();
     this.files = new Files(this, (message) => toast(message, 'error'));
     this.files.bind();
     this.bindBar();

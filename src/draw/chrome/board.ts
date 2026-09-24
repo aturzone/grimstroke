@@ -261,6 +261,11 @@ export function chrome(spec: BoardSpec): string {
     `<div class="gs-tray-tools">${tools}</div>`,
     `<div class="gs-tray-inks" data-gs="inks" role="group" aria-label="ink">${inks}</div>`,
     stickerSheet(),
+    // A page's repository: its drawer of issues, merge requests and commits.
+    spec.sheet
+      ? `<button type="button" class="gs-btn gs-btn-icon" data-gs="repo-drawer" aria-pressed="false" ` +
+        `aria-label="the repository">${icon('branch')}<span class="gs-tip" role="presentation">repository</span></button>`
+      : '',
     '</div>',
 
     // The camera and the undo stack: the two things you reach for without looking.

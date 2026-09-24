@@ -17,6 +17,7 @@
  */
 
 import type { Direction } from '~/draw/doc/model.ts';
+import type { RemoteLink } from '~/draw/doc/remote/model.ts';
 import type { PaperKind } from '~/draw/look/grid.ts';
 import type { PageTemplate } from '~/draw/look/template.ts';
 import type { Block } from '~/draw/material/model.ts';
@@ -102,7 +103,15 @@ export interface BoardSpec {
    * the page; this says which one, so the page is drawn as a sheet with an edge and the
    * chrome can turn to the next one.
    */
-  sheet?: { book: string; bookTitle: string; leaf: string; index: number; count: number };
+  sheet?: {
+    book: string;
+    bookTitle: string;
+    leaf: string;
+    index: number;
+    count: number;
+    /** The repository the notebook is connected to, if it is. */
+    remote?: RemoteLink;
+  };
 }
 
 /**

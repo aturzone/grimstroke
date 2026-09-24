@@ -68,7 +68,18 @@ export type BookOp =
   | {
       op: 'book';
       patch: Partial<
-        Pick<BookSpec, 'title' | 'palette' | 'paper' | 'grain' | 'minLeaves' | 'tags'>
+        Pick<
+          BookSpec,
+          | 'title'
+          | 'palette'
+          | 'paper'
+          | 'grain'
+          | 'minLeaves'
+          | 'tags'
+          | 'pageSize'
+          | 'template'
+          | 'remote'
+        >
       >;
     }
   /** Put away, or take back out. Never a delete. */
@@ -76,7 +87,18 @@ export type BookOp =
 
 /** The parts of a notebook that are settings rather than contents. */
 export type BookSettings = Partial<
-  Pick<BookSpec, 'title' | 'palette' | 'paper' | 'grain' | 'minLeaves' | 'tags'>
+  Pick<
+    BookSpec,
+    | 'title'
+    | 'palette'
+    | 'paper'
+    | 'grain'
+    | 'minLeaves'
+    | 'tags'
+    | 'pageSize'
+    | 'template'
+    | 'remote'
+  >
 >;
 
 export class BookPatchError extends Error {}
@@ -232,7 +254,10 @@ export function apply(spec: BookSpec, ops: readonly BookOp[]): BookPatchResult {
         break;
       }
       case 'book': {
-        book = { ...book, ...op.patch };
+        // A field set to null is removed, as on a board: that is how a default is cleared.
+        const next: Record<string, unknown> = { ...book, ...op.patch };
+        for (const key of Object.keys(op.patch)) if (next[key] == null) delete next[key];
+        book = next as unknown as BookSpec;
         reset = true;
         break;
       }

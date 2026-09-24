@@ -1,12 +1,12 @@
 # A notebook connected to a repository -- the plan
 
-Status: **design, not built.** Written after the workspace, pages-as-boards and the profile
-landed, so it builds on them.
+Status: **built** (Round 3, issues #31-#34). This is the design it was built from; docs/api.md
+has the API as it is. Browser sign-in needs an app registered with the service (see there).
 
 ## What it is
 
 Any notebook can be connected to **one** repository -- on GitHub, on GitLab (gitlab.com or a
-company's own, like `gitlab.example.com`, which is a self-hosted GitLab), or on Gitea/Forgejo.
+company's own, self-hosted GitLab), or on Gitea/Forgejo.
 Each notebook has its own connection; grimstroke as a whole is not tied to any. A connected
 notebook becomes a notebook *about* that repository:
 

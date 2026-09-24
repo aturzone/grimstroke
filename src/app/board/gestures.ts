@@ -112,7 +112,12 @@ export class Gestures {
      * way to put the pen down was a reload. A note being drawn on owns every press on it too.
      */
     const target = event.target as HTMLElement | null;
-    if (target?.closest('.note .act, .note .grip, .note[data-drawing], .gs-note-done')) return;
+    if (
+      target?.closest(
+        '.note .act, .note .grip, .note[data-drawing], .gs-note-done, .rc-tick, .rc-reply, .rc-open',
+      )
+    )
+      return;
     if (event.button === 1 || (event.button === 0 && tool === 'pan') || event.altKey) {
       this.mode = 'pan';
     } else if (event.button !== 0) {
