@@ -9,8 +9,22 @@
 /** The simple materials: headings, lists, tables, code, labels, quotes. */
 export const BLOCKS = `/* ---- blocks ---- */
 .block + .block { margin-block-start: 14px; }
-h2.block { font-size: calc(var(--title-size) * 0.78); font-weight: 700; }
-h3.block { font-size: calc(var(--title-size) * 0.62); font-weight: 700; }
+/* A document reads by its headings, so they are set apart: bigger than the text by a clear step,
+   more room above than below, and a short bar in the accent under the first rank. They were
+   barely larger than the text once, and a page an agent wrote read as one long run. */
+h2.block { font-size: calc(var(--title-size) * 1.1); font-weight: 700; line-height: 1.2; }
+h2.block:not(.written)::after {
+  content: '';
+  display: block;
+  width: 44px;
+  height: 3px;
+  margin-block-start: 8px;
+  background: var(--accent);
+}
+h3.block { font-size: calc(var(--title-size) * 0.8); font-weight: 700; line-height: 1.25; }
+.block + h2.block, .block + h3.block,
+.stack > * + h2.block, .stack > * + h3.block { margin-block-start: 26px; }
+h2.block + .block, h3.block + .block { margin-block-start: 10px; }
 
 ul.block { padding-inline-start: 20px; }
 ul.block li { margin-block-end: 4px; }

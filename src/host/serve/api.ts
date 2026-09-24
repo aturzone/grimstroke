@@ -12,6 +12,7 @@ import { extname, join } from 'node:path';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import { apply, type Op, PatchError, topZ } from '~/draw/doc/board/patch.ts';
 import { extentOf, renderBoard, renderOneItem } from '~/draw/doc/board/render.ts';
+import { boundLeaves } from '~/draw/doc/book/model.ts';
 import { apply as applyBook, type BookOp, BookPatchError } from '~/draw/doc/book/patch.ts';
 import { renderCover, renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { search } from '~/draw/doc/search.ts';
@@ -19,12 +20,14 @@ import { settle } from '~/draw/doc/shelf/model.ts';
 import { renderCases } from '~/draw/doc/shelf/render.ts';
 import { surface } from '~/draw/doc/surface.ts';
 import { hashString } from '~/draw/look/rng.ts';
+import type { Block } from '~/draw/material/model.ts';
 import { type Profile, readProfile } from '~/draw/material/profile/model.ts';
 import { renderProfile } from '~/draw/material/profile/render.ts';
 import { exportPages } from '~/host/export.ts';
 import { type Ask, header, readBody, readRaw, send } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
 import { ArchiveError, pack, readArchive, unpack } from '~/host/store/archive.ts';
+import { column, firstEmptyPage, layoutOf, planFlow, tidyMoves } from '~/host/write.ts';
 
 export async function api(ask: Ask, live: Live): Promise<boolean> {
   const { req, res, url, path } = ask;
@@ -381,6 +384,83 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
         error: error instanceof Error ? error.message : String(error),
       });
     }
+    return true;
+  }
+
+  /*
+   * Writing, for an agent: pour blocks into a notebook page after page (split where each page is
+   * full, measured), see where everything on a page really is, and tidy a set of items. See
+   * host/write.ts and docs/writing.md.
+   */
+  if (path === '/api/write' && req.method === 'POST') {
+    const body = (await readBody(req)) as { book?: string; blocks?: Block[]; from?: number };
+    const book = await live.book(body.book ?? 'notebook');
+    const blocks = Array.isArray(body.blocks) ? body.blocks : [];
+    if (!blocks.length) {
+      send(res, 400, {
+        error: 'blocks are needed: headings, text, bullets, tables, pictures, notes...',
+      });
+      return true;
+    }
+    const plan = await planFlow(book, blocks);
+    const from = Math.max(1, Math.floor(body.from ?? firstEmptyPage(book)));
+    const col = column(book);
+    const stamp = Date.now().toString(36);
+    const leaves = boundLeaves(book);
+    const ops: BookOp[] = plan.pages.map((chunk, k) => ({
+      op: 'leaf.items',
+      id: leaves[from - 1 + k]?.id ?? `blank-${from + k}`,
+      ops: [
+        {
+          op: 'add',
+          item: {
+            id: `flow-${stamp}-${k + 1}`,
+            at: col.at,
+            size: [col.width],
+            block: { kind: 'stack', blocks: chunk },
+          },
+        },
+      ],
+    }));
+    const result = applyBook(book, ops);
+    await live.commitBook(result.spec);
+    live.broadcast(`book:${book.id}`, 'reload', {});
+    const pages = plan.pages.map((_, k) => from + k);
+    send(res, 200, {
+      pages,
+      measured: plan.measured,
+      warnings: plan.warnings,
+      look: pages.map((n) => `/page?book=${encodeURIComponent(book.id)}&leaf=${n}`),
+    });
+    return true;
+  }
+
+  if (path === '/api/layout') {
+    const spec = await live.board(url.searchParams.get('board') ?? ask.board);
+    send(res, 200, await layoutOf(spec));
+    return true;
+  }
+
+  if (path === '/api/tidy' && req.method === 'POST') {
+    const body = (await readBody(req)) as {
+      board?: string;
+      ids?: string[];
+      as?: 'column' | 'row' | 'grid';
+      gap?: number;
+      at?: [number, number];
+      columns?: number;
+    };
+    const address = body.board ?? ask.board;
+    const spec = await live.board(address);
+    const report = await layoutOf(spec);
+    const moves = tidyMoves(spec.items, report.items, body.ids ?? [], {
+      as: body.as ?? 'column',
+      ...(body.gap !== undefined ? { gap: body.gap } : {}),
+      ...(body.at ? { at: body.at } : {}),
+      ...(body.columns ? { columns: body.columns } : {}),
+    });
+    const reply = moves.length ? await applyBoard(live, address, moves) : undefined;
+    send(res, 200, { moved: moves.length, measured: report.measured, reply });
     return true;
   }
 

@@ -99,7 +99,7 @@ the profile, and folds Persian spelling variants so a search finds what you mean
 
 Every one of those is a patch operation, so an agent can do all of it over
 `POST /api/patch`, and all of it round-trips through the `.grimstroke` backup
-the workspace can download and restore. `docs/api.md` lists every endpoint and
+the workspace can download and restore. `docs/writing.md` is how an agent writes a page that reads well (measured flow, layout checks, a worked example); `docs/api.md` lists every endpoint and
 operation.
 
 ## What it is for

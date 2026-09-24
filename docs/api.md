@@ -12,6 +12,17 @@ T=...   # the token from `grimstroke serve`
 curl -s "http://127.0.0.1:$PORT/api/state?board=workspace" -H "x-grimstroke-token: $T"
 ```
 
+To write a document that reads well -- the page grid, the type, measured flow across pages, and
+a worked example -- see [writing.md](writing.md).
+
+## Writing, measured
+
+| | |
+|---|---|
+| `POST /api/write` `{ book, blocks, from? }` | pour blocks into a notebook, page after page, split where each page is full (measured in a headless browser), never a heading alone at a page's foot; answers with the pages written |
+| `GET /api/layout?board=<address>` | every item's measured box, what overlaps, what runs over a page's edge, and the clear room left on a page |
+| `POST /api/tidy` `{ board, ids, as: "column" \| "row" \| "grid", gap?, at?, columns? }` | line items up with even gaps, by their measured sizes |
+
 ## Addresses
 
 | What | Address |

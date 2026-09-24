@@ -224,3 +224,55 @@ export async function exportPage(
   if (!result) throw new Error('nothing was exported');
   return result;
 }
+
+/**
+ * Open a rendered page in a headless browser and run one function in it, for measuring.
+ *
+ * The one thing nothing outside a browser can know is how tall text turns out: a paragraph's
+ * height is whatever its words and the face made of it. Laying a document out by estimate is how
+ * pages end up with their last lines under the next thing. This answers the question exactly,
+ * with the same assets allowlist an export uses, and nothing else reachable.
+ */
+export async function measure<T>(
+  page: RenderedPage,
+  script: string,
+  options: { playwrightModule?: string; engine?: 'firefox' | 'chromium' | 'webkit' } = {},
+): Promise<T> {
+  const playwright = await loadPlaywright(options.playwrightModule);
+  const engine = playwright[options.engine ?? 'firefox'];
+  if (!engine) throw new Error(`unknown engine ${options.engine}`);
+  const browser = await engine.launch({ headless: true });
+  try {
+    const context = await browser.newContext({ deviceScaleFactor: 1 });
+    const allow = new Map<string, string>();
+    for (const [served, source] of Object.entries(page.assets))
+      allow.set(served, resolvePath(source));
+    await context.route('**/*', async (route) => {
+      const url = new URL(route.request().url());
+      if (url.origin !== ORIGIN) return route.abort();
+      const key = url.pathname.replace(/^\//, '');
+      if (key === '' || key === 'index.html') {
+        return route.fulfill({
+          status: 200,
+          contentType: 'text/html; charset=utf-8',
+          body: page.html,
+        });
+      }
+      const source = allow.get(key);
+      if (!source) return route.abort();
+      return route.fulfill({
+        status: 200,
+        contentType: TYPES[extname(source).toLowerCase()] ?? 'application/octet-stream',
+        body: await readFile(source),
+      });
+    });
+    const tab = await context.newPage();
+    await tab.goto(`${ORIGIN}/`, { waitUntil: 'load' });
+    await tab.evaluate(() => document.fonts.ready);
+    const result = (await tab.evaluate((body: string) => new Function(body)(), script)) as T;
+    await context.close();
+    return result;
+  } finally {
+    await browser.close();
+  }
+}
