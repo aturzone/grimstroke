@@ -27,6 +27,12 @@ export interface PortraitStroke {
   tool?: PortraitTool;
   /** A filled shape rather than a line -- the highlighter's band, a marker's blot. */
   fill?: boolean;
+  /**
+   * On the sketch layer: the light lines a drawing is built up over. Kept with the portrait so
+   * the next session can go on from them, and shown only on the easel -- never on the card, a
+   * cover, or anything exported.
+   */
+  sketch?: boolean;
 }
 
 export interface Portrait {

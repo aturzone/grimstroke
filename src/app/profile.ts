@@ -10,6 +10,7 @@
  * you drew.
  */
 
+import { mapPath } from '~/app/board/handles.ts';
 import { pathOf } from '~/app/board/ink.ts';
 import { confirmCard, toast } from '~/app/chrome.ts';
 import { go, must, onClick, typing } from '~/app/dom.ts';
@@ -52,6 +53,13 @@ class ProfileEditor {
   private readonly past: PortraitStroke[][] = [];
   private future: PortraitStroke[][] = [];
   private drawing: { points: Point[]; path: SVGPathElement } | undefined;
+  /** New strokes go on the sketch layer. */
+  private sketching = false;
+  /** Every stroke is drawn on both sides of the centre line too. */
+  private mirror = false;
+  /** A photo laid under the paper to trace. Held in memory only; it is never saved. */
+  private photo: string | undefined;
+  private readonly sketchLayer: SVGGElement | null;
   private erasing = false;
   private timer = 0;
   private pending = false;
@@ -61,6 +69,7 @@ class ProfileEditor {
     this.canvas = must<HTMLElement>('[data-gs="canvas"]');
     this.svg = must<SVGSVGElement>('[data-gs="canvas"] svg');
     this.layer = must<SVGGElement>('[data-gs="portrait-ink"]');
+    this.sketchLayer = document.querySelector<SVGGElement>('[data-gs="portrait-sketch"]');
   }
 
   get strokes(): PortraitStroke[] {
@@ -111,6 +120,8 @@ class ProfileEditor {
 
     this.bindWords();
     this.bindPlaces();
+    this.bindHelpers();
+    this.redraw();
 
     document.addEventListener('keydown', (event) => {
       if (typing(event.target)) return;
@@ -122,6 +133,14 @@ class ProfileEditor {
         return;
       }
       if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (letter === 's') {
+        this.setSketching(!this.sketching);
+        return;
+      }
+      if (letter === 'y') {
+        this.setMirror(!this.mirror);
+        return;
+      }
       const pen = letter ? KEYS[letter] : undefined;
       if (pen) this.choose(pen);
     });
@@ -174,7 +193,7 @@ class ProfileEditor {
       'style',
       `--stroke:${this.ink};--stroke-weight:${(WEIGHT[tool] * this.size).toFixed(1)}px`,
     );
-    this.layer.append(path);
+    (this.sketching ? (this.sketchLayer ?? this.layer) : this.layer).append(path);
     this.svg.querySelector('.pt-empty')?.remove();
     this.drawing = { points: [this.local(event)], path };
   };
@@ -200,16 +219,19 @@ class ProfileEditor {
       return;
     }
     const tool = this.pen as PortraitTool;
-    this.commit([
-      ...this.strokes,
-      {
-        d,
-        colour: this.ink,
-        weight: Number((WEIGHT[tool] * this.size).toFixed(1)),
-        tool,
-        ...(tool === 'highlighter' ? { fill: true } : {}),
-      },
-    ]);
+    const made: PortraitStroke = {
+      d,
+      colour: this.ink,
+      weight: Number((WEIGHT[tool] * this.size).toFixed(1)),
+      tool,
+      ...(tool === 'highlighter' ? { fill: true } : {}),
+      ...(this.sketching ? { sketch: true } : {}),
+    };
+    // Mirrored about the centre of the frame: the other half of a face, drawn with this one.
+    const twin: PortraitStroke[] = this.mirror
+      ? [{ ...made, d: mapPath(d, (x, y) => [PORTRAIT_WIDTH - x, y]) }]
+      : [];
+    this.commit([...this.strokes, made, ...twin]);
   };
 
   private shape(points: readonly Point[]): string {
@@ -222,12 +244,13 @@ class ProfileEditor {
     return pathOf(pts, band);
   }
 
-  /** Rub out the stroke under the pointer, whichever it is in the stack. */
+  /** Rub out the stroke under the pointer, whichever it is in the stack -- sketch or drawing. */
   private eraseAt(event: PointerEvent): void {
-    const paths = [...this.layer.querySelectorAll('path')];
     for (const under of document.elementsFromPoint(event.clientX, event.clientY)) {
-      const index = paths.indexOf(under as SVGPathElement);
-      if (index < 0) continue;
+      const index = Number((under as SVGElement).dataset?.i);
+      if (!(under instanceof SVGPathElement) || Number.isNaN(index)) continue;
+      // A hidden sketch cannot be rubbed out by accident.
+      if (under.closest('.pt-sketch') && this.canvas.hasAttribute('data-hide-sketch')) continue;
       under.remove();
       this.commit(this.strokes.filter((_, i) => i !== index));
       return;
@@ -263,22 +286,96 @@ class ProfileEditor {
     this.changed();
   }
 
-  /** The drawing, from the strokes. Only after undo, redo and erasing, never while drawing. */
+  /**
+   * The drawing, from the strokes. Only after a stroke is made, undo, redo and erasing -- never
+   * while drawing. Each path knows which stroke it is, so the eraser takes the right one.
+   */
   private redraw(): void {
-    this.layer.replaceChildren(
-      ...this.strokes.map((stroke) => {
-        const path = document.createElementNS(NS, 'path');
-        const tool = stroke.tool ?? 'pen';
-        path.setAttribute('class', `pt-stroke tool-${tool} ${stroke.fill ? 'fill' : 'line'}`);
-        path.setAttribute(
-          'style',
-          `--stroke:${stroke.colour ?? '#14110e'};--stroke-weight:${stroke.weight ?? 3}px`,
-        );
-        path.setAttribute('d', stroke.d);
-        return path;
-      }),
-    );
+    const ink: SVGPathElement[] = [];
+    const sketch: SVGPathElement[] = [];
+    this.strokes.forEach((stroke, i) => {
+      const path = document.createElementNS(NS, 'path');
+      const tool = stroke.tool ?? 'pen';
+      path.setAttribute('class', `pt-stroke tool-${tool} ${stroke.fill ? 'fill' : 'line'}`);
+      path.setAttribute(
+        'style',
+        `--stroke:${stroke.colour ?? '#14110e'};--stroke-weight:${stroke.weight ?? 3}px`,
+      );
+      path.setAttribute('d', stroke.d);
+      path.dataset.i = String(i);
+      (stroke.sketch && this.sketchLayer ? sketch : ink).push(path);
+    });
+    this.layer.replaceChildren(...ink);
+    this.sketchLayer?.replaceChildren(...sketch);
     this.buttons();
+  }
+
+  // ---------------------------------------------------------------- helpers
+
+  private setSketching(on: boolean): void {
+    this.sketching = on;
+    this.canvas.toggleAttribute('data-sketching', on);
+    document.querySelector('[data-gs="sketch-mode"]')?.setAttribute('aria-pressed', String(on));
+    if (on) this.showSketch(true);
+  }
+
+  private showSketch(on: boolean): void {
+    this.canvas.toggleAttribute('data-hide-sketch', !on);
+    document.querySelector('[data-gs="sketch-show"]')?.setAttribute('aria-pressed', String(on));
+  }
+
+  private setMirror(on: boolean): void {
+    this.mirror = on;
+    this.canvas.toggleAttribute('data-mirror', on);
+    document.querySelector('[data-gs="mirror"]')?.setAttribute('aria-pressed', String(on));
+  }
+
+  private bindHelpers(): void {
+    onClick('sketch-mode', () => this.setSketching(!this.sketching));
+    onClick('sketch-show', () => this.showSketch(this.canvas.hasAttribute('data-hide-sketch')));
+    onClick('sketch-clear', () => {
+      if (this.strokes.some((s) => s.sketch)) this.commit(this.strokes.filter((s) => !s.sketch));
+    });
+    onClick('mirror', () => this.setMirror(!this.mirror));
+    const file = document.querySelector<HTMLInputElement>('[data-gs="trace-file"]');
+    const controls = document.querySelector<HTMLElement>('[data-gs="trace-controls"]');
+    const remove = document.querySelector<HTMLElement>('[data-gs="trace-remove"]');
+    const fade = document.querySelector<HTMLInputElement>('[data-gs="trace-opacity"]');
+    onClick('trace', () => file?.click());
+    file?.addEventListener('change', () => {
+      const picked = file.files?.[0];
+      file.value = '';
+      if (!picked) return;
+      this.dropPhoto();
+      this.photo = URL.createObjectURL(picked);
+      const image = document.createElementNS(NS, 'image');
+      image.setAttribute('class', 'pt-trace');
+      image.setAttribute('href', this.photo);
+      image.setAttribute('width', String(PORTRAIT_WIDTH));
+      image.setAttribute('height', String(PORTRAIT_HEIGHT));
+      image.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+      image.style.opacity = String(Number(fade?.value ?? 35) / 100);
+      // Over the paper, under every line.
+      this.svg.querySelector('.pt-paper')?.after(image);
+      if (controls) controls.hidden = false;
+      if (remove) remove.hidden = false;
+      toast('The photo is only on this screen, for tracing. It is not saved or sent anywhere.');
+    });
+    fade?.addEventListener('input', () => {
+      const image = this.svg.querySelector<SVGImageElement>('.pt-trace');
+      if (image) image.style.opacity = String(Number(fade.value) / 100);
+    });
+    remove?.addEventListener('click', () => {
+      this.dropPhoto();
+      if (controls) controls.hidden = true;
+      remove.hidden = true;
+    });
+  }
+
+  private dropPhoto(): void {
+    this.svg.querySelector('.pt-trace')?.remove();
+    if (this.photo) URL.revokeObjectURL(this.photo);
+    this.photo = undefined;
   }
 
   private buttons(): void {

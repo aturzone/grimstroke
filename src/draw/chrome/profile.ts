@@ -121,6 +121,22 @@ export function renderProfilePage(
     `<div class="pf-pens">${pens}</div>`,
     `<div class="pf-sizes gs-chip-row" role="group" aria-label="size">${sizes}</div>`,
     `<div class="pf-inks" role="group" aria-label="ink">${inks}</div>`,
+    // Helpers: none of them is part of the portrait. The sketch stays on the easel, the guide
+    // is a line only the easel shows, and a photo to trace is never sent anywhere.
+    '<div class="pf-helpers gs-chip-row" role="group" aria-label="helpers">',
+    '<button type="button" class="gs-btn gs-chip-btn" data-gs="sketch-mode" aria-pressed="false" ' +
+      'title="draw light guide lines, shown only here (S)">sketch</button>',
+    '<button type="button" class="gs-btn gs-chip-btn" data-gs="sketch-show" aria-pressed="true" ' +
+      'title="show or hide the sketch">show sketch</button>',
+    '<button type="button" class="gs-btn gs-chip-btn" data-gs="sketch-clear" title="rub out the whole sketch">clear sketch</button>',
+    '<button type="button" class="gs-btn gs-chip-btn" data-gs="mirror" aria-pressed="false" ' +
+      'title="a centre line, and every stroke drawn on both sides (Y)">mirror</button>',
+    '<button type="button" class="gs-btn gs-chip-btn" data-gs="trace" title="lay a photo under the paper to trace -- it is never saved">trace a photo</button>',
+    '<label class="pf-trace-fade" data-gs="trace-controls" hidden><span>photo</span>' +
+      '<input type="range" min="10" max="80" value="35" data-gs="trace-opacity" aria-label="how strongly the photo shows"></label>',
+    '<button type="button" class="gs-btn gs-chip-btn" data-gs="trace-remove" hidden>take the photo away</button>',
+    '<input type="file" accept="image/*" hidden data-gs="trace-file">',
+    '</div>',
     '<div class="pf-paper-row">',
     `<span class="pf-label">photo paper</span><div class="pf-papers" role="group" aria-label="photo paper">${papers}</div>`,
     button({

@@ -62,6 +62,26 @@ body.on-profile {
   user-select: none;
 }
 .pf-canvas[data-tool='eraser'] { cursor: cell; }
+/* The sketch: pale blue, under the drawing, the colour of a non-photo pencil. */
+.pf-canvas .pt-sketch .pt-stroke.line { stroke: #6f9be8; opacity: 0.6; }
+.pf-canvas .pt-sketch .pt-stroke.fill { fill: #6f9be8; opacity: 0.35; }
+.pf-canvas[data-hide-sketch] .pt-sketch { display: none; }
+.pf-canvas[data-sketching] .portrait { outline: 2px dashed #6f9be8; outline-offset: 4px; }
+/* The mirror's centre line: only on the easel, never in the portrait. */
+.pf-canvas { position: relative; }
+.pf-canvas[data-mirror]::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  border-inline-start: 1.5px dashed color-mix(in oklab, var(--gs-hot) 70%, transparent);
+  pointer-events: none;
+}
+.pf-canvas .pt-trace { pointer-events: none; }
+.pf-helpers { padding: 4px 0; }
+.pf-trace-fade { display: inline-flex; align-items: center; gap: 6px; font-size: var(--gs-t1); color: var(--gs-soft); }
+.pf-trace-fade[hidden] { display: none; }
+.pf-trace-fade input { width: 90px; accent-color: var(--gs-ink); }
 .pf-canvas .portrait { background: #fff; }
 
 .pf-tools {

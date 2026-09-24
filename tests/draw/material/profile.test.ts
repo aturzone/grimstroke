@@ -63,3 +63,18 @@ describe('reading a profile', () => {
     });
   });
 });
+
+describe('the sketch layer', () => {
+  it('is drawn on the easel and nowhere else', async () => {
+    const { renderPortrait } = await import('~/draw/material/profile/render.ts');
+    const portrait = {
+      strokes: [{ d: 'M0,0 L10,10', sketch: true }, { d: 'M5,5 L20,20' }],
+    };
+    const card = renderPortrait(portrait);
+    expect(card).not.toContain('M0,0 L10,10');
+    expect(card).toContain('M5,5 L20,20');
+    const easel = renderPortrait(portrait, '', true);
+    expect(easel).toContain('pt-sketch');
+    expect(easel).toContain('M0,0 L10,10');
+  });
+});

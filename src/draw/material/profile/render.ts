@@ -18,6 +18,7 @@ import {
   PORTRAIT_HEIGHT,
   PORTRAIT_WIDTH,
   type Portrait,
+  type PortraitStroke,
   type Profile,
 } from '~/draw/material/profile/model.ts';
 import { escapeHtml } from '~/draw/type/text.ts';
@@ -46,21 +47,31 @@ export function renderPortrait(
   easel = false,
 ): string {
   const paper = portrait?.paper ?? DEFAULT_PAPER;
-  const strokes = (portrait?.strokes ?? [])
-    .map((stroke) => {
-      const tool = stroke.tool ?? 'pen';
-      const vars = [
-        stroke.colour ? `--stroke:${escapeHtml(stroke.colour)}` : '',
-        stroke.weight ? `--stroke-weight:${stroke.weight}px` : '',
-      ]
-        .filter(Boolean)
-        .join(';');
-      return (
-        `<path class="pt-stroke tool-${tool} ${stroke.fill ? 'fill' : 'line'}" ` +
-        `d="${escapeHtml(stroke.d)}"${vars ? ` style="${vars}"` : ''}/>`
-      );
-    })
+  const path = (stroke: PortraitStroke): string => {
+    const tool = stroke.tool ?? 'pen';
+    const vars = [
+      stroke.colour ? `--stroke:${escapeHtml(stroke.colour)}` : '',
+      stroke.weight ? `--stroke-weight:${stroke.weight}px` : '',
+    ]
+      .filter(Boolean)
+      .join(';');
+    return (
+      `<path class="pt-stroke tool-${tool} ${stroke.fill ? 'fill' : 'line'}" ` +
+      `d="${escapeHtml(stroke.d)}"${vars ? ` style="${vars}"` : ''}/>`
+    );
+  };
+  const all = portrait?.strokes ?? [];
+  const strokes = all
+    .filter((s) => !s.sketch)
+    .map(path)
     .join('');
+  // The sketch is the easel's alone: under the drawing, pale, and never anywhere else.
+  const sketch = easel
+    ? all
+        .filter((s) => s.sketch)
+        .map(path)
+        .join('')
+    : '';
   const hint =
     strokes || !empty
       ? ''
@@ -69,6 +80,7 @@ export function renderPortrait(
     `<svg class="portrait" viewBox="0 0 ${PORTRAIT_WIDTH} ${PORTRAIT_HEIGHT}" ` +
     `${easel ? 'data-gs="portrait" ' : ''}role="img" aria-label="portrait">` +
     `<rect class="pt-paper" width="${PORTRAIT_WIDTH}" height="${PORTRAIT_HEIGHT}" style="fill:${escapeHtml(paper)}"/>` +
+    (easel ? `<g class="pt-sketch" data-gs="portrait-sketch">${sketch}</g>` : '') +
     `<g${easel ? ' data-gs="portrait-ink"' : ''}>${strokes}</g>${hint}</svg>`
   );
 }
