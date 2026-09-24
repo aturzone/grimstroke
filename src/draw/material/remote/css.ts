@@ -174,4 +174,6 @@ export const REMOTE = `/* ---- repository cards ---- */
    are drawn as what they are on paper. */
 :where(body:not(.live)) :is(.rc-send, .rc-open) { display: none; }
 @media print { .rc-send, .rc-open { display: none; } }
+.rc-count { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
+.rc-count:hover { color: var(--ink); text-decoration-style: solid; }
 `;

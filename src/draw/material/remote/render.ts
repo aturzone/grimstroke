@@ -118,7 +118,7 @@ function issueCard(ref: RemoteRef, issue: Issue, block: RemoteBlock): string {
     footer(
       block,
       `<span class="rc-people">${people(issue.assignees)}</span>` +
-        `<span class="rc-count" title="comments">${issue.comments} ${issue.comments === 1 ? 'reply' : 'replies'}</span>`,
+        `<button type="button" class="rc-count" data-gs="remote-thread" title="the whole conversation">${issue.comments} ${issue.comments === 1 ? 'reply' : 'replies'}</button>`,
     ) +
     '<form class="rc-reply" data-gs="remote-reply">' +
     '<input class="rc-reply-line" name="body" dir="auto" autocomplete="off" placeholder="write a reply…" aria-label="a reply">' +

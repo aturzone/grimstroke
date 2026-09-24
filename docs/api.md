@@ -159,6 +159,7 @@ talks to the service; nothing else does.
 | `GET /api/remote/list?board=<page>&of=issues\|merges\|commits&state=&q=&assignee=me&labels=` | the drawer's lists |
 | `POST /api/remote/place` `{ board, url }`, `{ board, kind, id }`, `{ board, ref }` or `{ board, query }` | put a card on a page: an issue, merge request, commit, pipeline, or a live list |
 | `POST /api/remote/act` `{ board, id, action, body?, add?, remove?, people? }` | `close`, `reopen`, `comment`, `label`, `assign` the issue on card `id`; the card shows the result, or the service's own error |
+| `GET /api/remote/thread?board=&id=` | the issue on card `id` in full: `{ ref, issue, comments }`, its description and every comment, oldest first. In the browser, a card's "replies" opens it beside the page, with a reply box (Ctrl+Enter sends) |
 | `POST /api/remote/create` `{ board, title, body?, labels? }` | a new issue, from a page of a connected notebook, placed as a card |
 | `POST /api/remote/refresh` `{ board }` | ask about every card on the page again (the server also does this every minute for open pages, with ETags) |
 | `POST /api/remote/keys/hook` `{ host }` | make a webhook secret; `POST /api/remote/hook?host=` then refreshes open pages for signed deliveries only |

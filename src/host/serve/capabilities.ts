@@ -79,6 +79,7 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
     'POST /api/remote/connect': 'connect a notebook to a repository { book, provider, host, repo }',
     'POST /api/remote/disconnect': 'disconnect a notebook { book }',
     'GET /api/remote/list?board=&of=': 'issues, merge requests or commits of a page’s repository',
+    'GET /api/remote/thread?board=&id=': 'an issue card’s description and every comment',
     'POST /api/remote/place':
       'put an issue, merge request, commit, pipeline or live list on a page',
     'POST /api/remote/refresh': 'bring the cards on a page up to date',

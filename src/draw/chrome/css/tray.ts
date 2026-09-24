@@ -229,6 +229,16 @@ export const TRAY = `/* ---- the tray ---- */
      drawer comes over it while it is open. */
   .gs-drawer { z-index: 52; top: 62px; right: 8px; bottom: 64px; width: calc(100vw - 16px); }
 }
+.gs-thread-list { flex: 1; min-height: 0; margin: 0; padding: 0; overflow-y: auto; list-style: none; border-block: 1px solid var(--gs-faint); }
+.gs-thread-entry { padding: 9px 2px; border-block-end: 1px dashed var(--gs-faint); }
+.gs-thread-entry.is-first { background: var(--gs-wash); padding-inline: 8px; }
+.gs-thread-meta { display: flex; align-items: baseline; gap: 8px; margin-block-end: 3px; }
+.gs-thread-meta b { font-family: var(--ui-font); font-size: var(--gs-t1); }
+.gs-thread-meta small { color: var(--gs-soft); font-size: var(--gs-t1); }
+.gs-thread-body { font-size: var(--gs-t2); line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.gs-thread-reply { display: grid; gap: 6px; }
+.gs-thread-reply .gs-field { margin: 0; resize: vertical; min-height: 64px; }
+.gs-thread-reply .gs-btn-primary { justify-self: end; }
 .gs-tracker { width: min(620px, calc(100vw - 24px)); }
 .gs-tracker .gs-drawer-note { padding: 6px 16px 0; }
 .gs-tracker-rows { display: grid; gap: 6px; padding: 10px 16px; }

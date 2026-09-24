@@ -416,6 +416,26 @@ export async function remoteApi(ask: Ask, live: Live): Promise<boolean> {
       return true;
     }
 
+    // ---------------------------------------------------------------- a thread
+    // An issue card's whole conversation: the description and every comment, oldest first.
+    if (path === '/api/remote/thread') {
+      const address = url.searchParams.get('board') ?? ask.board;
+      const spec = await live.board(address);
+      const item = spec.items.find((i) => i.id === url.searchParams.get('id'));
+      const block = item?.block?.kind === 'remote' ? item.block : undefined;
+      if (!block?.ref || block.ref.kind !== 'issue') {
+        send(res, 404, { error: 'no issue card by that id here' });
+        return true;
+      }
+      const r = await service.adapter(block.ref);
+      const [issue, comments] = await Promise.all([
+        r.issue(block.ref.repo, block.ref.id),
+        r.comments(block.ref.repo, block.ref.id),
+      ]);
+      send(res, 200, { ref: block.ref, issue, comments });
+      return true;
+    }
+
     // ---------------------------------------------------------------- cards
     if (path === '/api/remote/place' && req.method === 'POST') {
       const body = (await readBody(req)) as {

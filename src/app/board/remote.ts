@@ -84,6 +84,14 @@ export class RemoteCards {
   bind(): void {
     const viewport = this.ctx.viewport;
     viewport.addEventListener('click', (event) => {
+      const thread = (event.target as HTMLElement).closest<HTMLElement>('.rc-count');
+      if (thread) {
+        event.preventDefault();
+        event.stopPropagation();
+        const id = thread.closest<HTMLElement>('[data-gs="item"]')?.dataset.gsId;
+        if (id) void this.openThread(id);
+        return;
+      }
       const tick = (event.target as HTMLElement).closest<HTMLElement>('.rc-tick');
       if (!tick) return;
       event.preventDefault();
@@ -259,6 +267,128 @@ export class RemoteCards {
     this.rememberColumns();
   }
 
+  // ---------------------------------------------------------------- a thread
+
+  private thread: HTMLElement | undefined;
+
+  private closeThread(): void {
+    this.thread?.remove();
+    this.thread = undefined;
+  }
+
+  /**
+   * An issue's whole conversation beside the page: the description, every comment, and a reply
+   * box -- the card's own reply line is for a word, this is for reading what was said first.
+   */
+  async openThread(id: string): Promise<void> {
+    this.closeThread();
+    if (this.drawer) this.toggleDrawer();
+    const panel = el('aside', 'gs-drawer gs-thread gs-card');
+    panel.dataset.gs = 'thread';
+    panel.setAttribute('aria-label', 'the conversation');
+    const head = el('header', 'gs-drawer-head');
+    const mark = el('span', 'gs-drawer-mark');
+    const where = el('div');
+    const close = el('button', 'gs-btn gs-btn-icon', '×');
+    close.type = 'button';
+    close.setAttribute('aria-label', 'close the conversation');
+    close.addEventListener('click', () => this.closeThread());
+    head.append(mark, where, close);
+    const list = el('ol', 'gs-thread-list');
+    list.setAttribute('aria-live', 'polite');
+    list.append(el('li', 'gs-drawer-note', 'reading the conversation…'));
+    const form = el('form', 'gs-thread-reply');
+    const box = el('textarea', 'gs-field');
+    box.rows = 3;
+    box.dir = 'auto';
+    box.placeholder = 'write a reply';
+    box.setAttribute('aria-label', 'a reply');
+    box.dataset.gs = 'thread-body';
+    const send = el('button', 'gs-btn gs-btn-primary', 'reply');
+    send.type = 'submit';
+    send.dataset.gs = 'thread-send';
+    form.append(box, send);
+    panel.append(head, list, form);
+    panel.addEventListener('keydown', (event) => {
+      event.stopPropagation();
+      if (event.key === 'Escape') this.closeThread();
+      // Kept from the page: the same key press would go on to answer the question it raises.
+      if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    });
+    document.body.append(panel);
+    this.thread = panel;
+
+    const load = async (): Promise<void> => {
+      const res = await fetch(
+        `/api/remote/thread?board=${encodeURIComponent(this.address)}&id=${encodeURIComponent(id)}`,
+      );
+      const data = (await res.json()) as {
+        error?: string;
+        ref?: { provider: Provider; host: string; repo: string; id: string };
+        issue?: Row & { body?: string; author?: { login: string; name?: string }; url?: string };
+        comments?: Array<{
+          id: string;
+          author: { login: string; name?: string };
+          body: string;
+          at: string;
+        }>;
+      };
+      if (this.thread !== panel) return;
+      if (!res.ok || !data.issue || !data.ref) {
+        list.replaceChildren(
+          el('li', 'gs-drawer-note', data.error ?? 'the conversation could not be read'),
+        );
+        return;
+      }
+      mark.innerHTML = renderStickerFace({ mark: data.ref.provider });
+      where.replaceChildren(
+        el('b', '', `#${data.ref.id} ${data.issue.title ?? ''}`),
+        el('small', '', `${data.ref.repo} · ${data.issue.state ?? ''}`),
+      );
+      const entry = (who: string, when: string, body: string, first = false): HTMLLIElement => {
+        const li = el('li', `gs-thread-entry${first ? ' is-first' : ''}`);
+        const meta = el('div', 'gs-thread-meta');
+        meta.append(el('b', '', who), el('small', '', when.replace('T', ' ').slice(0, 16)));
+        const text = el('div', 'gs-thread-body', body.trim() || '(nothing written)');
+        text.dir = 'auto';
+        li.append(meta, text);
+        return li;
+      };
+      const author = data.issue.author;
+      list.replaceChildren(
+        entry(author?.name ?? author?.login ?? 'someone', '', data.issue.body ?? '', true),
+        ...(data.comments ?? []).map((c) => entry(c.author.name ?? c.author.login, c.at, c.body)),
+      );
+      if (!data.comments?.length) list.append(el('li', 'gs-drawer-note', 'no replies yet'));
+      list.scrollTop = list.scrollHeight;
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const text = box.value.trim();
+      if (!text) return;
+      if (!(await this.allowed(`Comment on #${this.issueNumber(id)}`))) return;
+      box.disabled = true;
+      send.disabled = true;
+      const ok = await this.act(id, { action: 'comment', body: text });
+      box.disabled = false;
+      send.disabled = false;
+      if (ok) {
+        box.value = '';
+        await load();
+      }
+      box.focus();
+    });
+    try {
+      await load();
+    } catch {
+      list.replaceChildren(el('li', 'gs-drawer-note', 'the workspace did not answer'));
+    }
+  }
+
   // ---------------------------------------------------------------- the drawer
 
   /**
@@ -308,6 +438,7 @@ export class RemoteCards {
 
   private toggleDrawer(): void {
     this.hideGuide();
+    this.closeThread();
     if (this.drawer) {
       this.drawer.remove();
       this.drawer = undefined;
