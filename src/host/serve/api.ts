@@ -16,10 +16,11 @@ import { boundLeaves } from '~/draw/doc/book/model.ts';
 import { apply as applyBook, type BookOp, BookPatchError } from '~/draw/doc/book/patch.ts';
 import { renderCover, renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { search } from '~/draw/doc/search.ts';
-import { settle } from '~/draw/doc/shelf/model.ts';
+import { BACKS, type Decal, type ShelfLayout, settle, WOODS } from '~/draw/doc/shelf/model.ts';
 import { renderCases } from '~/draw/doc/shelf/render.ts';
 import { surface } from '~/draw/doc/surface.ts';
 import { hashString } from '~/draw/look/rng.ts';
+import { DECOR } from '~/draw/material/decor/art.ts';
 import type { Block } from '~/draw/material/model.ts';
 import { COATS } from '~/draw/material/pet/art.ts';
 import {
@@ -30,6 +31,7 @@ import {
   readProfile,
 } from '~/draw/material/profile/model.ts';
 import { renderProfile } from '~/draw/material/profile/render.ts';
+import { PACKS } from '~/draw/material/sticker/packs.ts';
 import { exportPages } from '~/host/export.ts';
 import { type Ask, header, readBody, readRaw, send } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
@@ -272,7 +274,7 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
       archive: books.filter((b) => b.archived).map((b) => b.id),
       trash,
       html: renderCases(books, {
-        layout: { rows },
+        layout: { ...layout, rows },
         edited,
         trash,
         pet,
@@ -280,6 +282,114 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
         ...(Number(url.searchParams.get('width'))
           ? { width: Number(url.searchParams.get('width')) }
           : {}),
+      }),
+    });
+    return true;
+  }
+
+  /*
+   * Making the bookcase your own: its wood and back, objects on the shelves, stickers on it. The
+   * catalogue lists everything there is to choose from; every change redraws open bookcases.
+   */
+  if (path === '/api/shelf/catalogue') {
+    send(res, 200, {
+      woods: WOODS,
+      backs: BACKS,
+      decor: DECOR.map((d) => ({ id: d.id, label: d.label })),
+      packs: PACKS.map((p) => ({ id: p.id, label: p.label, items: p.items })),
+    });
+    return true;
+  }
+  if (
+    path.startsWith('/api/shelf/') &&
+    ['style', 'decor', 'remove', 'decal'].includes(path.slice(11))
+  ) {
+    const what = path.slice(11);
+    const body = (req.method === 'POST' ? await readBody(req) : {}) as Record<string, unknown>;
+    let made: string | undefined;
+    if (what === 'decor') {
+      const kind = String(body.decor ?? '');
+      if (!DECOR.some((d) => d.id === kind)) {
+        send(res, 400, { error: `no object called ${kind}; GET /api/shelf/catalogue lists them` });
+        return true;
+      }
+      made = `decor:${kind}:${Date.now().toString(36)}`;
+      await live.dropBooks(
+        [made],
+        'use',
+        Number(body.row) || 0,
+        Number(body.x) || 0,
+        Number(body.width) || undefined,
+      );
+    } else {
+      await live.updateShelf((layout) => {
+        if (what === 'style') {
+          return {
+            ...layout,
+            ...(typeof body.wood === 'string'
+              ? { wood: body.wood as NonNullable<ShelfLayout['wood']> }
+              : {}),
+            ...(typeof body.back === 'string'
+              ? { back: body.back as NonNullable<ShelfLayout['back']> }
+              : {}),
+          };
+        }
+        if (what === 'remove') {
+          const id = String(body.id ?? '');
+          return {
+            ...layout,
+            rows: layout.rows.map((r) => r.filter((s) => !(s.decor && s.id === id))),
+          };
+        }
+        const decals = layout.decals ?? [];
+        if (req.method === 'DELETE') {
+          const id = url.searchParams.get('id');
+          return { ...layout, decals: decals.filter((d) => d.id !== id) };
+        }
+        if (typeof body.id === 'string') {
+          return {
+            ...layout,
+            decals: decals.map((d) =>
+              d.id === body.id ? { ...d, ...(body as Partial<Decal>), id: d.id } : d,
+            ),
+          };
+        }
+        made = `decal-${Date.now().toString(36)}`;
+        return {
+          ...layout,
+          decals: [
+            ...decals,
+            {
+              id: made,
+              ...(typeof body.mark === 'string' ? { mark: body.mark } : {}),
+              ...(typeof body.emoji === 'string' ? { emoji: body.emoji } : {}),
+              x: Number(body.x) || 50,
+              y: Number(body.y) || 50,
+              ...(typeof body.size === 'number' ? { size: body.size } : {}),
+              ...(typeof body.rotation === 'number' ? { rotation: body.rotation } : {}),
+            },
+          ].slice(-60),
+        };
+      });
+    }
+    live.broadcast('shelf:main', 'reload', {}, header(req, 'x-grimstroke-client'));
+    const { books, layout, edited, trash, pet } = await live.shelf();
+    const width = Number(body.width ?? url.searchParams.get('width')) || undefined;
+    send(res, 200, {
+      ...(made ? { id: made } : {}),
+      layout,
+      html: renderCases(books, {
+        layout: {
+          ...layout,
+          rows: settle(
+            layout,
+            books.filter((b) => !b.archived),
+          ),
+        },
+        edited,
+        trash,
+        pet,
+        ...(width ? { width } : {}),
       }),
     });
     return true;

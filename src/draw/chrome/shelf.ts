@@ -24,6 +24,12 @@ export function shelfChrome(count: number, pet?: Pet): string {
       title: count === 1 ? 'one notebook' : `${count} notebooks`,
       actions:
         feed +
+        button({
+          gs: 'shelf-decorate',
+          label: 'make the bookcase your own',
+          icon: 'sticker',
+          text: 'decorate',
+        }) +
         button({ gs: 'shelf-select', label: 'choose several', icon: 'check', text: 'choose' }) +
         button({
           gs: 'book-new',

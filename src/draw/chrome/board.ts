@@ -24,7 +24,7 @@ import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import { PAPERS } from '~/draw/look/grid.ts';
 import { PALETTES } from '~/draw/look/palette.ts';
 import { TEMPLATES } from '~/draw/look/template.ts';
-import { MARKS, markOf, SHORTCODES } from '~/draw/material/sticker/marks.ts';
+import { PACKS, type PackItem } from '~/draw/material/sticker/packs.ts';
 import { renderStickerFace } from '~/draw/material/sticker/render.ts';
 import { escapeHtml } from '~/draw/type/text.ts';
 
@@ -93,31 +93,21 @@ function toolButton(tool: Tool, divider: boolean): string {
  * middle of what you are looking at. The faces are drawn by the same renderer as the stickers.
  */
 export function stickerSheet(): string {
-  const marks = Object.keys(MARKS)
-    .map(
-      (name) =>
-        `<button type="button" class="gs-sheet-pick" data-gs="sticker-choice" data-mark="${name}" ` +
-        `aria-label="${escapeHtml(markOf(name)?.label ?? name)} sticker">${renderStickerFace({ mark: name })}</button>`,
-    )
-    .join('');
-  const emoji = [...new Set(Object.values(SHORTCODES))]
-    .slice(0, 18)
-    .map(
-      (e) =>
-        `<button type="button" class="gs-sheet-pick" data-gs="sticker-choice" data-emoji="${e}" ` +
-        `aria-label="emoji sticker">${renderStickerFace({ emoji: e })}</button>`,
-    )
-    .join('');
+  const pick = (item: PackItem): string =>
+    `<button type="button" class="gs-sheet-pick" data-gs="sticker-choice" ` +
+    (item.mark
+      ? `data-mark="${escapeHtml(item.mark)}"`
+      : `data-emoji="${escapeHtml(item.emoji ?? '')}"`) +
+    ` title="${escapeHtml(item.name)}" aria-label="${escapeHtml(item.name)} sticker">${renderStickerFace({ mark: item.mark, emoji: item.emoji })}</button>`;
+  const packs = PACKS.map(
+    (pack) =>
+      `<p class="gs-menu-head">${escapeHtml(pack.label)}</p><div class="gs-sheet-grid">${pack.items.map(pick).join('')}</div>`,
+  ).join('');
   return (
     '<details class="gs-sheet" data-gs="sticker-sheet">' +
     `<summary class="gs-btn gs-btn-icon" aria-label="stickers">${icon('sticker')}` +
     '<span class="gs-tip" role="presentation">stickers</span></summary>' +
-    '<div class="gs-sheet-card gs-card" role="menu" aria-label="the sticker sheet">' +
-    '<p class="gs-menu-head">stickers</p>' +
-    `<div class="gs-sheet-grid">${marks}</div>` +
-    '<p class="gs-menu-head">emoji</p>' +
-    `<div class="gs-sheet-grid">${emoji}</div>` +
-    '</div></details>'
+    `<div class="gs-sheet-card gs-card" role="menu" aria-label="the sticker sheet">${packs}</div></details>`
   );
 }
 

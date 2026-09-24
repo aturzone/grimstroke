@@ -10,6 +10,7 @@ import { type BookSpec, bookTitle, type Cover } from '~/draw/doc/book/model.ts';
 import { renderHead } from '~/draw/doc/head.ts';
 import type { RenderedPage } from '~/draw/doc/model.ts';
 import {
+  type Decal,
   layOut,
   type PlacedBook,
   type PlacedRow,
@@ -20,8 +21,10 @@ import {
 } from '~/draw/doc/shelf/model.ts';
 import { type Surface, surface } from '~/draw/doc/surface.ts';
 import { textOn } from '~/draw/look/colour.ts';
+import { decorOf, decorSvg } from '~/draw/material/decor/art.ts';
 import { halftoneDefs } from '~/draw/material/note/render.ts';
 import type { Pet } from '~/draw/material/profile/model.ts';
+import { renderStickerFace } from '~/draw/material/sticker/render.ts';
 import { escapeHtml, inline, label } from '~/draw/type/text.ts';
 
 export interface ShelfOptions {
@@ -109,6 +112,40 @@ function renderSpine(
   );
 }
 
+/** An object on a shelf: its pixel picture (two frames for the ones that move), standing. */
+function renderDecor(place: PlacedBook, live: boolean): string {
+  const kind = decorOf(place.decor);
+  if (!kind) return '';
+  const style = `--x:${place.x}px;--y:${place.y}px;--w:${place.w}px;--h:${place.h}px`;
+  const frames =
+    kind.frames > 1
+      ? decorSvg(kind.id, 0, 3) +
+        decorSvg(kind.id, 1, 3).replace('class="decor-art"', 'class="decor-art decor-frame2"')
+      : decorSvg(kind.id, 0, 3);
+  return (
+    `<div class="decor${kind.frames > 1 ? ' decor-moves' : ''}" data-gs="decor" data-gs-id="${escapeHtml(place.id)}" ` +
+    `data-decor="${escapeHtml(kind.id)}" style="${style}"${live ? ' tabindex="0" role="button"' : ''} aria-label="${escapeHtml(kind.label)}">` +
+    `${frames}</div>`
+  );
+}
+
+/** Stickers stuck on the bookcase itself. */
+function renderDecals(decals: readonly Decal[]): string {
+  if (!decals.length) return '';
+  return (
+    '<div class="case-decals">' +
+    decals
+      .map(
+        (d) =>
+          `<span class="case-decal" data-gs="decal" data-gs-id="${escapeHtml(d.id)}" ` +
+          `style="left:${d.x}%;top:${d.y}%;--size:${d.size ?? 56}px;--tilt:${d.rotation ?? 0}deg">` +
+          `${renderStickerFace({ mark: d.mark, emoji: d.emoji })}</span>`,
+      )
+      .join('') +
+    '</div>'
+  );
+}
+
 function renderRow(
   row: PlacedRow,
   index: number,
@@ -119,6 +156,7 @@ function renderRow(
 ): string {
   const spines = row.books
     .map((place) => {
+      if (place.decor) return renderDecor(place, Boolean(options.live));
       const spec = books.get(place.id);
       return spec
         ? renderSpine(spec, place, ctx, {
@@ -153,9 +191,12 @@ function renderRoom(books: readonly BookSpec[], ctx: Surface, options: ShelfOpti
     '<div class="case-top" aria-hidden="true"></div>' +
     `<div class="case-body">${list.map((row, i) => renderRow(row, i, byId, ctx, options, kind)).join('')}</div>` +
     '<div class="case-plinth" aria-hidden="true"></div>' +
+    (kind === 'use' ? renderDecals(options.layout?.decals ?? []) : '') +
     '</div>';
+  const look = options.layout;
   return (
-    `<div class="case-room" data-gs="room"${options.pet ? ` data-pet="${escapeHtml(JSON.stringify(options.pet))}"` : ''}>` +
+    `<div class="case-room" data-gs="room" data-wood="${look?.wood ?? 'oak'}" data-back="${look?.back ?? 'boards'}"` +
+    `${options.pet ? ` data-pet="${escapeHtml(JSON.stringify(options.pet))}"` : ''}>` +
     bookcase('use', rows, 'in use') +
     (put.length || options.live ? bookcase('archive', archive, 'archive') : '') +
     '</div>'

@@ -16,7 +16,8 @@ import type { BookSpec, Cover, CoverMaterial, Sticker } from '~/draw/doc/book/mo
 import { MATERIALS, SHAPES } from '~/draw/doc/book/model.ts';
 import type { BookOp, Loose } from '~/draw/doc/book/patch.ts';
 import type { Profile } from '~/draw/material/profile/model.ts';
-import { MARKS, markOf } from '~/draw/material/sticker/marks.ts';
+import { markOf } from '~/draw/material/sticker/marks.ts';
+import { PACKS } from '~/draw/material/sticker/packs.ts';
 import { renderStickerFace } from '~/draw/material/sticker/render.ts';
 
 /** Cover boards somebody would actually buy. */
@@ -299,46 +300,43 @@ export class CoverEditor {
     }
     section('stick on', adds);
 
-    // The sticker sheet: stamps, symbols, the services' marks, emoji -- each one click.
-    const sheet = el('div', 'gs-cover-sheet');
-    const marks: Array<{ mark?: string; emoji?: string; label: string }> = [
-      ...Object.entries(MARKS).map(([mark, m]) => ({ mark, label: m.label })),
-      ...['\u{1F680}', '\u{1F41B}', '\u{1F525}', '\u2728', '\u2B50', '\u{1F4CC}'].map((emoji) => ({
-        emoji,
-        label: 'emoji',
-      })),
-    ];
-    for (const one of marks) {
-      const b = el('button', 'gs-sheet-pick');
-      b.type = 'button';
-      b.dataset.gs = 'sticker-add-mark';
-      b.setAttribute('aria-label', `${one.label} sticker`);
-      b.title = one.label;
-      // The face is drawn by the sticker renderer itself -- the same function the server uses,
-      // not a second opinion about what a sticker looks like.
-      b.innerHTML = renderStickerFace(one.mark ? { mark: one.mark } : { emoji: one.emoji });
-      b.addEventListener('click', () => {
-        const id = `sticker-${Date.now().toString(36)}`;
-        this.chosen = id;
-        const stamp = one.mark ? markOf(one.mark)?.family === 'stamp' : false;
-        this.run(
-          [
-            {
-              op: 'sticker.add',
-              sticker: {
-                id,
-                kind: 'mark',
-                at: [50, 60],
-                width: stamp ? 34 : 18,
-                rotation: Math.round((Math.random() - 0.5) * 16),
-                ...(one.mark ? { mark: one.mark } : { emoji: one.emoji ?? '' }),
+    // The sticker packs: stamps, symbols, the services' marks, and a dozen themes of emoji.
+    const sheet = el('div', 'gs-cover-packs');
+    for (const pack of PACKS) {
+      sheet.append(el('p', 'gs-cover-pack-name', pack.label));
+      const grid = el('div', 'gs-cover-sheet');
+      for (const one of pack.items) {
+        const b = el('button', 'gs-sheet-pick');
+        b.type = 'button';
+        b.dataset.gs = 'sticker-add-mark';
+        b.setAttribute('aria-label', `${one.name} sticker`);
+        b.title = one.name;
+        // Drawn by the sticker renderer itself -- the same function the server uses.
+        b.innerHTML = renderStickerFace({ mark: one.mark, emoji: one.emoji });
+        b.addEventListener('click', () => {
+          const id = `sticker-${Date.now().toString(36)}`;
+          this.chosen = id;
+          const stamp = one.mark ? markOf(one.mark)?.family === 'stamp' : false;
+          this.run(
+            [
+              {
+                op: 'sticker.add',
+                sticker: {
+                  id,
+                  kind: 'mark',
+                  at: [50, 60],
+                  width: stamp ? 34 : 18,
+                  rotation: Math.round((Math.random() - 0.5) * 16),
+                  ...(one.mark ? { mark: one.mark } : { emoji: one.emoji ?? '' }),
+                },
               },
-            },
-          ],
-          '',
-        );
-      });
-      sheet.append(b);
+            ],
+            '',
+          );
+        });
+        grid.append(b);
+      }
+      sheet.append(grid);
     }
     section('from the sticker sheet', sheet);
 

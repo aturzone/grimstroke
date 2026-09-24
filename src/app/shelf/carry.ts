@@ -36,14 +36,14 @@ export class Carry {
     document.addEventListener('pointerdown', (event) => this.down(event));
     // A button's click from the keyboard: Enter or Space on a focused spine.
     document.addEventListener('click', (event) => {
-      const spine = (event.target as HTMLElement).closest<HTMLElement>('.spine');
+      const spine = (event.target as HTMLElement).closest<HTMLElement>('.spine, .decor');
       if (!spine || event.detail !== 0) return;
       this.app.pressed(spine, event);
     });
   }
 
   private down(event: PointerEvent): void {
-    const spine = (event.target as HTMLElement).closest<HTMLElement>('.spine');
+    const spine = (event.target as HTMLElement).closest<HTMLElement>('.spine, .decor');
     if (!spine || event.button !== 0 || !spine.closest('[data-gs="room"]')) return;
     event.preventDefault();
     const start = { x: event.clientX, y: event.clientY };

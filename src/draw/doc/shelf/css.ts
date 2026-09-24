@@ -284,4 +284,43 @@ body[data-selecting] .spine:not([data-selected]) .spine-face { filter: brightnes
   .spine { transition: none; }
   .spine[data-fell] { animation: none; }
 }
+
+/* ---- your own bookcase: wood, back, objects, stickers ---- */
+.case-room[data-wood='walnut'] { --wood: #5a3a24; --wood-light: #7e5537; --wood-dark: #3a2416; --wood-back: #241710; }
+.case-room[data-wood='pine'] { --wood: #c79a5e; --wood-light: #e2bd84; --wood-dark: #9b733d; --wood-back: #5a4128; }
+.case-room[data-wood='cherry'] { --wood: #8a3b26; --wood-light: #b0573b; --wood-dark: #5e2616; --wood-back: #34170f; }
+.case-room[data-wood='ebony'] { --wood: #2c2622; --wood-light: #46403a; --wood-dark: #171310; --wood-back: #100d0b; }
+.case-room[data-wood='white'] { --wood: #e8e3da; --wood-light: #fbf8f2; --wood-dark: #c4bcae; --wood-back: #d8d2c6; }
+.case-room[data-wood='sage'] { --wood: #7f9a7a; --wood-light: #a3bd9d; --wood-dark: #5a7254; --wood-back: #3c4d39; }
+.case-room[data-wood='navy'] { --wood: #2f4468; --wood-light: #4a628c; --wood-dark: #1d2c46; --wood-back: #141e30; }
+.case-room[data-wood='blush'] { --wood: #d69a9a; --wood-light: #ecbcbc; --wood-dark: #a86e6e; --wood-back: #6e4646; }
+.case-room[data-back='plain'] .case-body { background: linear-gradient(to right, rgba(0, 0, 0, 0.5), transparent 40px, transparent calc(100% - 40px), rgba(0, 0, 0, 0.5)), var(--wood-back); }
+.case-room[data-back='stripes'] .case-body { background: linear-gradient(to right, rgba(0, 0, 0, 0.5), transparent 40px, transparent calc(100% - 40px), rgba(0, 0, 0, 0.5)), repeating-linear-gradient(90deg, #3b5a4a 0 18px, #486b59 18px 36px); }
+.case-room[data-back='dots'] .case-body { background: linear-gradient(to right, rgba(0, 0, 0, 0.5), transparent 40px, transparent calc(100% - 40px), rgba(0, 0, 0, 0.5)), radial-gradient(circle at 50% 50%, #e6c27a 0 2.5px, transparent 3px) 0 0 / 22px 22px, #2e3b5a; }
+.case-room[data-back='floral'] .case-body { background: linear-gradient(to right, rgba(0, 0, 0, 0.5), transparent 40px, transparent calc(100% - 40px), rgba(0, 0, 0, 0.5)), radial-gradient(circle at 25% 25%, #f0a0b4 0 4px, transparent 4.5px) 0 0 / 44px 44px, radial-gradient(circle at 75% 75%, #f6d08a 0 3px, transparent 3.5px) 0 0 / 44px 44px, radial-gradient(circle at 25% 75%, #8fbf7a 0 2px, transparent 2.5px) 0 0 / 44px 44px, #5c3f4c; }
+.case-room[data-back='brick'] .case-body { background: linear-gradient(to right, rgba(0, 0, 0, 0.5), transparent 40px, transparent calc(100% - 40px), rgba(0, 0, 0, 0.5)), linear-gradient(#5e2c20 2px, transparent 2px) 0 0 / 100% 24px, linear-gradient(90deg, #5e2c20 2px, transparent 2px) 0 0 / 56px 48px, linear-gradient(90deg, #5e2c20 2px, transparent 2px) 28px 24px / 56px 48px, #9a4a33; }
+.case-room[data-back='cork'] .case-body { background: linear-gradient(to right, rgba(0, 0, 0, 0.45), transparent 40px, transparent calc(100% - 40px), rgba(0, 0, 0, 0.45)), radial-gradient(circle, #9c7448 0 1px, transparent 1.5px) 0 0 / 7px 9px, radial-gradient(circle, #d7ac75 0 1px, transparent 1.5px) 3px 4px / 9px 7px, #b88a58; }
+.case-room[data-back='stars'] .case-body { background: linear-gradient(to right, rgba(0, 0, 0, 0.5), transparent 40px, transparent calc(100% - 40px), rgba(0, 0, 0, 0.5)), radial-gradient(circle, #fff6c8 0 1px, transparent 1.5px) 0 0 / 37px 41px, radial-gradient(circle, #cfe0ff 0 1px, transparent 1.5px) 17px 23px / 53px 47px, #151a33; }
+
+.decor {
+  position: absolute;
+  z-index: 1;
+  left: var(--x);
+  bottom: calc(var(--y) + 4px);
+  width: var(--w);
+  height: var(--h);
+  display: grid;
+  place-items: end center;
+  cursor: grab;
+  touch-action: none;
+}
+.decor-art { display: block; image-rendering: pixelated; filter: drop-shadow(1px 2px 0 rgba(0, 0, 0, 0.35)); }
+.decor-moves .decor-art { grid-area: 1 / 1; }
+.decor-moves .decor-frame2 { animation: gs-decor-frame 1.2s steps(1) infinite; }
+@keyframes gs-decor-frame { 0%, 49% { opacity: 0; } 50%, 100% { opacity: 1; } }
+.is-live .decor:hover, .is-live .decor:focus-visible { translate: 0 -4px; outline: none; }
+.case-room[data-wood='white'] .case-name span, .case-room[data-wood='blush'] .case-name span { color: #3a2410; }
+.case-decals { position: absolute; inset: 30px 28px 38px; pointer-events: none; z-index: 0; }
+.case-decal { position: absolute; width: var(--size); translate: -50% -50%; rotate: var(--tilt); pointer-events: auto; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .decor-moves .decor-frame2 { animation: none; } }
 `;

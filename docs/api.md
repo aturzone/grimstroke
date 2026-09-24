@@ -117,6 +117,22 @@ turned and resized like any sticker. `cover` with `profile` still works: set, it
 
 From the command line: `grimstroke trash` and `grimstroke untrash <name|id>`.
 
+### Making the bookcase your own
+
+| | |
+|---|---|
+| `GET /api/shelf/catalogue` | everything to choose from: `woods`, `backs`, `decor` (objects), sticker `packs` |
+| `POST /api/shelf/style` `{ wood?, back? }` | the wood (`oak`, `walnut`, `pine`, `cherry`, `ebony`, `white`, `sage`, `navy`, `blush`) and the back (`boards`, `stripes`, `dots`, `floral`, `brick`, `cork`, `plain`, `stars`) |
+| `POST /api/shelf/decor` `{ decor, row, x }` | put an object on shelf `row`, `x` along it; it stands in the run like a book (a book can lean on it) or where it was put |
+| `POST /api/shelf/remove` `{ id }` | take an object away (objects move with `/api/shelf/drop`, like books) |
+| `POST /api/shelf/decal` `{ mark? \| emoji?, x, y, size?, rotation? }` | stick a sticker on the bookcase, at percent `x`, `y`; with `{ id, ... }` it moves or turns one; `DELETE /api/shelf/decal?id=` peels it off |
+
+### The pet
+
+`GET /api/pet` answers with the pet and every animal and coat; `POST /api/pet`
+`{ species?: "cat" | "dog", coat?, name?, on? }` changes only what it names. It is also the
+profile's `pet` field. An open bookcase redraws when the pet or the shelves change elsewhere.
+
 ## Repositories
 
 A notebook can be connected to one repository on GitHub, GitLab (gitlab.com or a company's

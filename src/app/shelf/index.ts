@@ -10,6 +10,7 @@
 import { confirmCard, toast } from '~/app/chrome.ts';
 import { go, onClick, typing } from '~/app/dom.ts';
 import { Carry } from '~/app/shelf/carry.ts';
+import { Decorate } from '~/app/shelf/decorate.ts';
 import { ShelfPet } from '~/app/shelf/pet.ts';
 import { Preview } from '~/app/shelf/preview.ts';
 
@@ -45,11 +46,13 @@ export class ShelfApp {
   readonly selected = new Set<string>();
   private readonly preview: Preview;
   readonly pet: ShelfPet;
+  private readonly decorate: Decorate;
   private bar: HTMLElement | undefined;
 
   constructor() {
     this.preview = new Preview(this);
     this.pet = new ShelfPet();
+    this.decorate = new Decorate(this);
     new Carry(this).bind();
   }
 
@@ -72,6 +75,22 @@ export class ShelfApp {
     this.bindTrash();
     onClick('shelf-select', () => this.setSelecting(!this.selecting));
     onClick('pet-feed', () => this.startFeeding());
+    onClick('shelf-decorate', () => this.decorate.toggle());
+    // A sticker on the bookcase, pressed: it offers to come off.
+    document.addEventListener('click', (event) => {
+      const decal = (event.target as HTMLElement).closest<HTMLElement>('.case-decal');
+      if (!decal || document.body.hasAttribute('data-placing')) return;
+      toast('a sticker on the bookcase', 'info', {
+        label: 'peel it off',
+        run: () =>
+          void this.shelfCall(
+            'decal',
+            {},
+            'DELETE',
+            `id=${encodeURIComponent(decal.dataset.gsId ?? '')}`,
+          ),
+      });
+    });
     // Feeding: the next press on the bookcase is where the bowl goes.
     document.addEventListener(
       'pointerdown',
@@ -141,6 +160,14 @@ export class ShelfApp {
   /** A spine pressed and let go without being carried. */
   pressed(spine: HTMLElement, event: MouseEvent | KeyboardEvent): void {
     const id = spine.dataset.gsId ?? '';
+    if (spine.classList.contains('decor')) {
+      // An object is not a notebook: pressed, it offers to be taken away.
+      toast(`${spine.getAttribute('aria-label') ?? 'this'} on the shelf`, 'info', {
+        label: 'take it away',
+        run: () => void this.shelfCall('remove', { id }),
+      });
+      return;
+    }
     if (this.selecting || event.shiftKey || event.ctrlKey || event.metaKey) {
       this.toggle(id);
       return;
@@ -357,6 +384,37 @@ export class ShelfApp {
     if (!this.pet.out) return;
     document.body.toggleAttribute('data-feeding', true);
     toast(`press a shelf to put ${this.pet.name}'s bowl down`);
+  }
+
+  /** A change to the bookcase itself -- its style, an object, a sticker -- and the room redrawn. */
+  async shelfCall(
+    what: string,
+    body: Record<string, unknown>,
+    method = 'POST',
+    query = '',
+  ): Promise<void> {
+    const width = this.width ? `width=${this.width}` : '';
+    const q = [query, method === 'DELETE' ? width : ''].filter(Boolean).join('&');
+    const res = await fetch(`/api/shelf/${what}${q ? `?${q}` : ''}`, {
+      method,
+      headers: { 'content-type': 'application/json', 'x-grimstroke-client': this.client },
+      ...(method === 'POST'
+        ? { body: JSON.stringify({ ...body, ...(this.width ? { width: this.width } : {}) }) }
+        : {}),
+    });
+    const reply = (await res.json().catch(() => ({}))) as {
+      html?: string;
+      error?: string;
+      trash?: number;
+    };
+    if (!res.ok || !reply.html) {
+      toast(reply.error ?? 'the bookcase could not be changed', 'error');
+      return;
+    }
+    this.absorb({
+      html: reply.html,
+      trash: Number(document.querySelector('[data-gs="trash-count"]')?.textContent) || 0,
+    });
   }
 
   // ---------------------------------------------------------------- keys

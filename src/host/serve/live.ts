@@ -243,15 +243,26 @@ export class Live {
 
   /** Save the order of the shelves: only notebooks that exist, each once. */
   async saveShelf(rows: unknown): Promise<ShelfLayout> {
-    const { books } = await this.shelf();
-    const layout = {
+    return this.updateShelf((layout, books) => ({
+      ...layout,
       rows: settle(
         readLayout({ rows }),
         books.filter((b) => !b.archived),
       ),
-    };
-    await this.store.writeSettings({ ...(await this.store.readSettings()), shelf: layout });
-    return layout;
+    }));
+  }
+
+  /**
+   * Change the bookcase -- its order, its wood and back, its objects and stickers -- keeping
+   * everything the change does not name. Every write goes through here, so none loses another's.
+   */
+  async updateShelf(
+    change: (layout: ShelfLayout, books: BookSpec[]) => ShelfLayout,
+  ): Promise<ShelfLayout> {
+    const { books, layout } = await this.shelf();
+    const next = readLayout(change(layout, books));
+    await this.store.writeSettings({ ...(await this.store.readSettings()), shelf: next });
+    return next;
   }
 
   /**
@@ -268,8 +279,17 @@ export class Live {
   ): Promise<void> {
     const { books, layout } = await this.shelf();
     const known = new Set(books.map((b) => b.id));
-    const moving = ids.filter((id) => known.has(id));
-    for (const id of moving) {
+    const objects = new Set(
+      layout.rows
+        .flat()
+        .filter((s) => s.decor)
+        .map((s) => s.id),
+    );
+    // Objects move between shelves in use, never into the archive; a new one is named by its kind.
+    const moving = ids.filter(
+      (id) => known.has(id) || (to === 'use' && (objects.has(id) || id.startsWith('decor:'))),
+    );
+    for (const id of moving.filter((one) => known.has(one))) {
       const spec = await this.book(id);
       const archived = to === 'archive';
       if (Boolean(spec.archived) === archived) continue;
@@ -284,7 +304,10 @@ export class Live {
       to === 'archive'
         ? rows.map((r) => r.filter((s) => !moving.includes(s.id)))
         : dropInto(rows, open, moving, Math.max(0, Math.floor(row)), x, width);
-    await this.store.writeSettings({ ...(await this.store.readSettings()), shelf: { rows: next } });
+    await this.store.writeSettings({
+      ...(await this.store.readSettings()),
+      shelf: { ...layout, rows: next },
+    });
   }
 
   /** A notebook thrown away: out of memory, and anyone watching it is sent to the shelf. */

@@ -178,4 +178,54 @@ export const SHELF_CHROME = `/* ---- a book taken down ---- */
 .shelf-bowl.is-empty { opacity: 0; }
 body[data-feeding] .case-room { cursor: copy; }
 body[data-feeding] .spine { cursor: copy; }
+
+/* ---- your bookcase: the decorate panel ---- */
+.gs-decorate {
+  position: fixed;
+  z-index: 62;
+  top: 78px;
+  right: 14px;
+  bottom: 18px;
+  width: min(360px, calc(100vw - 28px));
+  overflow-y: auto;
+  padding: 10px 12px 14px;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+}
+.gs-decorate-head { display: flex; align-items: center; justify-content: space-between; }
+.gs-decorate-head h2 { margin: 0; font-family: var(--hand-font); font-size: 22px; }
+.gs-decorate-section { padding: 6px 0; border-block-end: 1px dashed var(--gs-faint); }
+.gs-decorate-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+.gs-decorate-swatch { width: 34px; height: 34px; border: 1.5px solid var(--gs-line); border-radius: 50%; cursor: pointer; }
+.gs-decorate-swatch[aria-pressed='true'] { outline: 2.5px solid var(--gs-ink); outline-offset: 2px; }
+.gs-wood-oak { background: #7a5230; } .gs-wood-walnut { background: #5a3a24; } .gs-wood-pine { background: #c79a5e; }
+.gs-wood-cherry { background: #8a3b26; } .gs-wood-ebony { background: #2c2622; } .gs-wood-white { background: #e8e3da; }
+.gs-wood-sage { background: #7f9a7a; } .gs-wood-navy { background: #2f4468; } .gs-wood-blush { background: #d69a9a; }
+.gs-back-boards { background: repeating-linear-gradient(90deg, #2e1f14 0 7px, #1d130c 7px 8px); }
+.gs-back-plain { background: #3a2a1d; }
+.gs-back-stripes { background: repeating-linear-gradient(90deg, #3b5a4a 0 5px, #486b59 5px 10px); }
+.gs-back-dots { background: radial-gradient(circle, #e6c27a 0 1.5px, transparent 2px) 0 0 / 8px 8px, #2e3b5a; }
+.gs-back-floral { background: radial-gradient(circle, #f0a0b4 0 2px, transparent 2.5px) 0 0 / 12px 12px, #5c3f4c; }
+.gs-back-brick { background: linear-gradient(#5e2c20 1px, transparent 1px) 0 0 / 100% 8px, #9a4a33; }
+.gs-back-cork { background: radial-gradient(circle, #9c7448 0 1px, transparent 1.5px) 0 0 / 5px 5px, #b88a58; }
+.gs-back-stars { background: radial-gradient(circle, #fff6c8 0 1px, transparent 1.5px) 0 0 / 9px 11px, #151a33; }
+.gs-decorate-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.gs-decorate-pick {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  padding: 4px;
+  border: 1.5px solid var(--gs-faint);
+  border-radius: var(--gs-radius);
+  background: #3a2a1d;
+  cursor: pointer;
+}
+.gs-decorate-pick svg { max-width: 100%; max-height: 100%; width: auto; height: auto; image-rendering: pixelated; }
+.gs-decorate-stickers .gs-decorate-pick { background: repeating-conic-gradient(var(--gs-wash) 0 25%, transparent 0 50%) 0 0 / 10px 10px; }
+.gs-decorate-pick:hover { border-color: var(--gs-line); transform: translateY(-1px); }
+.gs-decorate-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px 0; }
+.gs-decorate-search { width: 100%; margin: 0; }
+.gs-decorate-note { margin: 6px 0 0; color: var(--gs-soft); font-size: var(--gs-t1); }
+body[data-placing] .case-room { cursor: copy; }
 `;

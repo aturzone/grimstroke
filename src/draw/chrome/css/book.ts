@@ -301,4 +301,6 @@ body.on-book.live { padding-block: 76px 84px; }
 .gs-repo .gs-dialog-actions { padding: 6px 0 0; }
 .gs-repo-code { margin: 0; font-family: var(--ui-font); font-size: 28px; letter-spacing: 0.2em; text-align: center; padding: 8px; border: 2px dashed var(--gs-line); }
 .gs-repo-signin { display: grid; gap: 8px; justify-items: start; }
+.gs-cover-packs { max-height: 320px; overflow-y: auto; padding-inline-end: 4px; }
+.gs-cover-pack-name { margin: 8px 0 4px; font-family: var(--ui-font); font-size: var(--gs-t1); letter-spacing: var(--label-tracking); text-transform: uppercase; color: var(--gs-soft); }
 `;

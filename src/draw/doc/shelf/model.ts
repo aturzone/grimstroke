@@ -13,6 +13,7 @@
 
 import { type BookSpec, spineWidth } from '~/draw/doc/book/model.ts';
 import { Rng } from '~/draw/look/rng.ts';
+import { decorOf } from '~/draw/material/decor/art.ts';
 
 /** The inside width of a shelf, in the bookcase's own pixels. */
 export const SHELF_WIDTH = 1040;
@@ -28,6 +29,50 @@ export interface ShelfSlot {
   id: string;
   /** Lying flat, from this x along the shelf. Standing books have no x: they are packed. */
   flat?: number;
+  /**
+   * Not a notebook but an object on the shelf -- a plant, a lamp, a globe (material/decor). It
+   * stands in the run like a book (a book can lean on it, as on a bookend), or where it was put
+   * down, and never tips over.
+   */
+  decor?: string;
+}
+
+/** The wood a bookcase is made of, and what its back is covered with. */
+export const WOODS = [
+  'oak',
+  'walnut',
+  'pine',
+  'cherry',
+  'ebony',
+  'white',
+  'sage',
+  'navy',
+  'blush',
+] as const;
+export const BACKS = [
+  'boards',
+  'stripes',
+  'dots',
+  'floral',
+  'brick',
+  'cork',
+  'plain',
+  'stars',
+] as const;
+export type Wood = (typeof WOODS)[number];
+export type Back = (typeof BACKS)[number];
+
+/** A sticker stuck on the bookcase itself: a mark from the sheet or an emoji. */
+export interface Decal {
+  id: string;
+  mark?: string;
+  emoji?: string;
+  /** Percent across and down the bookcase in use. */
+  x: number;
+  y: number;
+  /** Width in the bookcase's pixels. */
+  size?: number;
+  rotation?: number;
 }
 
 /**
@@ -36,6 +81,9 @@ export interface ShelfSlot {
  */
 export interface ShelfLayout {
   rows: ShelfSlot[][];
+  wood?: Wood;
+  back?: Back;
+  decals?: Decal[];
 }
 
 /** One book, placed. */
@@ -51,6 +99,8 @@ export interface PlacedBook {
   h: number;
   lean: number;
   flat: boolean;
+  /** An object, not a notebook. */
+  decor?: string;
 }
 
 export interface PlacedRow {
@@ -72,17 +122,54 @@ export function heightOf(spec: BookSpec): number {
 
 /** The saved layout, read defensively: it is a settings file somebody may have edited. */
 export function readLayout(raw: unknown): ShelfLayout {
-  const rows = (raw as { rows?: unknown } | undefined)?.rows;
-  if (!Array.isArray(rows)) return { rows: [] };
+  const from = (raw ?? {}) as { rows?: unknown; wood?: unknown; back?: unknown; decals?: unknown };
+  const rows = Array.isArray(from.rows) ? from.rows : [];
+  const wood = (WOODS as readonly string[]).includes(String(from.wood))
+    ? (from.wood as Wood)
+    : undefined;
+  const back = (BACKS as readonly string[]).includes(String(from.back))
+    ? (from.back as Back)
+    : undefined;
+  const decals = Array.isArray(from.decals)
+    ? from.decals
+        .filter(
+          (d): d is Decal =>
+            typeof (d as Decal)?.id === 'string' &&
+            typeof (d as Decal).x === 'number' &&
+            typeof (d as Decal).y === 'number',
+        )
+        .map((d) => ({
+          id: d.id,
+          ...(typeof d.mark === 'string' ? { mark: d.mark } : {}),
+          ...(typeof d.emoji === 'string' ? { emoji: d.emoji.slice(0, 16) } : {}),
+          x: Math.max(0, Math.min(100, d.x)),
+          y: Math.max(0, Math.min(100, d.y)),
+          ...(typeof d.size === 'number' ? { size: Math.max(16, Math.min(240, d.size)) } : {}),
+          ...(typeof d.rotation === 'number' ? { rotation: d.rotation } : {}),
+        }))
+    : [];
   return {
     rows: rows.map((row) =>
       Array.isArray(row)
         ? row
             .filter((s): s is ShelfSlot => typeof (s as ShelfSlot)?.id === 'string')
-            .map((s) => (typeof s.flat === 'number' ? { id: s.id, flat: s.flat } : { id: s.id }))
+            .map((s) => ({
+              id: s.id,
+              ...(typeof s.flat === 'number' ? { flat: s.flat } : {}),
+              ...(typeof s.decor === 'string' && decorOf(s.decor) ? { decor: s.decor } : {}),
+            }))
         : [],
     ),
+    ...(wood ? { wood } : {}),
+    ...(back ? { back } : {}),
+    ...(decals.length ? { decals } : {}),
   };
+}
+
+/** How much shelf an object takes, and how tall it stands, in the bookcase's pixels. */
+export function decorSize(kind: string): { w: number; h: number } {
+  const d = decorOf(kind);
+  return d ? { w: d.w * 3 + 2, h: d.h * 3 } : { w: 40, h: 60 };
 }
 
 /**
@@ -96,7 +183,7 @@ export function settle(layout: ShelfLayout, books: readonly BookSpec[]): ShelfSl
   const seen = new Set<string>();
   const rows = layout.rows.map((row) =>
     row.filter((slot) => {
-      if (!known.has(slot.id) || seen.has(slot.id)) return false;
+      if ((!slot.decor && !known.has(slot.id)) || seen.has(slot.id)) return false;
       seen.add(slot.id);
       return true;
     }),
@@ -135,25 +222,52 @@ export function layOut(
     const spill: ShelfSlot[] = [];
     for (const slot of standing) {
       const spec = byId.get(slot.id);
-      if (!spec) continue;
-      const w = spineOf(spec);
-      if (x + w > width && placed.length > 0) {
+      if (!spec && !slot.decor) continue;
+      const size = slot.decor
+        ? decorSize(slot.decor)
+        : { w: spineOf(spec as BookSpec), h: heightOf(spec as BookSpec) };
+      if (x + size.w > width && placed.length > 0) {
         spill.push(slot);
         continue;
       }
-      placed.push({ id: slot.id, x, y: 0, w, h: heightOf(spec), lean: 0, flat: false });
-      x += w;
+      placed.push({
+        id: slot.id,
+        x,
+        y: 0,
+        w: size.w,
+        h: size.h,
+        lean: 0,
+        flat: false,
+        ...(slot.decor ? { decor: slot.decor } : {}),
+      });
+      x += size.w;
     }
     const end = x;
     // Lying books keep clear of the standing run and of the far wall, and pile where they meet.
     const flats: PlacedBook[] = [];
     for (const slot of lying) {
+      if (slot.decor) {
+        // An object put down out along the shelf stands where it was put.
+        const size = decorSize(slot.decor);
+        const at = Math.round(Math.min(width - size.w, Math.max(end + 2, slot.flat ?? 0)));
+        flats.push({
+          id: slot.id,
+          x: at,
+          y: 0,
+          w: size.w,
+          h: size.h,
+          lean: 0,
+          flat: false,
+          decor: slot.decor,
+        });
+        continue;
+      }
       const spec = byId.get(slot.id);
       if (!spec) continue;
       const w = spineOf(spec);
       const h = heightOf(spec);
       const at = Math.round(Math.min(width - h, Math.max(end + 6, slot.flat ?? 0)));
-      const under = flats.filter((f) => at < f.x + f.h && at + h > f.x);
+      const under = flats.filter((f) => f.flat && at < f.x + f.h && at + h > f.x);
       const y = under.reduce((top, f) => Math.max(top, f.y + f.w), 0);
       if (y + w > SHELF_CLEAR - 30) {
         spill.push({ id: slot.id });
@@ -165,7 +279,8 @@ export function layOut(
     const last = placed[placed.length - 1];
     const prev = placed[placed.length - 2];
     const room = (flats.length ? Math.min(...flats.map((f) => f.x)) : width) - end;
-    if (last && prev && room > 24) {
+    // Only a book leans; an object stands. A book leans on an object as on a bookend.
+    if (last && prev && room > 24 && !last.decor) {
       const t = (LEAN * Math.PI) / 180;
       const touch = Math.min(prev.h, last.h * Math.cos(t));
       last.x = Math.round(prev.x + prev.w + touch * Math.tan(t));
@@ -202,15 +317,27 @@ export function dropInto(
   const placed = layOut([target], books, 1, width)[0];
   const end = placed?.end ?? 0;
   const byId = new Map(books.map((b) => [b.id, b]));
+  // Objects keep what they are as they move.
+  const decorOfId = new Map<string, string>();
+  for (const r of rows) for (const s of r) if (s.decor) decorOfId.set(s.id, s.decor);
+  for (const id of ids)
+    if (!decorOfId.has(id) && id.startsWith('decor:')) decorOfId.set(id, id.split(':')[1] ?? '');
+  const widthOf = (id: string): number => {
+    const d = decorOfId.get(id);
+    if (d) return decorSize(d).w;
+    const spec = byId.get(id);
+    return spec ? spineOf(spec) : 30;
+  };
   // Measured from the book's own near edge: one put down against the wall, or against the end of
   // the run, is held up, however thick it is.
-  const first = byId.get(ids[0] ?? '');
-  const near = x - (first ? spineOf(first) : 30) / 2;
+  const near = x - widthOf(ids[0] ?? '') / 2;
   if (near > end + REACH) {
     // Nothing to lean on: over it goes, centred where it was let go. Several dropped together
     // fall in a pile.
     target.push(
       ...ids.map((id) => {
+        const d = decorOfId.get(id);
+        if (d) return { id, decor: d, flat: Math.round(x - decorSize(d).w / 2) };
         const spec = byId.get(id);
         return { id, flat: Math.round(x - (spec ? heightOf(spec) : 220) / 2) };
       }),
@@ -225,7 +352,11 @@ export function dropInto(
       : slots.length
         ? target.indexOf(slots[slots.length - 1] as ShelfSlot) + 1
         : 0;
-    target.splice(index, 0, ...ids.map((id) => ({ id })));
+    target.splice(
+      index,
+      0,
+      ...ids.map((id) => (decorOfId.get(id) ? { id, decor: decorOfId.get(id) as string } : { id })),
+    );
   }
   next[row] = target;
   // Trailing empty shelves are not worth keeping; layOut adds the one to put things on.
