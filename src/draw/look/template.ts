@@ -9,6 +9,25 @@
 import { escapeHtml } from '~/draw/type/text.ts';
 
 export type PageTemplate = 'cornell' | 'kanban';
+
+/**
+ * A tracker's column: what it is called, and which issues belong in it -- open or closed, and
+ * carrying these labels -- with an optional limit on how many may be in it at once.
+ */
+export interface TrackerColumn {
+  title: string;
+  state: 'open' | 'closed';
+  labels?: string[];
+  /** Work in progress allowed; more than this and the column says so. */
+  limit?: number;
+}
+
+/** The three columns a tracker starts with. */
+export const DEFAULT_COLUMNS: readonly TrackerColumn[] = [
+  { title: 'to do', state: 'open' },
+  { title: 'doing', state: 'open', labels: ['doing'], limit: 3 },
+  { title: 'done', state: 'closed' },
+];
 export const TEMPLATES: readonly PageTemplate[] = ['cornell', 'kanban'];
 
 /** The template as an SVG layer the size of the page, or nothing. */
@@ -17,6 +36,8 @@ export function templateLayer(
   width: number,
   height: number,
   ink: string,
+  /** For a Kanban page: its own columns. Three, to do / doing / done, when it has none. */
+  columns?: readonly TrackerColumn[],
 ): string {
   if (kind !== 'cornell' && kind !== 'kanban') return '';
   const stroke = `stroke="${escapeHtml(ink)}" stroke-opacity="0.38" stroke-width="1.5"`;
@@ -35,7 +56,9 @@ export function templateLayer(
       text(cue + 12, 22, 'NOTES') +
       text(28, foot + 20, 'SUMMARY');
   } else {
-    const cols = ['TO DO', 'DOING', 'DONE'];
+    const cols = (columns?.length ? columns : DEFAULT_COLUMNS).map(
+      (c) => `${c.title.toUpperCase()}${c.limit ? `  ·  MAX ${c.limit}` : ''}`,
+    );
     const w = (width - 48) / cols.length;
     body = cols
       .map((name, i) => {

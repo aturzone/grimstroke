@@ -8,6 +8,8 @@ export const REMOTE = `/* ---- repository cards ---- */
 :is(.board, .leaf-items) .item:has(> .remote-block) { width: var(--card-width, 320px); }
 .rc {
   position: relative;
+  overflow: hidden;
+  container-type: inline-size;
   display: grid;
   gap: 8px;
   padding: 12px 14px 12px;
@@ -155,9 +157,19 @@ export const REMOTE = `/* ---- repository cards ---- */
 .rc-row-closed .rc-dot { background: #7c3aed; }
 .rc-row-merged .rc-dot { background: #6b21a8; }
 .rc-row-n { flex: none; font-family: var(--mono-font); font-size: 11px; color: #5b5a55; }
-.rc-row-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-row-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rc-row-more, .rc-empty { margin: 0; color: #8a8f98; font-size: 12px; }
 .rc-loading { opacity: 0.75; }
+/* A narrow card -- a tracker column -- keeps what matters: the title, the rows, the count. */
+@container (max-width: 190px) {
+  .rc-where, .rc-seen, .rc-tag { display: none; }
+  .rc { gap: 6px; padding: 10px 10px 8px; }
+  .rc-title { font-size: 17px; }
+  .rc-row-n { display: none; }
+}
+/* A tracker column over its limit: said on the card, in red, without shouting. */
+.rc-query.is-over { box-shadow: 4px 5px 0 rgba(192, 38, 45, 0.35); border-color: #c0262d; }
+.rc-over { color: #c0262d; font-weight: 700; }
 /* Printed, a card keeps its box and its line; the controls that only a live page can answer
    are drawn as what they are on paper. */
 :where(body:not(.live)) :is(.rc-send, .rc-open) { display: none; }

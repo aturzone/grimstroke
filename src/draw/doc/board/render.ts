@@ -147,7 +147,7 @@ export function renderBoard(spec: BoardSpec, options: BoardRenderOptions = {}): 
     // A page's template is printed on its paper, under everything placed on it.
     spec.sheet && spec.template
       ? `<div class="board-template" style="left:${-ox}px;top:${-oy}px">` +
-        `${templateLayer(spec.template, width, height, ctx.pal.ink)}</div>`
+        `${templateLayer(spec.template, width, height, ctx.pal.ink, spec.tracker)}</div>`
       : '',
     drawn,
     '</div>',

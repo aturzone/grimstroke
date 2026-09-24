@@ -19,7 +19,7 @@
 import type { Direction } from '~/draw/doc/model.ts';
 import type { RemoteLink } from '~/draw/doc/remote/model.ts';
 import type { PaperKind } from '~/draw/look/grid.ts';
-import type { PageTemplate } from '~/draw/look/template.ts';
+import type { PageTemplate, TrackerColumn } from '~/draw/look/template.ts';
 import type { Block } from '~/draw/material/model.ts';
 
 export type InkTool = 'pen' | 'marker' | 'highlighter' | 'pencil';
@@ -76,6 +76,8 @@ export interface BoardSpec {
   paper?: PaperKind;
   /** On a page of a notebook: the layout printed on it (see look/template.ts). */
   template?: PageTemplate;
+  /** On a tracker page: its columns. */
+  tracker?: TrackerColumn[];
   grain?: boolean | number;
   fonts?: { body?: string; mono?: string; hand?: string; marker?: string };
   digits?: 'latn' | 'arab' | 'arabext';

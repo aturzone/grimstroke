@@ -206,4 +206,10 @@ export const TRAY = `/* ---- the tray ---- */
 .gs-drawer-add { flex: none; font-size: 18px; }
 .gs-drawer-foot { display: flex; flex-wrap: wrap; gap: 6px; }
 .gs-drawer-foot .gs-btn { border: 1.5px solid var(--gs-line); }
+.gs-tracker { width: min(620px, calc(100vw - 24px)); }
+.gs-tracker .gs-drawer-note { padding: 6px 16px 0; }
+.gs-tracker-rows { display: grid; gap: 6px; padding: 10px 16px; }
+.gs-tracker-row { display: grid; grid-template-columns: 1.2fr 0.8fr 1.6fr 0.6fr auto; gap: 6px; align-items: center; }
+.gs-tracker-row .gs-field { margin: 0; min-width: 0; }
+.gs-tracker > form > .gs-btn { margin: 0 16px; border: 1.5px solid var(--gs-line); }
 `;

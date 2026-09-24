@@ -285,7 +285,7 @@ function renderLeaf(
   // whole reason the numbers are there, and an unwritten page is still a place.
   const folio = `<span class="leaf-folio">${label(String(number + 1), false)}</span>`;
   const [w, h] = leafSize(spec);
-  const template = templateLayer(leaf.template ?? spec.template, w, h, ctx.pal.ink);
+  const template = templateLayer(leaf.template ?? spec.template, w, h, ctx.pal.ink, leaf.tracker);
   return (
     `<div class="leaf leaf-${side}" data-gs="leaf" data-gs-id="${escapeHtml(leaf.id)}" ` +
     `data-gs-index="${number}" style="${style}">` +

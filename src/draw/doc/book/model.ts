@@ -16,7 +16,7 @@ import type { BoardItem } from '~/draw/doc/board/model.ts';
 import type { Direction } from '~/draw/doc/model.ts';
 import type { RemoteLink } from '~/draw/doc/remote/model.ts';
 import type { PaperKind } from '~/draw/look/grid.ts';
-import type { PageTemplate } from '~/draw/look/template.ts';
+import type { PageTemplate, TrackerColumn } from '~/draw/look/template.ts';
 import type { Block } from '~/draw/material/model.ts';
 import type { Portrait, Profile } from '~/draw/material/profile/model.ts';
 
@@ -98,6 +98,8 @@ export interface Leaf {
   paper?: PaperKind;
   /** A layout printed on this page, under what is on it. Falls back to the book's. */
   template?: PageTemplate;
+  /** A tracker page's own columns (see look/template.ts). */
+  tracker?: TrackerColumn[];
   /**
    * What is on the page, placed: exactly a board's items, in the page's own pixels from its
    * top-left corner. A page IS a small board with an edge -- notes, pictures, ink, labels,

@@ -426,6 +426,7 @@ export async function remoteApi(ask: Ask, live: Live): Promise<boolean> {
         kind?: RemoteRef['kind'];
         id?: string;
         at?: [number, number];
+        size?: [number];
       };
       const address = body.board ?? ask.board;
       const link = await linkOf(live, address);
@@ -480,7 +481,7 @@ export async function remoteApi(ask: Ask, live: Live): Promise<boolean> {
         at: body.at ?? freeSpot(spec),
         z: topZ(spec) + 1,
         // Two to a row on a page; roomier on a board.
-        size: [spec.sheet ? 238 : block.ref?.kind === 'pipeline' ? 280 : 320],
+        size: body.size ?? [spec.sheet ? 238 : block.ref?.kind === 'pipeline' ? 280 : 320],
         rotation: Math.round((Math.random() - 0.5) * 3 * 10) / 10,
         block,
       };

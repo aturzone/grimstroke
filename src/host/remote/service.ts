@@ -141,7 +141,12 @@ export class RemoteService {
       ...(q.search ? { search: q.search } : {}),
       perPage: Math.min(50, (q.limit ?? 8) + 1),
     } as const;
-    return q.of === 'merges' ? r.merges(q.repo, query) : r.issues(q.repo, query);
+    const rows = q.of === 'merges' ? await r.merges(q.repo, query) : await r.issues(q.repo, query);
+    const without = new Set(q.without ?? []);
+    // Not every service can leave labels out of a list, so it is done here, for all of them.
+    return without.size
+      ? rows.filter((row) => !('labels' in row) || !row.labels.some((l) => without.has(l.name)))
+      : rows;
   }
 
   /** Do something to an issue on its service, and answer with it as it now is. */

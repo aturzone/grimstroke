@@ -233,14 +233,20 @@ function queryCard(q: RemoteQuery, block: RemoteBlock): string {
     (block.rows?.length ?? 0) > (q.limit ?? 8)
       ? `<li class="rc-row-more">and more on ${esc(q.host)}</li>`
       : '';
+  const count = block.rows?.length ?? 0;
+  const over = q.wip !== undefined && count > q.wip;
+  const tally = q.wip !== undefined ? `${count} / ${q.wip}` : String(count);
   return (
-    `<article class="rc rc-query" data-gs="remote" data-remote-kind="query">` +
+    `<article class="rc rc-query${over ? ' is-over' : ''}" data-gs="remote" data-remote-kind="query">` +
     header(q, 'live list') +
     `<h3 class="rc-title">${esc(queryTitle(q))}</h3>` +
     (rows
       ? `<ol class="rc-rows">${rows}${more}</ol>`
       : '<p class="rc-empty">nothing, as last seen</p>') +
-    footer(block, `<span class="rc-count">${block.rows?.length ?? 0}</span>`) +
+    footer(
+      block,
+      `<span class="rc-count${over ? ' rc-over' : ''}" title="${over ? 'over the limit' : 'how many'}">${esc(tally)}</span>`,
+    ) +
     '</article>'
   );
 }

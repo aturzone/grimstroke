@@ -125,6 +125,7 @@ export class Live {
       ...(book.direction ? { direction: book.direction } : {}),
       paper: leaf.paper ?? book.paper ?? 'ruled',
       ...((leaf.template ?? book.template) ? { template: leaf.template ?? book.template } : {}),
+      ...(leaf.tracker ? { tracker: leaf.tracker } : {}),
       ...(book.grain !== undefined ? { grain: book.grain } : {}),
       ...(book.fonts ? { fonts: book.fonts } : {}),
       ...(book.digits ? { digits: book.digits } : {}),
@@ -171,6 +172,7 @@ export class Live {
           items: spec.items,
           ...(spec.paper ? { paper: spec.paper } : {}),
           ...(spec.template !== (book.template ?? undefined) ? { template: spec.template } : {}),
+          ...(spec.tracker ? { tracker: spec.tracker } : {}),
         },
       },
     ]);

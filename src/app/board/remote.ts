@@ -16,6 +16,7 @@ import { confirmCard, toast } from '~/app/chrome.ts';
 import { typing } from '~/app/dom.ts';
 import type { BoardItem } from '~/draw/doc/board/model.ts';
 import { type Provider, type RemoteLink, refFromUrl } from '~/draw/doc/remote/model.ts';
+import { DEFAULT_COLUMNS, type TrackerColumn } from '~/draw/look/template.ts';
 import { renderStickerFace } from '~/draw/material/sticker/render.ts';
 
 const NAMES: Record<Provider, string> = { github: 'GitHub', gitlab: 'GitLab', gitea: 'Gitea' };
@@ -474,23 +475,55 @@ export class RemoteCards {
 
   // ---------------------------------------------------------------- the tracker
 
+  /** The page's tracker columns: its own, or the three a tracker starts with. */
+  private get trackerColumns(): readonly TrackerColumn[] {
+    return this.ctx.session.spec.tracker?.length ? this.ctx.session.spec.tracker : DEFAULT_COLUMNS;
+  }
+
   /**
-   * A page as a Kanban board over the repository: three live lists, one per column -- open,
-   * in progress (labelled 'doing'), and recently closed -- printed on Kanban paper. Moving an
-   * issue card from one column to another changes it on the service to match.
+   * A page as a Kanban board over the repository, with columns you choose: each is a title, the
+   * issues that belong in it (open or closed, carrying which labels), and a limit on how many
+   * may be in it. Each column is a live list; moving an issue card from one column to another
+   * changes it on the service to match -- closed or reopened, its labels swapped.
    */
   private async makeTracker(): Promise<void> {
+    const columns = await editColumns(this.trackerColumns);
+    if (!columns) return;
     const spec = this.ctx.session.spec;
-    const [w] = spec.extent ? [spec.extent[2] - spec.extent[0]] : [560];
-    const col = (w - 48) / 3;
-    this.ctx.session.run([{ op: 'board', patch: { template: 'kanban' } as never }], 'tracker');
-    const columns = [
-      { title: 'to do', query: { of: 'issues', state: 'open' } },
-      { title: 'doing', query: { of: 'issues', state: 'open', labels: ['doing'] } },
-      { title: 'done', query: { of: 'issues', state: 'closed', limit: 6 } },
-    ];
+    const w = spec.extent ? spec.extent[2] - spec.extent[0] : 560;
+    const col = (w - 48) / columns.length;
+    // The lists of an earlier shape of this tracker go; the issue cards stay where they are.
+    const old = spec.items.filter(
+      (i) => i.block?.kind === 'remote' && i.block.query?.column !== undefined,
+    );
+    this.ctx.session.run(
+      [
+        ...old.map((i) => ({ op: 'remove' as const, id: i.id })),
+        { op: 'board', patch: { template: 'kanban', tracker: columns } as never },
+      ],
+      'tracker',
+    );
+    const openLabels = columns.filter((c) => c.state === 'open').flatMap((c) => c.labels ?? []);
     for (const [i, c] of columns.entries()) {
-      await this.place({ query: { ...c.query, title: c.title } }, [Math.round(28 + i * col), 64]);
+      // A column with no labels of its own is everything open (or closed) that no other column
+      // claims.
+      const without = c.labels?.length ? [] : openLabels;
+      await this.place(
+        {
+          size: [Math.round(col - 8)],
+          query: {
+            of: 'issues',
+            state: c.state,
+            ...(c.labels?.length ? { labels: c.labels } : {}),
+            ...(without.length && c.state === 'open' ? { without } : {}),
+            title: c.title,
+            ...(c.limit ? { wip: c.limit } : {}),
+            column: i,
+            limit: 6,
+          },
+        },
+        [Math.round(28 + i * col), 60],
+      );
     }
     toast('a tracker: move an issue card between the columns to change it on the service');
     window.setTimeout(() => window.location.reload(), 400);
@@ -499,9 +532,10 @@ export class RemoteCards {
   private columnOf(item: BoardItem): number | undefined {
     const spec = this.ctx.session.spec;
     if (spec.template !== 'kanban' || !spec.extent) return undefined;
+    const n = this.trackerColumns.length;
     const w = spec.extent[2] - spec.extent[0];
     const middle = item.at[0] + (item.size?.[0] ?? 320) / 2;
-    return Math.max(0, Math.min(2, Math.floor(((middle - 24) / (w - 48)) * 3)));
+    return Math.max(0, Math.min(n - 1, Math.floor(((middle - 24) / (w - 48)) * n)));
   }
 
   private rememberColumns(): void {
@@ -519,29 +553,45 @@ export class RemoteCards {
   }
 
   private async checkColumns(): Promise<void> {
+    const columns = this.trackerColumns;
     for (const item of this.ctx.session.spec.items) {
       if (item.block?.kind !== 'remote' || item.block.ref?.kind !== 'issue') continue;
       const was = this.columns.get(item.id);
       const now = this.columnOf(item);
       if (now === undefined || was === undefined || was === now) continue;
       this.columns.set(item.id, now);
+      const target = columns[now];
+      if (!target) continue;
       const n = item.block.ref.id;
-      const closed = (item.block.seen as { state?: string } | undefined)?.state === 'closed';
-      const plan: Array<{ what: string; body: Record<string, unknown> }> =
-        now === 2
-          ? [{ what: `Close #${n}`, body: { action: 'close' } }]
-          : now === 1
-            ? [
-                ...(closed ? [{ what: `Reopen #${n}`, body: { action: 'reopen' } }] : []),
-                { what: `Label #${n} “doing”`, body: { action: 'label', add: ['doing'] } },
-              ]
-            : [
-                ...(closed ? [{ what: `Reopen #${n}`, body: { action: 'reopen' } }] : []),
-                { what: `Take “doing” off #${n}`, body: { action: 'label', remove: ['doing'] } },
-              ];
-      if (!(await this.allowed(plan.map((p) => p.what).join(', ')))) continue;
+      const seen = item.block.seen as
+        | { state?: string; labels?: Array<{ name: string }> }
+        | undefined;
+      const has = new Set((seen?.labels ?? []).map((l) => l.name));
+      const want = new Set(target.labels ?? []);
+      // Labels that belong to the other columns come off; this column's go on.
+      const others = new Set(
+        columns.flatMap((c) => c.labels ?? []).filter((l) => !want.has(l) && has.has(l)),
+      );
+      const add = [...want].filter((l) => !has.has(l));
+      const plan: Array<{ what: string; body: Record<string, unknown> }> = [];
+      if (target.state === 'closed' && seen?.state !== 'closed')
+        plan.push({ what: `Close #${n}`, body: { action: 'close' } });
+      if (target.state === 'open' && seen?.state === 'closed')
+        plan.push({ what: `Reopen #${n}`, body: { action: 'reopen' } });
+      if (add.length || others.size) {
+        plan.push({
+          what: `${add.length ? `label #${n} ${add.map((l) => `“${l}”`).join(', ')}` : ''}${add.length && others.size ? ', ' : ''}${others.size ? `take ${[...others].map((l) => `“${l}”`).join(', ')} off` : ''}`,
+          body: {
+            action: 'label',
+            ...(add.length ? { add } : {}),
+            ...(others.size ? { remove: [...others] } : {}),
+          },
+        });
+      }
+      if (!plan.length) continue;
+      if (!(await this.allowed(plan.map((p) => p.what).join('; ')))) continue;
       for (const step of plan) await this.act(item.id, step.body);
-      toast(`#${n} moved to ${['to do', 'doing', 'done'][now]}`);
+      toast(`#${n} moved to ${target.title}`);
     }
   }
 
@@ -597,4 +647,82 @@ export class RemoteCards {
   }
 
   private lastStroke: string | undefined;
+}
+
+/**
+ * The tracker's columns, edited in a small card: a row per column -- its title, open or closed,
+ * the labels that put an issue in it, and its limit -- with rows added and taken away.
+ */
+function editColumns(start: readonly TrackerColumn[]): Promise<TrackerColumn[] | undefined> {
+  return new Promise((done) => {
+    const dialog = el('dialog', 'gs-dialog gs-tracker');
+    dialog.setAttribute('aria-label', 'the tracker’s columns');
+    const form = el('form');
+    form.method = 'dialog';
+    const head = el('header', 'gs-dialog-head');
+    head.append(el('h2', '', 'the tracker’s columns'));
+    const note = el(
+      'p',
+      'gs-drawer-note',
+      'Each column is a live list. An issue moved into a column is closed or reopened to match, and gets that column’s labels.',
+    );
+    const rows = el('div', 'gs-tracker-rows');
+    const row = (c: TrackerColumn): void => {
+      const r = el('div', 'gs-tracker-row');
+      r.innerHTML =
+        '<input class="gs-field" data-f="title" placeholder="title" aria-label="column title">' +
+        '<select class="gs-field" data-f="state" aria-label="open or closed"><option value="open">open</option><option value="closed">closed</option></select>' +
+        '<input class="gs-field" data-f="labels" placeholder="labels, with commas" aria-label="labels">' +
+        '<input class="gs-field" data-f="limit" type="number" min="0" placeholder="max" aria-label="limit">' +
+        '<button type="button" class="gs-btn gs-btn-icon" data-f="drop" aria-label="take this column away">×</button>';
+      (r.querySelector('[data-f="title"]') as HTMLInputElement).value = c.title;
+      (r.querySelector('[data-f="state"]') as HTMLSelectElement).value = c.state;
+      (r.querySelector('[data-f="labels"]') as HTMLInputElement).value = (c.labels ?? []).join(
+        ', ',
+      );
+      (r.querySelector('[data-f="limit"]') as HTMLInputElement).value = c.limit
+        ? String(c.limit)
+        : '';
+      r.querySelector('[data-f="drop"]')?.addEventListener('click', () => r.remove());
+      rows.append(r);
+    };
+    for (const c of start) row(c);
+    const add = el('button', 'gs-btn', 'add a column');
+    add.type = 'button';
+    add.dataset.gs = 'tracker-add';
+    add.addEventListener('click', () =>
+      row({ title: 'review', state: 'open', labels: ['review'] }),
+    );
+    const actions = el('div', 'gs-dialog-actions');
+    actions.innerHTML =
+      '<button class="gs-btn" value="cancel" formnovalidate>not now</button>' +
+      '<button class="gs-btn gs-btn-primary" value="make" data-gs="tracker-make">make the tracker</button>';
+    form.append(head, note, rows, add, actions);
+    dialog.append(form);
+    dialog.addEventListener('close', () => {
+      const columns = [...rows.querySelectorAll<HTMLElement>('.gs-tracker-row')]
+        .map((r): TrackerColumn => {
+          const labels = (r.querySelector('[data-f="labels"]') as HTMLInputElement).value
+            .split(',')
+            .map((l) => l.trim())
+            .filter(Boolean);
+          const limit = Number((r.querySelector('[data-f="limit"]') as HTMLInputElement).value);
+          return {
+            title:
+              (r.querySelector('[data-f="title"]') as HTMLInputElement).value.trim() || 'column',
+            state:
+              (r.querySelector('[data-f="state"]') as HTMLSelectElement).value === 'closed'
+                ? 'closed'
+                : 'open',
+            ...(labels.length ? { labels } : {}),
+            ...(limit > 0 ? { limit } : {}),
+          };
+        })
+        .slice(0, 6);
+      dialog.remove();
+      done(dialog.returnValue === 'make' && columns.length ? columns : undefined);
+    });
+    document.body.append(dialog);
+    dialog.showModal();
+  });
 }

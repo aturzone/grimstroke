@@ -114,6 +114,12 @@ export interface RemoteQuery extends RemoteLink {
   limit?: number;
   /** Shown above the list. */
   title?: string;
+  /** A tracker column's limit on work in progress: over it, the card says so. */
+  wip?: number;
+  /** Which column of a tracker page this list is. */
+  column?: number;
+  /** Leave out anything carrying one of these labels -- another column's. */
+  without?: string[];
 }
 
 /**
