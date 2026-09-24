@@ -111,6 +111,14 @@ turned and resized like any sticker. `cover` with `profile` still works: set, it
 
 `POST /api/books` with `{ "title" }` makes a notebook and answers with its id.
 
+`GET /api/export/book?id=` is the notebook as one PDF: `{ print, save, pageSize, pages, contents }`.
+`contents` is one line per written page -- its topmost heading, or its first words -- with the
+page number printed on it. `print` is `/print?book=<id>`, the page that holds the cover, the
+contents and every written page, one sheet each at the notebook's page size (`@page` is set, so
+there are no margins to choose); a browser prints it to PDF, and `save` opens the print dialog
+by itself. Blank pages after the last written one are left out. In the notebook, **PDF** on the
+bar goes there.
+
 ## The bookcase, and throwing away
 
 | | |

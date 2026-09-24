@@ -20,6 +20,12 @@ export function bookChrome(spec: BookSpec): string {
     button({ gs: 'cover-open', label: 'the cover', icon: 'cover', text: 'cover' }) +
     button({ gs: 'page-setup', label: 'page size and template', icon: 'leaf', text: 'page' }) +
     button({
+      gs: 'book-pdf',
+      label: 'the whole notebook as a PDF',
+      icon: 'export',
+      text: 'PDF',
+    }) +
+    button({
       gs: 'repo-open',
       label: spec.remote ? `connected to ${spec.remote.repo}` : 'connect a repository',
       icon: 'branch',
@@ -36,6 +42,7 @@ export function bookChrome(spec: BookSpec): string {
     item({ gs: 'add-leaf', text: 'add a leaf', icon: 'leaf' }) +
     item({ gs: 'cover-open', text: 'the cover', icon: 'cover' }) +
     item({ gs: 'page-setup', text: 'page size and template', icon: 'leaf' }) +
+    item({ gs: 'book-pdf', text: 'the whole notebook as a PDF', icon: 'export' }) +
     item({
       gs: 'repo-open',
       text: spec.remote ? 'the repository' : 'connect a repository',

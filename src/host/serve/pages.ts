@@ -11,6 +11,7 @@ import { bookChrome } from '~/draw/chrome/book.ts';
 import { renderProfilePage } from '~/draw/chrome/profile.ts';
 import { shelfChrome } from '~/draw/chrome/shelf.ts';
 import { renderBoard } from '~/draw/doc/board/render.ts';
+import { renderPrint } from '~/draw/doc/book/print.ts';
 import { renderSpread } from '~/draw/doc/book/render.ts';
 import { renderShelf } from '~/draw/doc/shelf/render.ts';
 import { type Ask, html } from '~/host/serve/http.ts';
@@ -53,6 +54,15 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
       closed: url.searchParams.has('opening') && !url.searchParams.has('leaf'),
       live: { chrome: bookChrome(spec), scripts: APP },
     });
+    live.allow(rendered.assets);
+    html(res, rendered.html);
+    return true;
+  }
+
+  // A notebook printed whole: the cover, the contents, every written page. Saved as a PDF.
+  if (path === '/print') {
+    const spec = await live.book(url.searchParams.get('book') ?? 'notebook');
+    const rendered = renderPrint(spec, { scripts: APP });
     live.allow(rendered.assets);
     html(res, rendered.html);
     return true;

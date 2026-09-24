@@ -12,8 +12,9 @@ import { extname, join } from 'node:path';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import { apply, type Op, PatchError, topZ } from '~/draw/doc/board/patch.ts';
 import { extentOf, renderBoard, renderOneItem } from '~/draw/doc/board/render.ts';
-import { bookTitle, boundLeaves } from '~/draw/doc/book/model.ts';
+import { bookTitle, boundLeaves, leafSize } from '~/draw/doc/book/model.ts';
 import { apply as applyBook, type BookOp, BookPatchError } from '~/draw/doc/book/patch.ts';
+import { contentsOf, printedLeaves } from '~/draw/doc/book/print.ts';
 import { renderCover, renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { search } from '~/draw/doc/search.ts';
 import { BACKS, type Decal, type ShelfLayout, settle, WOODS } from '~/draw/doc/shelf/model.ts';
@@ -642,6 +643,22 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     });
     const reply = moves.length ? await applyBoard(live, address, moves) : undefined;
     send(res, 200, { moved: moves.length, measured: report.measured, reply });
+    return true;
+  }
+
+  // A notebook as one PDF: what it will hold, and the page that makes it. The PDF itself is
+  // written by a browser's print -- the page sets the paper size -- so the words stay words.
+  if (path === '/api/export/book') {
+    const id = url.searchParams.get('id') ?? ((await readBody(req)) as { id?: string }).id ?? '';
+    const spec = await live.book(id);
+    const print = `/print?book=${encodeURIComponent(spec.id)}`;
+    send(res, 200, {
+      print,
+      save: `${print}&print`,
+      pageSize: leafSize(spec),
+      pages: printedLeaves(spec).length,
+      contents: contentsOf(spec),
+    });
     return true;
   }
 

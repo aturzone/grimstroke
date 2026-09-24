@@ -716,3 +716,83 @@ body.on-book { overflow-x: clip; }
   .book3d-stage, .flipper, .flip-shade { transition: none; }
 }
 `;
+
+/** A notebook printed whole: one sheet per page, at the page's own size. */
+export const PRINT_BOOK = `/* ---- the notebook, printed ----
+
+   On screen, the sheets stand in a column on the desk with a bar to save them; in print, each
+   sheet is a page of the PDF and nothing else is. */
+body.on-print { display: block; overflow: auto; }
+.print-bar {
+  position: sticky;
+  box-sizing: border-box;
+  width: 100%;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--mono-font);
+  font-size: 13px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+.print-count { flex: 1; color: color-mix(in oklab, var(--ink) 60%, transparent); }
+@media (max-width: 640px) {
+  .print-count { display: none; }
+  .print-bar { justify-content: space-between; }
+}
+.print-back { color: inherit; }
+.print-save {
+  padding: 8px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--paper);
+  font: inherit;
+  cursor: pointer;
+}
+.print-book { display: grid; justify-content: center; gap: 28px; padding: 28px 16px 60px; }
+.print-sheet {
+  position: relative;
+  width: var(--leaf-width);
+  height: var(--leaf-height);
+  overflow: hidden;
+  background: var(--paper);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  break-after: page;
+  break-inside: avoid;
+}
+/* A printed page lies flat: no shadow into a spine it is no longer bound to. */
+.print-sheet > .leaf {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background-image: var(--paper-rule, none);
+  background-size: var(--paper-rule-size, auto);
+  background-repeat: repeat;
+  box-shadow: none;
+}
+.print-sheet > .leaf::before { display: none; }
+.print-sheet .gs-leaf-edit { display: none; }
+.print-cover > .cover { position: absolute; inset: 0; }
+.print-toc-page { height: 100%; padding: 64px 52px; color: var(--ink); font-family: var(--body-font); }
+.print-toc-title { margin: 0 0 6px; font-family: var(--marker-font); font-size: 40px; font-weight: 400; line-height: 1.05; }
+.print-toc-kicker { margin: 0 0 28px; font-family: var(--mono-font); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.7; }
+.print-toc { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 15px; }
+.print-toc li { display: flex; align-items: baseline; gap: 8px; }
+.print-toc-words { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.print-toc-dots { flex: 1; min-width: 20px; border-block-end: 1.5px dotted currentColor; opacity: 0.45; }
+.print-toc-page-no { font-family: var(--mono-font); font-variant-numeric: tabular-nums; }
+/* Narrower than a page, the sheets are shown smaller (the app sets how much: calc() cannot
+   divide a length by a length), so the whole of each can be seen before it is saved. */
+.print-sheet { zoom: var(--sheet-zoom, 1); }
+@media print {
+  .print-bar { display: none; }
+  body.on-print { background: none; }
+  .print-book { display: block; padding: 0; }
+  .print-sheet { box-shadow: none; zoom: 1; }
+}
+`;

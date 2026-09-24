@@ -24,7 +24,7 @@ import { STUDIO } from '~/draw/chrome/css/studio.ts';
 import { TOP } from '~/draw/chrome/css/top.ts';
 import { TRAY } from '~/draw/chrome/css/tray.ts';
 import { BOARD } from '~/draw/doc/board/css.ts';
-import { BOOK_SCALE, COVER, FLIP, PAGES, SHELF, SPREAD } from '~/draw/doc/book/css.ts';
+import { BOOK_SCALE, COVER, FLIP, PAGES, PRINT_BOOK, SHELF, SPREAD } from '~/draw/doc/book/css.ts';
 import { DESK, RESET, SCRIPT } from '~/draw/doc/css.ts';
 import { PAGE_LAYOUT, PAGE_SHEET } from '~/draw/doc/page/css.ts';
 import { BOOKCASE } from '~/draw/doc/shelf/css.ts';
@@ -42,7 +42,17 @@ export const BASE = [RESET, PAGE_LAYOUT, BLOCKS, PLATE, CODE, MOUNT].join('');
 export const ZINE = [PAGE_SHEET, PLATE_LAYER, TAPE, REDACT].join('');
 
 /** The notebook: the desk, the spread, covers, the shelf, the turn. */
-export const BOOK = [DESK, SPREAD, COVER, SHELF, BOOKCASE, FLIP, PAGES, BOOK_SCALE].join('');
+export const BOOK = [
+  DESK,
+  SPREAD,
+  COVER,
+  SHELF,
+  BOOKCASE,
+  FLIP,
+  PAGES,
+  BOOK_SCALE,
+  PRINT_BOOK,
+].join('');
 
 /** The live surface: the camera, the tray, the bar, and every panel. */
 export const LIVE = [
@@ -91,6 +101,7 @@ export const PIECES: Readonly<Record<string, string>> = {
   FLIP,
   PAGES,
   BOOK_SCALE,
+  PRINT_BOOK,
   TOKENS,
   KIT,
   CAMERA,

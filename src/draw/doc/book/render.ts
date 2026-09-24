@@ -261,7 +261,7 @@ export function renderOneLeaf(
   return { html: renderLeaf(leaves[index], index, spec, ctx, side), assets: ctx.assets };
 }
 
-function renderLeaf(
+export function renderLeaf(
   leaf: Leaf | undefined,
   number: number,
   spec: BookSpec,

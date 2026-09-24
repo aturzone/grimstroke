@@ -48,7 +48,9 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
     'POST /api/books/batch': 'archive, unarchive or delete several { ids, action }',
     'GET /api/trash': 'what is in the trash',
     'POST /api/trash/restore': 'bring one back { name } or { id }',
-    'POST /api/export': 'a PNG, SVG or PDF of a board or pages',
+    'POST /api/export': 'a PNG of a board, or of chosen items on it',
+    'GET /api/export/book?id=':
+      'a notebook as one PDF: its contents, and /print?book= -- the page a browser prints to PDF',
   },
   bookcase: {
     'GET /api/shelf': 'the shelves, the archive and the trash',

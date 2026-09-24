@@ -401,6 +401,7 @@ export class BookApp {
     onClick('archive', () => this.archive());
     onClick('pages', () => this.togglePages());
     onClick('page-setup', () => this.pageSetup());
+    onClick('book-pdf', () => go(`/print?book=${encodeURIComponent(this.session.spec.id)}`));
     const repo = (): RepoSetup => {
       const leaf = this.leaves[Math.min(this.leaf, this.leaves.length - 1)]?.id;
       const page = leaf
