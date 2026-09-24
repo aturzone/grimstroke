@@ -5,13 +5,25 @@
 import { icon } from '~/draw/chrome/icons.ts';
 import { button, item } from '~/draw/chrome/parts.ts';
 import { helpDialog, searchDialog, topBar } from '~/draw/chrome/top.ts';
+import type { Pet } from '~/draw/material/profile/model.ts';
 
-export function shelfChrome(count: number): string {
+export function shelfChrome(count: number, pet?: Pet): string {
+  const petName = pet?.name || (pet?.species === 'dog' ? 'the dog' : 'the cat');
+  const feed =
+    pet && pet.on !== false
+      ? button({
+          gs: 'pet-feed',
+          label: `put food down for ${petName}`,
+          icon: 'plus',
+          text: `feed ${petName}`,
+        })
+      : '';
   return [
     topBar({
       place: 'shelf',
       title: count === 1 ? 'one notebook' : `${count} notebooks`,
       actions:
+        feed +
         button({ gs: 'shelf-select', label: 'choose several', icon: 'check', text: 'choose' }) +
         button({
           gs: 'book-new',

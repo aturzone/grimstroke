@@ -74,7 +74,7 @@ export class Carry {
       }
       carry.style.transform = `translate(${ev.clientX - offset.x}px, ${ev.clientY - offset.y}px) translate(0, -100%)`;
       target = this.targetAt(ev.clientX, ev.clientY, spine, offset.x);
-      this.app.cat.follow(ev.clientX);
+      this.app.pet.follow(ev.clientX);
       marker = this.mark(target, spine, marker);
     };
     const up = (ev: PointerEvent): void => {
@@ -84,7 +84,7 @@ export class Carry {
       marker?.remove();
       cancelAnimationFrame(edge);
       edge = 0;
-      this.app.cat.follow();
+      this.app.pet.follow();
       for (const s of document.querySelectorAll('[data-over]')) s.removeAttribute('data-over');
       if (!carry) {
         if (ev.type === 'pointerup') this.app.pressed(spine, ev);

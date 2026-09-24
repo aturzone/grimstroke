@@ -51,6 +51,39 @@ export interface Profile {
   /** The band across the top of the card, and the stamp. */
   accent?: string;
   portrait?: Portrait;
+  /** The pet who lives on the bookcase. */
+  pet?: Pet;
+}
+
+/** A pet: which animal, which coat, what it is called, and whether it is out. */
+export interface Pet {
+  species: 'cat' | 'dog';
+  /** A coat id from material/pet/art.ts: 'ginger', 'tuxedo', 'shiba', 'beagle'... */
+  coat: string;
+  name?: string;
+  /** False keeps it off the bookcase. */
+  on?: boolean;
+}
+
+export const DEFAULT_PET: Readonly<Pet> = Object.freeze({
+  species: 'cat',
+  coat: 'ginger',
+  name: 'Biscuit',
+  on: true,
+});
+
+/** A pet from whatever was stored: an animal and a coat that exist, or the default. */
+export function readPet(raw: unknown): Pet {
+  const from = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  const species = from.species === 'dog' ? 'dog' : 'cat';
+  const coat =
+    typeof from.coat === 'string' && /^[a-z]{2,20}$/.test(from.coat)
+      ? from.coat
+      : species === 'dog'
+        ? 'shiba'
+        : 'ginger';
+  const name = typeof from.name === 'string' ? from.name.trim().slice(0, 30) : undefined;
+  return { species, coat, ...(name ? { name } : {}), on: from.on !== false };
 }
 
 /** The frame, in its own units. 3:4, the shape of an ID photo. */
@@ -125,5 +158,6 @@ export function readProfile(raw: unknown): Profile {
     ...(details.length ? { details } : {}),
     accent: text(from.accent) ?? text(palette.accent) ?? DEFAULT_ACCENT,
     portrait: { strokes, ...(paper ? { paper } : {}) },
+    ...(from.pet ? { pet: readPet(from.pet) } : {}),
   };
 }

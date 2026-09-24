@@ -16,6 +16,7 @@ import { apply as applyBook } from '~/draw/doc/book/patch.ts';
 import { renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { upgradeLeaf } from '~/draw/doc/legacy.ts';
 import { dropInto, readLayout, type ShelfLayout, settle } from '~/draw/doc/shelf/model.ts';
+import { DEFAULT_PET, type Pet } from '~/draw/material/profile/model.ts';
 import { RemoteService } from '~/host/remote/service.ts';
 import type { Store } from '~/host/store/store.ts';
 
@@ -221,6 +222,7 @@ export class Live {
     layout: ShelfLayout;
     edited: Record<string, string>;
     trash: number;
+    pet: Pet;
   }> {
     const ids = await this.store.listBooks();
     const books = await Promise.all(ids.map((id) => this.book(id)));
@@ -235,6 +237,7 @@ export class Live {
       layout: readLayout(settings.shelf),
       edited,
       trash: (await this.store.listTrash()).length,
+      pet: (await this.store.readProfile()).pet ?? { ...DEFAULT_PET },
     };
   }
 

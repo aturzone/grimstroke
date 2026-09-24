@@ -10,7 +10,7 @@
 import { confirmCard, toast } from '~/app/chrome.ts';
 import { go, onClick, typing } from '~/app/dom.ts';
 import { Carry } from '~/app/shelf/carry.ts';
-import { ShelfCat } from '~/app/shelf/cat.ts';
+import { ShelfPet } from '~/app/shelf/pet.ts';
 import { Preview } from '~/app/shelf/preview.ts';
 
 export interface BookInfo {
@@ -40,14 +40,16 @@ interface ShelfReply {
 }
 
 export class ShelfApp {
+  /** This tab, so its own changes are not echoed back to it. */
+  readonly client = Math.random().toString(36).slice(2, 12);
   readonly selected = new Set<string>();
   private readonly preview: Preview;
-  readonly cat: ShelfCat;
+  readonly pet: ShelfPet;
   private bar: HTMLElement | undefined;
 
   constructor() {
     this.preview = new Preview(this);
-    this.cat = new ShelfCat();
+    this.pet = new ShelfPet();
     new Carry(this).bind();
   }
 
@@ -69,8 +71,26 @@ export class ShelfApp {
     this.bindNew();
     this.bindTrash();
     onClick('shelf-select', () => this.setSelecting(!this.selecting));
+    onClick('pet-feed', () => this.startFeeding());
+    // Feeding: the next press on the bookcase is where the bowl goes.
+    document.addEventListener(
+      'pointerdown',
+      (event) => {
+        if (!document.body.hasAttribute('data-feeding')) return;
+        if ((event.target as HTMLElement).closest('.gs-top')) return;
+        event.preventDefault();
+        event.stopPropagation();
+        document.body.removeAttribute('data-feeding');
+        if (!this.pet.feed(event.clientX, event.clientY))
+          toast('put it on a shelf -- the bowl needs a plank to stand on');
+      },
+      true,
+    );
     window.addEventListener('keydown', (event) => this.key(event));
-    this.cat.start(this.room);
+    this.pet.start(this.room);
+    // Changes made elsewhere -- another tab, or an agent over the API -- redraw the room.
+    const events = new EventSource(`/api/events?kind=shelf&id=main&client=${this.client}`);
+    events.addEventListener('reload', () => void this.refresh());
     if (new URLSearchParams(location.search).has('gone')) {
       toast('that notebook was thrown away; it is in the trash for thirty days');
       history.replaceState(history.state, '', '/shelf');
@@ -213,7 +233,7 @@ export class ShelfApp {
     }
     const res = await fetch('/api/books/batch', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'x-grimstroke-client': this.client },
       body: JSON.stringify({ ids, action }),
     });
     if (!res.ok) {
@@ -301,7 +321,7 @@ export class ShelfApp {
       ?.toggleAttribute('hidden', !reply.trash);
     for (const id of [...this.selected]) if (!this.spine(id)) this.selected.delete(id);
     this.showSelection();
-    this.cat.start(next);
+    this.pet.start(next);
     const title = document.querySelector<HTMLElement>('.gs-top-title');
     const n = next.querySelectorAll('.spine').length;
     if (title) title.textContent = n === 1 ? 'one notebook' : `${n} notebooks`;
@@ -322,7 +342,7 @@ export class ShelfApp {
   ): Promise<void> {
     const res = await fetch('/api/shelf/drop', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'x-grimstroke-client': this.client },
       body: JSON.stringify({ ids, to, row, x, ...(this.width ? { width: this.width } : {}) }),
     });
     if (!res.ok) {
@@ -333,10 +353,20 @@ export class ShelfApp {
     this.absorb((await res.json()) as ShelfReply, from);
   }
 
+  private startFeeding(): void {
+    if (!this.pet.out) return;
+    document.body.toggleAttribute('data-feeding', true);
+    toast(`press a shelf to put ${this.pet.name}'s bowl down`);
+  }
+
   // ---------------------------------------------------------------- keys
 
   private key(event: KeyboardEvent): void {
     if (typing(event.target) || this.preview.isOpen) return;
+    if (event.key === 'Escape' && document.body.hasAttribute('data-feeding')) {
+      document.body.removeAttribute('data-feeding');
+      return;
+    }
     if (event.key === 'Escape' && this.selecting) {
       this.setSelecting(false);
       return;
@@ -470,6 +500,9 @@ export class ShelfApp {
 
 export function bootShelf(): boolean {
   if (!document.querySelector('[data-gs="shelves"]')) return false;
-  new ShelfApp().boot();
+  const app = new ShelfApp();
+  app.boot();
+  // Handy for an agent driving a browser, and for anyone in a console: grimstroke.pet.state.
+  (window as unknown as { grimstroke: unknown }).grimstroke = app;
   return true;
 }

@@ -21,9 +21,12 @@ import {
 import { type Surface, surface } from '~/draw/doc/surface.ts';
 import { textOn } from '~/draw/look/colour.ts';
 import { halftoneDefs } from '~/draw/material/note/render.ts';
+import type { Pet } from '~/draw/material/profile/model.ts';
 import { escapeHtml, inline, label } from '~/draw/type/text.ts';
 
 export interface ShelfOptions {
+  /** The pet who lives on the bookcase, as the profile says. */
+  pet?: Pet;
   /** How wide a shelf is, in the bookcase's pixels. Narrower on a phone. */
   width?: number;
   id?: string;
@@ -152,7 +155,7 @@ function renderRoom(books: readonly BookSpec[], ctx: Surface, options: ShelfOpti
     '<div class="case-plinth" aria-hidden="true"></div>' +
     '</div>';
   return (
-    '<div class="case-room" data-gs="room">' +
+    `<div class="case-room" data-gs="room"${options.pet ? ` data-pet="${escapeHtml(JSON.stringify(options.pet))}"` : ''}>` +
     bookcase('use', rows, 'in use') +
     (put.length || options.live ? bookcase('archive', archive, 'archive') : '') +
     '</div>'

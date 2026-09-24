@@ -16,7 +16,10 @@ import { confirmCard, toast } from '~/app/chrome.ts';
 import { go, must, onClick, typing } from '~/app/dom.ts';
 import { letterOf } from '~/app/keys.ts';
 import { detailRow } from '~/draw/chrome/detail.ts';
+import { COATS, coatOf, colourOf, type PetPose, petFrame } from '~/draw/material/pet/art.ts';
 import {
+  DEFAULT_PET,
+  type Pet,
   PORTRAIT_HEIGHT,
   PORTRAIT_WIDTH,
   type PortraitStroke,
@@ -121,6 +124,7 @@ class ProfileEditor {
     this.bindWords();
     this.bindPlaces();
     this.bindHelpers();
+    this.bindPet();
     this.redraw();
 
     document.addEventListener('keydown', (event) => {
@@ -383,6 +387,97 @@ class ProfileEditor {
     const redo = document.querySelector<HTMLButtonElement>('[data-gs="redo"]');
     if (undo) undo.disabled = this.past.length === 0;
     if (redo) redo.disabled = this.future.length === 0;
+  }
+
+  // ---------------------------------------------------------------- the pet
+
+  /** Draw one pose of a pet into a canvas, from the same sprites the bookcase uses. */
+  private static drawPet(canvas: HTMLCanvasElement, pet: Pet, pose: PetPose, n = 0): void {
+    const c = canvas.getContext('2d');
+    if (!c) return;
+    const coat = coatOf(pet.coat, pet.species);
+    const g = petFrame(pet.species, coat, pose, n);
+    c.clearRect(0, 0, canvas.width, canvas.height);
+    for (let y = 0; y < g.length; y++) {
+      for (let x = 0; x < (g[y]?.length ?? 0); x++) {
+        const colour = colourOf(coat, g[y]?.[x] ?? '.');
+        if (!colour) continue;
+        c.fillStyle = colour;
+        c.fillRect(x, y, 1, 1);
+      }
+    }
+  }
+
+  private bindPet(): void {
+    const preview = document.querySelector<HTMLCanvasElement>('[data-gs="pet-preview"]');
+    if (!preview) return;
+    const pet = (): Pet => this.profile.pet ?? { ...DEFAULT_PET };
+    for (const b of document.querySelectorAll<HTMLElement>('[data-gs="pet-coat"]')) {
+      const canvas = b.querySelector('canvas');
+      if (canvas)
+        ProfileEditor.drawPet(
+          canvas,
+          { species: b.dataset.species === 'dog' ? 'dog' : 'cat', coat: b.dataset.gsValue ?? '' },
+          'sit',
+        );
+    }
+    // The preview: sitting, blinking now and then, happy when you point at it.
+    let frame = 0;
+    let hover = false;
+    preview.addEventListener('pointerenter', () => (hover = true));
+    preview.addEventListener('pointerleave', () => (hover = false));
+    const loop = (): void => {
+      frame += 1;
+      const pose: PetPose = hover
+        ? 'happy'
+        : frame % 12 === 0
+          ? 'blink'
+          : frame % 17 === 0
+            ? 'flick'
+            : 'sit';
+      ProfileEditor.drawPet(preview, pet(), pose, pose === 'blink' ? 1 : frame);
+      window.setTimeout(loop, hover ? 330 : 420);
+    };
+    loop();
+    const write = (patch: Partial<Pet>): void => {
+      this.profile = { ...this.profile, pet: { ...pet(), ...patch } };
+      ProfileEditor.drawPet(preview, pet(), 'happy');
+      this.changed();
+    };
+    for (const b of document.querySelectorAll<HTMLElement>('[data-gs="pet-species"]')) {
+      b.addEventListener('click', () => {
+        const species = b.dataset.gsValue === 'dog' ? 'dog' : 'cat';
+        for (const o of document.querySelectorAll<HTMLElement>('[data-gs="pet-species"]'))
+          o.setAttribute('aria-pressed', String(o === b));
+        for (const c of document.querySelectorAll<HTMLElement>('[data-gs="pet-coat"]'))
+          c.hidden = c.dataset.species !== species;
+        const first = COATS.find((c) => c.species === species);
+        const coat = pet().species === species ? pet().coat : (first?.id ?? 'ginger');
+        for (const c of document.querySelectorAll<HTMLElement>('[data-gs="pet-coat"]'))
+          c.setAttribute(
+            'aria-pressed',
+            String(c.dataset.gsValue === coat && c.dataset.species === species),
+          );
+        write({ species, coat });
+      });
+    }
+    for (const b of document.querySelectorAll<HTMLElement>('[data-gs="pet-coat"]')) {
+      b.addEventListener('click', () => {
+        for (const o of document.querySelectorAll<HTMLElement>('[data-gs="pet-coat"]'))
+          o.setAttribute('aria-pressed', String(o === b));
+        write({ coat: b.dataset.gsValue ?? 'ginger' });
+      });
+    }
+    document
+      .querySelector<HTMLInputElement>('[data-gs="pet-name"]')
+      ?.addEventListener('input', (e) => {
+        write({ name: (e.target as HTMLInputElement).value });
+      });
+    document
+      .querySelector<HTMLInputElement>('[data-gs="pet-on"]')
+      ?.addEventListener('change', (e) => {
+        write({ on: (e.target as HTMLInputElement).checked });
+      });
   }
 
   // ---------------------------------------------------------------- words

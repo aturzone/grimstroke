@@ -75,12 +75,13 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
   }
 
   if (path === '/shelf') {
-    const { books: all, layout, edited, trash } = await live.shelf();
+    const { books: all, layout, edited, trash, pet } = await live.shelf();
     const rendered = renderShelf(all, {
       layout,
       edited,
       trash,
-      live: { chrome: shelfChrome(all.length), scripts: APP },
+      pet,
+      live: { chrome: shelfChrome(all.length, pet), scripts: APP },
     });
     live.allow(rendered.assets);
     html(res, rendered.html);

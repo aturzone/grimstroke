@@ -21,7 +21,14 @@ import { renderCases } from '~/draw/doc/shelf/render.ts';
 import { surface } from '~/draw/doc/surface.ts';
 import { hashString } from '~/draw/look/rng.ts';
 import type { Block } from '~/draw/material/model.ts';
-import { type Profile, readProfile } from '~/draw/material/profile/model.ts';
+import { COATS } from '~/draw/material/pet/art.ts';
+import {
+  DEFAULT_PET,
+  type Pet,
+  type Profile,
+  readPet,
+  readProfile,
+} from '~/draw/material/profile/model.ts';
 import { renderProfile } from '~/draw/material/profile/render.ts';
 import { exportPages } from '~/host/export.ts';
 import { type Ask, header, readBody, readRaw, send } from '~/host/serve/http.ts';
@@ -40,6 +47,31 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
    * named -- so an agent can set a role without having to send back a portrait it never
    * looked at. A portrait is strokes in a 300 x 400 frame, the same SVG path shape as ink.
    */
+  /*
+   * The pet on the bookcase: GET answers with it and every animal and coat there is; POST
+   * { species?, coat?, name?, on? } changes only what it names. Open bookcases redraw.
+   */
+  if (path === '/api/pet') {
+    const profile = await store.readProfile();
+    let pet = profile.pet ?? { ...DEFAULT_PET };
+    if (req.method === 'POST') {
+      const body = (await readBody(req)) as Partial<Pet>;
+      pet = readPet({
+        ...pet,
+        ...body,
+        ...(body.species && body.species !== pet.species && !body.coat ? { coat: undefined } : {}),
+      });
+      await store.writeProfile({ ...profile, pet });
+      live.broadcast('shelf:main', 'reload', {});
+    }
+    send(res, 200, {
+      pet,
+      species: ['cat', 'dog'],
+      coats: COATS.map((c) => ({ id: c.id, label: c.label, species: c.species })),
+    });
+    return true;
+  }
+
   if (path === '/api/profile' && req.method !== 'POST') {
     send(res, 200, { profile: await store.readProfile() });
     return true;
@@ -190,6 +222,7 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
       }
       done.push(id);
     }
+    live.broadcast('shelf:main', 'reload', {}, header(req, 'x-grimstroke-client'));
     send(res, 200, { action, done, missing, ...(action === 'delete' ? { trash } : {}) });
     return true;
   }
@@ -226,7 +259,10 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
       const body = (await readBody(req)) as { rows?: unknown };
       await live.saveShelf(body.rows);
     }
-    const { books, layout, edited, trash } = await live.shelf();
+    // Any other bookcase open elsewhere is told to redraw; this tab has the answer already.
+    if (req.method === 'POST')
+      live.broadcast('shelf:main', 'reload', {}, header(req, 'x-grimstroke-client'));
+    const { books, layout, edited, trash, pet } = await live.shelf();
     const rows = settle(
       layout,
       books.filter((b) => !b.archived),
@@ -239,6 +275,7 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
         layout: { rows },
         edited,
         trash,
+        pet,
         // A phone asks for a narrower bookcase with more shelves; the order is the same.
         ...(Number(url.searchParams.get('width'))
           ? { width: Number(url.searchParams.get('width')) }

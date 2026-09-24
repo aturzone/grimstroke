@@ -149,16 +149,33 @@ export const SHELF_CHROME = `/* ---- a book taken down ---- */
   text-align: center;
 }
 
-/* ---- the cat ---- */
-.shelf-cat {
+/* ---- the pet ---- */
+.shelf-pet {
   position: absolute;
   z-index: 5;
   left: 0;
   top: 0;
-  background-size: 100% 100%;
+  background-repeat: no-repeat;
   image-rendering: pixelated;
   pointer-events: none;
   transform-origin: 50% 50%;
-  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.35));
+  will-change: transform;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.3));
 }
+/* The food bowl: a little blue bowl, full, then empty. */
+.shelf-bowl {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  top: 0;
+  width: 36px;
+  height: 18px;
+  image-rendering: pixelated;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 9' shape-rendering='crispEdges'%3E%3Cpath d='M3 2h12v1H3zM2 3h1v1H2zM15 3h1v1h-1z' fill='%2324160f'/%3E%3Cpath d='M4 1h2v1H4zM7 1h3v1H7zM11 0h2v1h-2zM6 0h1v1H6zM9 0h1v1H9z' fill='%23b8743a'/%3E%3Cpath d='M3 3h12v1H3z' fill='%23d49552'/%3E%3Cpath d='M2 4h14v1H2zM2 5h14v1H2z' fill='%233f7fbf'/%3E%3Cpath d='M3 4h3v1H3z' fill='%2376a9dc'/%3E%3Cpath d='M3 6h12v1H3z' fill='%232f5f96'/%3E%3Cpath d='M1 4h1v3H1zM16 4h1v3h-1zM2 7h14v1H2z' fill='%2324160f'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  transition: opacity 600ms linear 1800ms;
+}
+.shelf-bowl.is-empty { opacity: 0; }
+body[data-feeding] .case-room { cursor: copy; }
+body[data-feeding] .spine { cursor: copy; }
 `;

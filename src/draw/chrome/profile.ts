@@ -18,7 +18,14 @@ import { renderHead } from '~/draw/doc/head.ts';
 import type { RenderedPage } from '~/draw/doc/model.ts';
 import { surface } from '~/draw/doc/surface.ts';
 import { halftoneDefs } from '~/draw/material/note/render.ts';
-import { ACCENTS, PAPERS, type Profile } from '~/draw/material/profile/model.ts';
+import { COATS } from '~/draw/material/pet/art.ts';
+import {
+  ACCENTS,
+  DEFAULT_PET,
+  PAPERS,
+  type Pet,
+  type Profile,
+} from '~/draw/material/profile/model.ts';
 import { renderPortrait, renderProfile } from '~/draw/material/profile/render.ts';
 import { escapeHtml } from '~/draw/type/text.ts';
 
@@ -171,6 +178,7 @@ export function renderProfilePage(
     `<div class="pf-accent-row"><span class="pf-label">card colour</span><div class="pf-accents">${accents}</div></div>`,
     '</section>',
     `<section class="pf-card-stage" aria-label="the card"><div data-gs="card">${renderProfile(profile, { flat: true })}</div></section>`,
+    petSection(profile.pet ?? DEFAULT_PET),
     '</aside>',
     '</main>',
     `<script type="application/json" data-gs="profile-data">${JSON.stringify(profile).replace(/</g, '\\u003c')}</script>`,
@@ -191,4 +199,35 @@ export function renderProfilePage(
     warnings: ctx.warnings,
     autofit: true,
   };
+}
+
+/**
+ * Your pet: which animal, which coat, its name, and whether it lives on the bookcase. The coats
+ * are drawn into their buttons by the app, from the same sprites the bookcase uses.
+ */
+function petSection(pet: Pet): string {
+  const species = (['cat', 'dog'] as const)
+    .map(
+      (s) =>
+        `<button type="button" class="gs-btn gs-chip-btn" data-gs="pet-species" data-gs-value="${s}" aria-pressed="${pet.species === s}">${s}</button>`,
+    )
+    .join('');
+  const coats = COATS.map(
+    (c) =>
+      `<button type="button" class="pf-coat" data-gs="pet-coat" data-gs-value="${c.id}" data-species="${c.species}" ` +
+      `aria-pressed="${pet.coat === c.id && pet.species === c.species}" aria-label="${escapeHtml(c.label)}" title="${escapeHtml(c.label)}"` +
+      `${c.species === pet.species ? '' : ' hidden'}><canvas width="48" height="40"></canvas><span>${escapeHtml(c.label)}</span></button>`,
+  ).join('');
+  return (
+    '<section class="pf-pet gs-card" aria-label="your pet">' +
+    heading('your pet') +
+    '<div class="pf-pet-stage"><canvas data-gs="pet-preview" width="48" height="40" aria-hidden="true"></canvas></div>' +
+    `<div class="gs-chip-row pf-pet-row" role="group" aria-label="cat or dog">${species}` +
+    `<label class="pf-pet-on"><input type="checkbox" data-gs="pet-on"${pet.on === false ? '' : ' checked'}> on the bookcase</label></div>` +
+    `<div class="pf-coats" role="group" aria-label="coat">${coats}</div>` +
+    '<label class="pf-field"><span class="pf-label">name</span>' +
+    `<input class="gs-field" data-gs="pet-name" value="${escapeHtml(pet.name ?? '')}" placeholder="what it answers to" maxlength="30" autocomplete="off"></label>` +
+    '<p class="pf-note">It lives on the bookcase: stroke it with the pointer, and feed it from the bookcase’s top bar.</p>' +
+    '</section>'
+  );
 }
