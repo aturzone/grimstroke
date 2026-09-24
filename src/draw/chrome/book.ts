@@ -16,6 +16,7 @@ export function bookChrome(spec: BookSpec): string {
     button({ gs: 'pages', label: 'every page', icon: 'pages', text: 'pages' }) +
     button({ gs: 'add-leaf', label: 'add a leaf', icon: 'leaf', text: 'leaf' }) +
     button({ gs: 'cover-open', label: 'the cover', icon: 'cover', text: 'cover' }) +
+    button({ gs: 'page-setup', label: 'page size and template', icon: 'leaf', text: 'page' }) +
     button({
       gs: 'archive',
       label: spec.archived ? 'take it out of the archive' : 'put it in the archive',
@@ -26,6 +27,7 @@ export function bookChrome(spec: BookSpec): string {
     item({ gs: 'pages', text: 'every page', icon: 'pages' }) +
     item({ gs: 'add-leaf', text: 'add a leaf', icon: 'leaf' }) +
     item({ gs: 'cover-open', text: 'the cover', icon: 'cover' }) +
+    item({ gs: 'page-setup', text: 'page size and template', icon: 'leaf' }) +
     item({
       gs: 'archive',
       text: spec.archived ? 'take out of the archive' : 'archive it',

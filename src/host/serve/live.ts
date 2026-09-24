@@ -11,13 +11,7 @@ import type { ServerResponse } from 'node:http';
 import { resolve } from 'node:path';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import { workspaceExtent } from '~/draw/doc/board/render.ts';
-import {
-  type BookSpec,
-  bookTitle,
-  boundLeaves,
-  LEAF_HEIGHT,
-  LEAF_WIDTH,
-} from '~/draw/doc/book/model.ts';
+import { type BookSpec, bookTitle, boundLeaves, leafSize } from '~/draw/doc/book/model.ts';
 import { apply as applyBook } from '~/draw/doc/book/patch.ts';
 import { renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { upgradeLeaf } from '~/draw/doc/legacy.ts';
@@ -119,12 +113,13 @@ export class Live {
       ...(book.palette ? { palette: book.palette } : {}),
       ...(book.direction ? { direction: book.direction } : {}),
       paper: leaf.paper ?? book.paper ?? 'ruled',
+      ...((leaf.template ?? book.template) ? { template: leaf.template ?? book.template } : {}),
       ...(book.grain !== undefined ? { grain: book.grain } : {}),
       ...(book.fonts ? { fonts: book.fonts } : {}),
       ...(book.digits ? { digits: book.digits } : {}),
       ...(book.uppercaseLabels !== undefined ? { uppercaseLabels: book.uppercaseLabels } : {}),
       items: leaf.items ?? [],
-      extent: [0, 0, LEAF_WIDTH, LEAF_HEIGHT],
+      extent: [0, 0, ...leafSize(book)],
       version: book.version ?? 0,
       sheet: {
         book: book.id,
@@ -159,7 +154,12 @@ export class Live {
     const result = applyBook(book, [
       {
         op: 'leaf.replace',
-        leaf: { ...leaf, items: spec.items, ...(spec.paper ? { paper: spec.paper } : {}) },
+        leaf: {
+          ...leaf,
+          items: spec.items,
+          ...(spec.paper ? { paper: spec.paper } : {}),
+          ...(spec.template !== (book.template ?? undefined) ? { template: spec.template } : {}),
+        },
       },
     ]);
     await this.commitBook(result.spec);

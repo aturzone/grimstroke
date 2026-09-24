@@ -99,6 +99,8 @@ body.on-book { display: grid; place-content: center; }
   opacity: .13;
 }
 .leaf > * { position: relative; z-index: 1; }
+/* A template is printed on the paper, under what is written on it. */
+.leaf > .page-template { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 .leaf-absent { background: none; }
 .leaf-absent::after { display: none; }
 /* What is on a page is placed from its corner, as on a board: the layer covers the whole

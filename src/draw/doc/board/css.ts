@@ -41,6 +41,8 @@ body.on-board { background: var(--paper); }
   opacity: var(--grain-opacity, 0);
 }
 
+.board-template { position: absolute; z-index: 0; pointer-events: none; }
+.board-template > svg { display: block; }
 :is(.board, .leaf-items) .item {
   position: absolute;
   transform-origin: 50% 50%;

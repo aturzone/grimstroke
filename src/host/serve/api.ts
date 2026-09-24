@@ -316,6 +316,74 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     return true;
   }
 
+  /*
+   * Things moved from one surface to another: from a page to the board, from the board to a
+   * page, or between two pages. Taken off the one and put on the other as one request, keeping
+   * where they lie relative to each other; on a page they go in at its margins, on a board beside
+   * what is already there. Ids that are taken where they arrive get new ones.
+   */
+  if (path === '/api/items/move' && req.method === 'POST') {
+    const body = (await readBody(req)) as { from?: string; to?: string; ids?: unknown };
+    const from = body.from ?? '';
+    const to = body.to ?? '';
+    const ids = Array.isArray(body.ids)
+      ? body.ids.filter((x): x is string => typeof x === 'string')
+      : [];
+    if (!from || !to || from === to || ids.length === 0) {
+      send(res, 400, { error: 'from, to and ids are needed, and from is not to' });
+      return true;
+    }
+    const source = await live.board(from);
+    const target = await live.board(to);
+    const chosen = new Set(ids);
+    const moving = source.items.filter((item) => chosen.has(item.id));
+    if (moving.length === 0) {
+      send(res, 404, { error: 'none of those are there' });
+      return true;
+    }
+    const minX = Math.min(...moving.map((i) => i.at[0]));
+    const minY = Math.min(...moving.map((i) => i.at[1]));
+    let base: [number, number];
+    if (target.sheet) base = [40, 44];
+    else if (target.items.length) {
+      const right = Math.max(...target.items.map((i) => i.at[0] + (i.size?.[0] ?? 240)));
+      const top = Math.min(...target.items.map((i) => i.at[1]));
+      base = [Math.round(right + 80), Math.round(top)];
+    } else base = [80, 80];
+    const taken = new Set(target.items.map((i) => i.id));
+    const renamed = new Map<string, string>();
+    for (const item of moving) {
+      let id = item.id;
+      for (let n = 2; taken.has(id); n += 1) id = `${item.id}-${n}`;
+      taken.add(id);
+      renamed.set(item.id, id);
+    }
+    const z = topZ(target);
+    const adds: Op[] = moving.map((item, i) => ({
+      op: 'add',
+      item: {
+        ...item,
+        id: renamed.get(item.id) ?? item.id,
+        at: [base[0] + item.at[0] - minX, base[1] + item.at[1] - minY] as [number, number],
+        z: z + 1 + i,
+      },
+    }));
+    try {
+      const put = await applyBoard(live, to, adds);
+      const taken2 = await applyBoard(
+        live,
+        from,
+        moving.map((item) => ({ op: 'remove', id: item.id })),
+      );
+      send(res, 200, { from: taken2, to: put, ids: [...renamed.values()] });
+    } catch (error) {
+      send(res, error instanceof PatchError ? 409 : 500, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    return true;
+  }
+
   if (path === '/api/export' && req.method === 'POST') {
     const body = (await readBody(req)) as { board?: string; only?: string[] };
     const id = body.board ?? ask.board;
@@ -368,16 +436,35 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
 }
 
 async function patchBoard(ask: Ask, live: Live, id: string, ops: Op[]): Promise<void> {
-  const spec = await live.board(id);
-  let result: ReturnType<typeof apply>;
+  let payload: BoardReply;
   try {
-    result = apply(spec, ops);
+    payload = await applyBoard(live, id, ops, header(ask.req, 'x-grimstroke-client'));
   } catch (error) {
     send(ask.res, error instanceof PatchError ? 409 : 500, {
       error: error instanceof Error ? error.message : String(error),
     });
     return;
   }
+  send(ask.res, 200, payload);
+}
+
+type BoardReply = {
+  version: number;
+  removed: string[];
+  reset: boolean;
+  placed: Array<{ id: string; at: [number, number]; z: number }>;
+  changed: Array<{ id: string; html: string }>;
+};
+
+/** Apply board operations to a board or a page, write them through, and tell its watchers. */
+async function applyBoard(
+  live: Live,
+  id: string,
+  ops: Op[],
+  exceptTab?: string,
+): Promise<BoardReply> {
+  const spec = await live.board(id);
+  const result = apply(spec, ops);
   await live.commitBoard(result.spec);
 
   /*
@@ -397,13 +484,13 @@ async function patchBoard(ask: Ask, live: Live, id: string, ops: Op[]): Promise<
   );
   const placed = new Set(result.placed.filter((itemId) => !restacked.has(itemId)));
   const items = new Map(result.spec.items.map((item) => [item.id, item]));
-  const payload = {
+  const payload: BoardReply = {
     version: result.spec.version ?? 0,
     removed: result.removed,
     reset: result.reset,
     placed: [...placed].map((itemId) => {
       const item = items.get(itemId);
-      return { id: itemId, at: item?.at ?? [0, 0], z: item?.z ?? 0 };
+      return { id: itemId, at: (item?.at ?? [0, 0]) as [number, number], z: item?.z ?? 0 };
     }),
     changed: result.changed
       .filter((itemId) => !placed.has(itemId))
@@ -413,8 +500,8 @@ async function patchBoard(ask: Ask, live: Live, id: string, ops: Op[]): Promise<
         return { id: itemId, html: drawn?.html ?? '' };
       }),
   };
-  send(ask.res, 200, payload);
-  live.broadcast(`board:${id}`, 'patch', payload, header(ask.req, 'x-grimstroke-client'));
+  live.broadcast(`board:${id}`, 'patch', payload, exceptTab);
+  return payload;
 }
 
 async function patchBook(ask: Ask, live: Live, id: string, ops: BookOp[]): Promise<void> {

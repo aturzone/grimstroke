@@ -351,6 +351,7 @@ export class BookApp {
     onClick('add-leaf', () => this.addLeaf());
     onClick('archive', () => this.archive());
     onClick('pages', () => this.togglePages());
+    onClick('page-setup', () => this.pageSetup());
     onClick('cover-open', () => void this.cover.open());
     // Asked for from the shelf's "the cover": straight into the cover editor, once.
     if (new URLSearchParams(location.search).has('cover')) {
@@ -472,6 +473,86 @@ export class BookApp {
    * different things on screen: one shows two leaves at full size, the other
    * shows forty at once so a chapter can be picked up and moved somewhere else.
    */
+  /**
+   * The notebook's page: how big, and what is printed on the pages that name nothing of their
+   * own. Both are the book's settings, so both are a 'book' patch -- and the page is drawn again,
+   * since a new size is a new layout for every leaf.
+   */
+  private pageSetup(): void {
+    document.querySelector('.gs-pagesetup')?.remove();
+    const spec = this.session.spec;
+    const card = document.createElement('div');
+    card.className = 'gs-pagesetup gs-card';
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-label', 'page size and template');
+    const row = (
+      title: string,
+      options: ReadonlyArray<readonly [string, string]>,
+      current: string,
+      pick: (value: string) => void,
+    ): void => {
+      const head = document.createElement('p');
+      head.className = 'gs-menu-head';
+      head.textContent = title;
+      const chips = document.createElement('div');
+      chips.className = 'gs-chip-row';
+      for (const [value, label] of options) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'gs-btn gs-chip-btn';
+        b.dataset.gs = `page-${value}`;
+        b.textContent = label;
+        b.setAttribute('aria-pressed', String(value === current));
+        b.addEventListener('click', () => pick(value));
+        chips.append(b);
+      }
+      card.append(head, chips);
+    };
+    const apply = (patch: Record<string, unknown>): void => {
+      this.session.run([{ op: 'book', patch } as BookOp], 'page setup');
+      window.setTimeout(() => window.location.reload(), 180);
+    };
+    row(
+      'page size',
+      [
+        ['a5', 'A5'],
+        ['a4', 'A4'],
+        ['square', 'square'],
+        ['index', 'index card'],
+      ],
+      spec.pageSize ?? 'a5',
+      (value) => apply({ pageSize: value }),
+    );
+    row(
+      'new pages are printed with',
+      [
+        ['none', 'nothing'],
+        ['cornell', 'cornell'],
+        ['kanban', 'kanban'],
+      ],
+      spec.template ?? 'none',
+      (value) => apply({ template: value === 'none' ? null : value }),
+    );
+    const note = document.createElement('p');
+    note.className = 'gs-pagesetup-note';
+    note.textContent = 'A page can have its own template: open it, and choose in its settings.';
+    card.append(note);
+    const close = (event: Event): void => {
+      if (
+        event instanceof KeyboardEvent
+          ? event.key === 'Escape'
+          : !card.contains(event.target as Node)
+      ) {
+        card.remove();
+        document.removeEventListener('pointerdown', close, true);
+        document.removeEventListener('keydown', close, true);
+      }
+    };
+    document.addEventListener('pointerdown', close, true);
+    document.addEventListener('keydown', close, true);
+    document.body.append(card);
+  }
+
   private togglePages(): void {
     const existing = document.querySelector('.pages-grid');
     if (existing) {

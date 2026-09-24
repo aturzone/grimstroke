@@ -45,7 +45,7 @@ page by its `book:` address: the same patch operations, the same events, the sam
 | update | `{ "op": "update", "id", "patch": { ... } }` -- a field set to `null` is removed |
 | remove | `{ "op": "remove", "id" }` |
 | order | `{ "op": "order", "id", "z" }` |
-| board | `{ "op": "board", "patch": { "palette"?, "paper"?, "title"?, ... } }` -- on a page, only `paper` is the page's own |
+| board | `{ "op": "board", "patch": { "palette"?, "paper"?, "title"?, ... } }` -- on a page, only `paper` and `template` (`cornell`, `kanban`, or `null` for the book's) are the page's own |
 
 A `block` is anything a page can hold: `heading`, `text`, `label`, `bullets`, `table`, `code`,
 `quote`, `image`, `compare`, `note` (its text is markdown), `profile`, `stack` (a column of
@@ -56,6 +56,14 @@ The reply says what happened: `placed` (items whose only change was position, wi
 `at` and `z`) and `changed` (everything else, with fresh markup), plus `removed`. Send an
 `x-grimstroke-client` header naming your tab, and your own patches are not echoed back to you
 on the event stream.
+
+## Moving things between surfaces
+
+`POST /api/items/move` with `{ "from": "<address>", "to": "<address>", "ids": [...] }` takes the
+items off one board or page and puts them on another, keeping where they lie relative to each
+other: on a page at its margins, on a board beside what is already there. A page can be named by
+number: `book:<notebook>:3`. The reply has the new `ids` (a taken id gets a suffix), and both
+surfaces hear it on their event streams.
 
 ## Changing a notebook
 
@@ -71,7 +79,7 @@ on the event stream.
 | leaf.replace | `{ "op": "leaf.replace", "leaf": {...} }` |
 | cover | `{ "op": "cover", "patch": { "title"?, "colour"?, "ink"?, "material"?, "profile"? } }` |
 | sticker.add / .update / .remove | `label`, `picture`, `shape` (`circle`, `star`, `band`, `tape`), `portrait`, `card` -- each `{ id, kind, at: [x%, y%], width?: %, rotation? }`, placed from its centre |
-| book | `{ "op": "book", "patch": { "title"?, "palette"?, "paper"?, "minLeaves"? } }` |
+| book | `{ "op": "book", "patch": { "title"?, "palette"?, "paper"?, "minLeaves"?, "pageSize"?, "template"? } }` -- `pageSize` is `a5` (the default), `a4`, `square` or `index`; `template` is what new pages are printed with |
 | archive | `{ "op": "archive", "archived": true }` -- put away, never thrown away |
 
 The card on a cover is a `card` sticker holding the profile by value (`profile`), so it is moved,

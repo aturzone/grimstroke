@@ -15,6 +15,7 @@
 import type { BoardItem } from '~/draw/doc/board/model.ts';
 import type { Direction } from '~/draw/doc/model.ts';
 import type { PaperKind } from '~/draw/look/grid.ts';
+import type { PageTemplate } from '~/draw/look/template.ts';
 import type { Block } from '~/draw/material/model.ts';
 import type { Portrait, Profile } from '~/draw/material/profile/model.ts';
 
@@ -91,6 +92,8 @@ export interface Leaf {
   id: string;
   /** The ruling printed on this leaf. Falls back to the book's. */
   paper?: PaperKind;
+  /** A layout printed on this page, under what is on it. Falls back to the book's. */
+  template?: PageTemplate;
   /**
    * What is on the page, placed: exactly a board's items, in the page's own pixels from its
    * top-left corner. A page IS a small board with an edge -- notes, pictures, ink, labels,
@@ -114,6 +117,10 @@ export interface BookSpec {
   direction?: Direction;
   /** The default ruling for leaves that do not say. */
   paper?: PaperKind;
+  /** The template new pages are printed with, where a page names none. */
+  template?: PageTemplate;
+  /** How big the pages are. A5 when it is not said. */
+  pageSize?: PageSize;
   grain?: boolean | number;
   fonts?: { body?: string; mono?: string; hand?: string; marker?: string };
   digits?: 'latn' | 'arab' | 'arabext';
@@ -145,6 +152,20 @@ export interface BookSpec {
 /** Leaf size, in the same units a page uses. A5-ish at 96dpi. */
 export const LEAF_WIDTH = 560;
 export const LEAF_HEIGHT = 790;
+
+/** The sizes a notebook's pages can be, in the page's own pixels. A5 is the one it always was. */
+export const PAGE_SIZES = {
+  a5: [560, 790],
+  a4: [640, 905],
+  square: [640, 640],
+  index: [720, 432],
+} as const satisfies Record<string, readonly [number, number]>;
+export type PageSize = keyof typeof PAGE_SIZES;
+
+/** A notebook's page, width and height. */
+export function leafSize(spec: Pick<BookSpec, 'pageSize'>): readonly [number, number] {
+  return PAGE_SIZES[spec.pageSize ?? 'a5'] ?? PAGE_SIZES.a5;
+}
 
 /** How thick the block of paper looks, per leaf, in px -- for the 3D views. */
 export const LEAF_THICKNESS = 0.22;

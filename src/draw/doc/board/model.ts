@@ -18,6 +18,7 @@
 
 import type { Direction } from '~/draw/doc/model.ts';
 import type { PaperKind } from '~/draw/look/grid.ts';
+import type { PageTemplate } from '~/draw/look/template.ts';
 import type { Block } from '~/draw/material/model.ts';
 
 export type InkTool = 'pen' | 'marker' | 'highlighter' | 'pencil';
@@ -72,6 +73,8 @@ export interface BoardSpec {
   direction?: Direction;
   /** The ruling printed on the surface. */
   paper?: PaperKind;
+  /** On a page of a notebook: the layout printed on it (see look/template.ts). */
+  template?: PageTemplate;
   grain?: boolean | number;
   fonts?: { body?: string; mono?: string; hand?: string; marker?: string };
   digits?: 'latn' | 'arab' | 'arabext';

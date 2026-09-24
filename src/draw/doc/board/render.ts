@@ -18,6 +18,7 @@ import { ITEM_HEIGHT, ITEM_MAX_WIDTH, ITEM_WIDTH } from '~/draw/doc/board/model.
 import { renderHead } from '~/draw/doc/head.ts';
 import type { RenderedPage } from '~/draw/doc/model.ts';
 import { surface } from '~/draw/doc/surface.ts';
+import { templateLayer } from '~/draw/look/template.ts';
 import { renderBlock } from '~/draw/material/block.ts';
 import { NOTE_COLLAPSED, NOTE_HEIGHT, NOTE_WIDTH } from '~/draw/material/note/model.ts';
 import { halftoneDefs } from '~/draw/material/note/render.ts';
@@ -143,6 +144,11 @@ export function renderBoard(spec: BoardSpec, options: BoardRenderOptions = {}): 
       `data-gs-origin="${ox},${oy}" data-gs-version="${spec.version ?? 0}"` +
       (spec.sheet ? ` data-gs-sheet="${width},${height}"` : '') +
       '>',
+    // A page's template is printed on its paper, under everything placed on it.
+    spec.sheet && spec.template
+      ? `<div class="board-template" style="left:${-ox}px;top:${-oy}px">` +
+        `${templateLayer(spec.template, width, height, ctx.pal.ink)}</div>`
+      : '',
     drawn,
     '</div>',
   ].join('\n');

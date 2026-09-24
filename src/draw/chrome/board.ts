@@ -23,6 +23,7 @@ import { helpDialog, searchDialog, topBar } from '~/draw/chrome/top.ts';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import { PAPERS } from '~/draw/look/grid.ts';
 import { PALETTES } from '~/draw/look/palette.ts';
+import { TEMPLATES } from '~/draw/look/template.ts';
 import { escapeHtml } from '~/draw/type/text.ts';
 
 interface Tool {
@@ -86,7 +87,7 @@ function toolButton(tool: Tool, divider: boolean): string {
 }
 
 /** What can be done to a selection, shown beside it. */
-function selectionBar(): string {
+function selectionBar(onPage: boolean): string {
   const b = (gs: string, label: string, name: Parameters<typeof icon>[0], key?: string): string =>
     button({ gs, label, icon: name, ...(key ? { key } : {}) });
   const sep = '<span class="gs-sep" aria-hidden="true"></span>';
@@ -109,6 +110,12 @@ function selectionBar(): string {
     b('send', 'send to back', 'send') +
     b('duplicate', 'duplicate', 'duplicate', 'mod+D') +
     b('lock-selection', 'lock', 'lock') +
+    // Across surfaces: off a page onto the board, or off the board onto a page.
+    button({
+      gs: 'move-surface',
+      label: onPage ? 'send to the board' : 'send to a page of a notebook',
+      icon: onPage ? 'board' : 'book',
+    }) +
     sep +
     button({
       gs: 'delete-selection',
@@ -180,7 +187,17 @@ export function chrome(spec: BoardSpec): string {
       : heading('palette') +
         `<div class="gs-paper-swatches" role="group" aria-label="palette">${palettes}</div>`) +
     heading(sheet ? 'this page is' : 'paper') +
-    `<div class="gs-chip-row" role="group" aria-label="paper">${papers}</div>`;
+    `<div class="gs-chip-row" role="group" aria-label="paper">${papers}</div>` +
+    (sheet
+      ? heading('printed on it') +
+        `<div class="gs-chip-row" role="group" aria-label="template">${['none', ...TEMPLATES]
+          .map(
+            (kind) =>
+              `<button type="button" class="gs-btn gs-chip-btn" data-gs="template-choice" ` +
+              `data-gs-template="${kind}" aria-pressed="${kind === (spec.template ?? 'none')}">${kind}</button>`,
+          )
+          .join('')}</div>`
+      : '');
 
   const bar = sheet
     ? topBar({
@@ -223,7 +240,7 @@ export function chrome(spec: BoardSpec): string {
     button({ gs: 'fit', label: 'fit everything', icon: 'fit', key: '0' }),
     '</div>',
 
-    selectionBar(),
+    selectionBar(Boolean(spec.sheet)),
 
     // The first thing anyone sees on a new board, and the last thing anybody builds.
     '<div class="gs-empty" data-gs="empty" hidden>',

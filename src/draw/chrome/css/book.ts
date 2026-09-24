@@ -208,4 +208,14 @@ body.on-book.live { padding-block: 76px 84px; }
 .leaf:hover .gs-leaf-edit, .gs-leaf-edit:focus-visible { opacity: 1; }
 @media (hover: none) { .gs-leaf-edit { opacity: 1; } }
 @media print { .gs-leaf-edit { display: none; } }
+.gs-pagesetup {
+  position: fixed;
+  z-index: 50;
+  top: 78px;
+  right: 16px;
+  width: min(320px, calc(100vw - 32px));
+  padding: 6px 4px 12px;
+}
+.gs-pagesetup .gs-chip-row { padding: 0 12px 8px; }
+.gs-pagesetup-note { padding: 4px 16px 0; color: var(--gs-soft); font-size: var(--gs-t1); line-height: 1.5; }
 `;

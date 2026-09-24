@@ -17,13 +17,7 @@
 
 import { renderItem } from '~/draw/doc/board/render.ts';
 import type { BookSpec, Cover, Leaf, Sticker } from '~/draw/doc/book/model.ts';
-import {
-  bookTitle,
-  boundLeaves,
-  LEAF_HEIGHT,
-  LEAF_WIDTH,
-  spineWidth,
-} from '~/draw/doc/book/model.ts';
+import { bookTitle, boundLeaves, leafSize, spineWidth } from '~/draw/doc/book/model.ts';
 import { renderHead } from '~/draw/doc/head.ts';
 import { upgradeCover, upgradeLeaf } from '~/draw/doc/legacy.ts';
 import type { RenderedPage } from '~/draw/doc/model.ts';
@@ -32,6 +26,7 @@ import { type Surface, servedPath, surface } from '~/draw/doc/surface.ts';
 import { textOn } from '~/draw/look/colour.ts';
 import { ruling } from '~/draw/look/grid.ts';
 import { Rng } from '~/draw/look/rng.ts';
+import { templateLayer } from '~/draw/look/template.ts';
 import { halftoneDefs } from '~/draw/material/note/render.ts';
 import { renderPortrait, renderProfile } from '~/draw/material/profile/render.ts';
 import { ARABIC, leafText } from '~/draw/material/read.ts';
@@ -191,8 +186,8 @@ export function renderSpread(spec: BookSpec, options: BookRenderOptions = {}): R
     grain: spec.grain,
     fonts: spec.fonts,
     extra: {
-      '--leaf-width': `${LEAF_WIDTH}px`,
-      '--leaf-height': `${LEAF_HEIGHT}px`,
+      '--leaf-width': `${leafSize(spec)[0]}px`,
+      '--leaf-height': `${leafSize(spec)[1]}px`,
       '--spine-depth': `${spineWidth(spec)}px`,
     },
   });
@@ -238,7 +233,7 @@ export function renderSpread(spec: BookSpec, options: BookRenderOptions = {}): R
     id: `${spec.id}-${at}`,
     html: `${html}\n`,
     assets: ctx.assets,
-    width: LEAF_WIDTH * 2 + 80,
+    width: leafSize(spec)[0] * 2 + 80,
     selector: '.book',
     warnings: ctx.warnings,
   };
@@ -286,10 +281,12 @@ function renderLeaf(
   // Blank leaves still carry a number. Finding your place in a notebook is the
   // whole reason the numbers are there, and an unwritten page is still a place.
   const folio = `<span class="leaf-folio">${label(String(number + 1), false)}</span>`;
+  const [w, h] = leafSize(spec);
+  const template = templateLayer(leaf.template ?? spec.template, w, h, ctx.pal.ink);
   return (
     `<div class="leaf leaf-${side}" data-gs="leaf" data-gs-id="${escapeHtml(leaf.id)}" ` +
     `data-gs-index="${number}" style="${style}">` +
-    `<div class="leaf-items">${items}</div>${folio}</div>`
+    `${template}<div class="leaf-items">${items}</div>${folio}</div>`
   );
 }
 

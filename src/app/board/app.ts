@@ -174,6 +174,42 @@ export class BoardApp implements BoardContext {
     return `${prefix}-${this.counter}-${Math.random().toString(36).slice(2, 7)}`;
   }
 
+  /**
+   * Send the selection across: off a page onto the board, or off the board onto a page of a
+   * notebook, chosen in a small card. The server takes them off one and puts them on the other
+   * in one request; both surfaces hear it on their event streams. Undo is a move back.
+   */
+  private async moveAcross(ids: readonly string[]): Promise<void> {
+    if (ids.length === 0) return;
+    const from = this.session.spec.id;
+    const sheet = this.session.spec.sheet;
+    const to = sheet ? 'workspace' : await pickPage();
+    if (!to) return;
+    const res = await fetch('/api/items/move', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ from, to, ids }),
+    });
+    if (!res.ok) {
+      toast('they could not be moved', 'error');
+      return;
+    }
+    const reply = (await res.json()) as { ids: string[] };
+    this.selection.clear();
+    await this.session.refresh();
+    const where = sheet ? 'the board' : 'the page';
+    toast(`${ids.length === 1 ? 'one thing' : `${ids.length} things`} sent to ${where}`, 'info', {
+      label: 'undo',
+      run: () => {
+        void fetch('/api/items/move', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ from: to, to: from, ids: reply.ids }),
+        }).then(() => this.session.refresh());
+      },
+    });
+  }
+
   setTool(tool: Tool): void {
     this.tool = tool;
     this.viewport.dataset.tool = tool;
@@ -340,6 +376,7 @@ export class BoardApp implements BoardContext {
     onClick('duplicate', () => this.duplicateSelection());
     onClick('lock-selection', () => this.arrangeWith(arrange.toggleLock(this, ids())));
     onClick('delete-selection', () => this.removeSelection());
+    onClick('move-surface', () => void this.moveAcross(ids()));
   }
 
   private groupSelection(): void {
@@ -436,6 +473,14 @@ export class BoardApp implements BoardContext {
       swatch.addEventListener('click', () =>
         reloadWith({ palette: swatch.dataset.gsPalette ?? 'studio' }),
       );
+    }
+    for (const chip of document.querySelectorAll<HTMLElement>('[data-gs="template-choice"]')) {
+      chip.addEventListener('click', () => {
+        const kind = chip.dataset.gsTemplate;
+        reloadWith({
+          template: kind === 'cornell' || kind === 'kanban' ? kind : null,
+        } as unknown as Partial<BoardSpec>);
+      });
     }
     for (const chip of document.querySelectorAll<HTMLElement>('[data-gs="paper-choice"]')) {
       chip.addEventListener('click', () =>
@@ -637,4 +682,58 @@ export async function bootBoard(): Promise<BoardApp> {
   const res = await fetch(`/api/state?kind=board&id=${encodeURIComponent(id)}`);
   const { spec } = (await res.json()) as { spec: BoardSpec };
   return new BoardApp(spec);
+}
+
+/** Which page of which notebook: a small card with the notebooks and a page number. */
+async function pickPage(): Promise<string | undefined> {
+  const res = await fetch('/api/shelf');
+  if (!res.ok) return undefined;
+  const { rows, archive } = (await res.json()) as {
+    rows: Array<Array<{ id: string }>>;
+    archive: string[];
+  };
+  const ids = [...rows.flat().map((s) => s.id), ...archive];
+  const titles = await Promise.all(
+    ids.map(async (id) => {
+      const r = await fetch(`/api/state?kind=book&id=${encodeURIComponent(id)}`);
+      const { spec } = (await r.json()) as { spec: { title?: string; cover?: { title?: string } } };
+      return spec.cover?.title ?? spec.title ?? id;
+    }),
+  );
+  return new Promise((done) => {
+    const dialog = document.createElement('dialog');
+    dialog.className = 'gs-dialog gs-ask';
+    dialog.setAttribute('aria-label', 'send to a page');
+    const form = document.createElement('form');
+    form.method = 'dialog';
+    form.innerHTML =
+      '<header class="gs-dialog-head"><h2>send to a page</h2></header>' +
+      '<div class="gs-dialog-body">' +
+      '<label class="gs-ask-label" for="gs-move-book">which notebook</label>' +
+      '<select class="gs-field" id="gs-move-book" data-gs="move-book"></select>' +
+      '<label class="gs-ask-label" for="gs-move-page">page</label>' +
+      '<input class="gs-field" id="gs-move-page" type="number" min="1" value="1" data-gs="move-page">' +
+      '</div><div class="gs-dialog-actions">' +
+      '<button class="gs-btn" value="cancel" formnovalidate>not now</button>' +
+      '<button class="gs-btn gs-btn-primary" value="send" data-gs="move-send">send</button></div>';
+    const select = form.querySelector('select') as HTMLSelectElement;
+    ids.forEach((id, i) => {
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = titles[i] ?? id;
+      select.append(option);
+    });
+    dialog.append(form);
+    dialog.addEventListener('close', () => {
+      const page = Math.max(
+        1,
+        Number((form.querySelector('input') as HTMLInputElement).value) || 1,
+      );
+      const book = select.value;
+      dialog.remove();
+      done(dialog.returnValue === 'send' && book ? `book:${book}:${page}` : undefined);
+    });
+    document.body.append(dialog);
+    dialog.showModal();
+  });
 }
