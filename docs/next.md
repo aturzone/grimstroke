@@ -1,5 +1,8 @@
 # Round 3 -- the plan
 
+**Status (2026-09-24):** every item below is built, tested and closed from its commit, except P12
+(release), which waits for the user.
+
 Every item below is also a GitHub issue on aturzone/grimstroke, under the milestone
 **Round 3** (issues #24-#43), so nothing is dropped. Close each from its commit with
 `Closes #N`. Each is done, tested in Firefox as a user and as an agent

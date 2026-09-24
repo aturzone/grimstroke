@@ -40,12 +40,18 @@ src/draw/               PURE. No browser, no network, no clock.
       redact.ts         destructive redaction, on raw pixels
     note/               the sticky note: model, markdown body, render
     profile/            the one profile: the drawn portrait and the card
+    sticker/            die-cut stickers: the sheet of marks (stamps, symbols, the
+                        services' logos), emoji, :shortcodes:
+    remote/             repository cards: issue, merge request, commit, pipeline, list
     css.ts              each folder keeps its own stylesheet piece beside it
   doc/                  the documents, each a model, a builder or patch, a render
     page/               a column of blocks
     board/              a plane with things placed on it
     book/               a sequence you turn through: cover, leaves, stickers;
                         each leaf is a small board of placed items
+    shelf/              the bookcase: where each notebook stands, leans or lies
+                        flat (a pure layout), and the bookcase drawn from it
+    remote/             a repository's things as data, whichever service sent them
     legacy.ts           old stored shapes, upgraded as they are read
     search.ts           Persian-aware folding and ranking, over all of them
     style.ts            the stylesheet: only the ORDER of the pieces lives here
@@ -58,14 +64,17 @@ src/app/                THE LIVE SURFACE. A browser, no disk, no framework.
   net.ts                the transport, the outbox and the undo stack
   chrome.ts             toasts, menus, confirm cards, search, help
   board/                camera, gestures, handles, arrange, ink, notes, export
-  book/                 turning, jumping, the cover editor
+  book/                 turning, jumping, the cover editor, connecting a repository
+  shelf/                the bookcase: carrying books, the preview, choosing, the cat
   profile.ts            the easel: drawing the portrait
   note/                 a live note: grab, edit, format chords
   motion/               springs and poses, for things that move
 
 src/host/               NOT pure. The outside world.
   cli.ts                write a JSON file, run one command, get PNGs; search
-  export.ts             HTML -> PNG, through Playwright, which is optional
+  export.ts             HTML -> PNG, through Playwright, which is optional; measuring
+  write.ts              measured flow across pages, layout reports, tidying
+  remote/               GitHub, GitLab, Gitea adapters; keys (0600); sign-in; webhooks
   redact.ts             redaction, from a file and back to one
   serve/                the workspace on a port
     server.ts           auth and static files, then the routes
@@ -79,6 +88,7 @@ tests/                  mirrors src/: tests/draw/..., tests/host/...
 tools/                  build.ts, look.ts, and the TypeScript loader they need
 assets/fonts/           the vendored faces. Nothing is resolved from the system.
 docs/api.md             every endpoint and operation an agent can use
+docs/writing.md         how an agent writes a page that reads well
 ```
 
 It is deliberately a deep tree and not a wide one. A folder holds few enough
