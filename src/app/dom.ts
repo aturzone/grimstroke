@@ -31,3 +31,44 @@ export function typing(target: EventTarget | null): boolean {
   if (!el) return false;
   return el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' || el.isContentEditable;
 }
+
+/**
+ * Go to another surface without a flash.
+ *
+ * The top bar is the same on every surface and stays exactly where it is; what is under it fades
+ * out here and fades in on the other side (see the arrive rule in the chrome's stylesheet), so a
+ * move from the board to the shelf reads as one place changing, not a page being thrown away
+ * and a blank one put up.
+ */
+export function go(href: string): void {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.location.href = href;
+    return;
+  }
+  document.documentElement.toggleAttribute('data-gs-leaving', true);
+  window.setTimeout(() => {
+    window.location.href = href;
+  }, 150);
+}
+
+/**
+ * Every link to another surface goes through go(). Only plain left clicks on same-origin pages:
+ * a new tab, a download, the API and anything with a target are left to the browser.
+ */
+export function smoothLinks(): void {
+  document.addEventListener('click', (event) => {
+    if (event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const a = (event.target as HTMLElement | null)?.closest<HTMLAnchorElement>('a[href]');
+    if (!a || a.target || a.hasAttribute('download')) return;
+    const url = new URL(a.href, location.href);
+    if (url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
+    if (url.pathname === location.pathname && url.search === location.search) return;
+    event.preventDefault();
+    go(url.href);
+  });
+  // Back from the history cache: the page comes back as it was left, faded. Undo that.
+  window.addEventListener('pageshow', () =>
+    document.documentElement.removeAttribute('data-gs-leaving'),
+  );
+}

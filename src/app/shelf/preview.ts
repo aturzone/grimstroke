@@ -8,6 +8,7 @@
  */
 
 import { confirmCard, toast } from '~/app/chrome.ts';
+import { go } from '~/app/dom.ts';
 import { infoOf, type ShelfApp } from '~/app/shelf/index.ts';
 
 const EASE = 'cubic-bezier(0.2, 0.8, 0.25, 1)';
@@ -106,9 +107,9 @@ export class Preview {
       actions.append(b);
       return b;
     };
-    const openIt = act('open', 'preview-open', () => this.go(info.id), 'gs-btn-primary');
+    const openIt = act('open', 'preview-open', () => this.openInSpread(info.id), 'gs-btn-primary');
     act('the cover', 'preview-cover', () => {
-      window.location.href = `/book?id=${encodeURIComponent(info.id)}&cover`;
+      go(`/book?id=${encodeURIComponent(info.id)}&cover`);
     });
     act(
       info.archived ? 'take out' : 'archive',
@@ -206,7 +207,7 @@ export class Preview {
   }
 
   /** Into the reading spread: the book moves to where its cover will lie there, then opens. */
-  private go(id: string): void {
+  private openInSpread(id: string): void {
     const book = this.root?.querySelector<HTMLElement>('.gs-preview-book');
     this.root?.querySelector('.gs-preview-card')?.animate([{ opacity: 1 }, { opacity: 0 }], {
       duration: 240,
@@ -214,7 +215,7 @@ export class Preview {
     });
     const href = `/book?id=${encodeURIComponent(id)}&opening`;
     if (!book || matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      window.location.href = href;
+      go(href);
       return;
     }
     const b = book.getBoundingClientRect();
@@ -228,7 +229,7 @@ export class Preview {
         fill: 'forwards',
       })
       .finished.then(() => {
-        window.location.href = href;
+        go(href);
       });
   }
 

@@ -12,7 +12,7 @@
 
 import { pathOf } from '~/app/board/ink.ts';
 import { confirmCard, toast } from '~/app/chrome.ts';
-import { must, onClick, typing } from '~/app/dom.ts';
+import { go, must, onClick, typing } from '~/app/dom.ts';
 import { letterOf } from '~/app/keys.ts';
 import { detailRow } from '~/draw/chrome/detail.ts';
 import {
@@ -397,7 +397,7 @@ class ProfileEditor {
         headers: { 'content-type': 'application/json' },
         body: '{}',
       });
-      if (res.ok) window.location.href = '/';
+      if (res.ok) go('/');
       else toast('the card could not be put on the board', 'error');
     });
   }

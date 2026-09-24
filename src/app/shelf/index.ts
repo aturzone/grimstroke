@@ -8,7 +8,7 @@
  */
 
 import { confirmCard, toast } from '~/app/chrome.ts';
-import { onClick, typing } from '~/app/dom.ts';
+import { go, onClick, typing } from '~/app/dom.ts';
 import { Carry } from '~/app/shelf/carry.ts';
 import { ShelfCat } from '~/app/shelf/cat.ts';
 import { Preview } from '~/app/shelf/preview.ts';
@@ -388,7 +388,7 @@ export class ShelfApp {
         return;
       }
       const { id } = (await res.json()) as { id: string };
-      window.location.href = `/book?id=${encodeURIComponent(id)}&opening`;
+      go(`/book?id=${encodeURIComponent(id)}&opening`);
     });
   }
 

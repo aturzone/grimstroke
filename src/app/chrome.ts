@@ -7,7 +7,7 @@
  * search results carry text somebody else wrote.
  */
 
-import { typing } from '~/app/dom.ts';
+import { go, typing } from '~/app/dom.ts';
 import { letterOf } from '~/app/keys.ts';
 
 // ---------------------------------------------------------------- toasts
@@ -232,7 +232,7 @@ class Search {
       } else if (event.key === 'Enter') {
         event.preventDefault();
         const hit = this.hits[this.chosen];
-        if (hit) window.location.href = hit.href;
+        if (hit) go(hit.href);
       }
     });
     // A click on the backdrop is a click outside the card.

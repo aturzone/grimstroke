@@ -19,7 +19,7 @@
 
 import { CoverEditor } from '~/app/book/cover.ts';
 import { toast } from '~/app/chrome.ts';
-import { must, onClick, typing } from '~/app/dom.ts';
+import { go, must, onClick, typing } from '~/app/dom.ts';
 import { letterOf } from '~/app/keys.ts';
 import { Session } from '~/app/net.ts';
 import type { BookSpec, Leaf } from '~/draw/doc/book/model.ts';
@@ -394,7 +394,9 @@ export class BookApp {
     const edit = (leaf: HTMLElement | null): void => {
       const leafId = leaf?.dataset.gsId;
       if (!leafId) return;
-      window.location.href = `/page?book=${encodeURIComponent(this.session.spec.id)}&leaf=${encodeURIComponent(leafId)}`;
+      go(
+        `/page?book=${encodeURIComponent(this.session.spec.id)}&leaf=${encodeURIComponent(leafId)}`,
+      );
     };
     this.book.addEventListener('dblclick', (event) => {
       edit((event.target as HTMLElement).closest<HTMLElement>('[data-gs="leaf"]'));
@@ -457,7 +459,7 @@ export class BookApp {
   private archive(): void {
     const away = !this.session.spec.archived;
     this.session.run([{ op: 'archive', archived: away }], '');
-    if (away) window.setTimeout(() => (window.location.href = '/shelf'), 200);
+    if (away) window.setTimeout(() => go('/shelf'), 200);
     else toast('taken out of the archive');
   }
 
