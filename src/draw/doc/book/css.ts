@@ -131,7 +131,10 @@ body.on-book { display: grid; place-content: center; }
    The cover lies over the right-hand leaf, hinged at the spine, and the left-hand side is the
    bare board of the back cover. Opening it swings the cover over to the left about the spine
    -- the one movement everybody knows a notebook makes -- and the spread is underneath. */
-.book[data-closed] .book-spread,
+/* Shut, the page under the cover is already drawn -- the cover hides it -- so the opening does
+   not have to draw the whole spread on its first frame, which is where it stuttered. Only the
+   left-hand page and the binding wait. */
+.book[data-closed] .book-spread > .leaf-verso,
 .book[data-closed] .book-gutter { visibility: hidden; }
 .book[data-closed]::before { inset-inline-start: calc(50% - 8px); }
 /* While the cover swings, the page under it is there (the cover hides it until it lifts), and
@@ -151,6 +154,7 @@ body.on-book { display: grid; place-content: center; }
   transform-style: preserve-3d;
   cursor: pointer;
   transition: transform 900ms cubic-bezier(0.55, 0.08, 0.2, 1);
+  will-change: transform;
 }
 :root[dir='rtl'] .book-closed { transform-origin: right center; }
 .book-face, .book-inside {
@@ -559,32 +563,33 @@ export const SHELF = `/* ---- a book stood up in 3D, and the empty shelf ---- */
 /** Turning a page. */
 export const FLIP = `/* ---- turning a page ----
 
-   The leaf being turned is a copy laid over the spread, rotated about the
-   binding, with the page it reveals printed on its back. Underneath, the spread
-   is already set to where it will be when the turn finishes -- so the moment
-   the copy is removed nothing moves, which is what makes it feel like paper
-   rather than like a transition. */
+   The leaf being turned is a copy laid over the spread, hinged at the binding, with the page it
+   reveals printed on its back. Underneath, the spread shows what a real book shows while a page
+   is in the air: the page not yet covered on one side and the page just uncovered on the other
+   -- never the page that is about to land. Each face darkens as it turns away from the light,
+   the uncovered page lies in the lifting leaf's shadow, and the leaf is seen in perspective, so
+   it lifts off the page rather than squashing flat. Nothing here fades the hinge: a fading
+   element is drawn flat, and then both faces show at once. */
 .flipper {
   position: absolute;
   inset-block-start: 40px;
   height: var(--leaf-height);
   width: var(--leaf-width);
-  inset-inline-start: 50%;
+  left: 50%;
   transform-style: preserve-3d;
   transform-origin: left center;
   pointer-events: none;
   z-index: 5;
-  transition: transform 520ms cubic-bezier(0.34, 0.03, 0.2, 1);
-  transform: rotateY(0deg);
+  will-change: transform;
 }
 .flipper.turn-back {
-  inset-inline-start: auto;
-  inset-inline-end: 50%;
+  left: auto;
+  right: 50%;
   transform-origin: right center;
-  transform: rotateY(-180deg);
 }
-.flipper.turn-forward[data-turning] { transform: rotateY(-180deg); }
-.flipper.turn-back[data-turning] { transform: rotateY(0deg); }
+/* A right-to-left book turns the other way: its next page is on the left. */
+:root[dir='rtl'] .flipper.turn-forward { left: auto; right: 50%; transform-origin: right center; }
+:root[dir='rtl'] .flipper.turn-back { right: auto; left: 50%; transform-origin: left center; }
 
 .flip-face {
   position: absolute;
@@ -592,21 +597,40 @@ export const FLIP = `/* ---- turning a page ----
   backface-visibility: hidden;
   overflow: hidden;
 }
-/* The back of a leaf is the same sheet seen from behind, so it is mirrored. */
 .flip-face.face-back { transform: rotateY(180deg); }
+/* Everything on a page with a layer of its own -- a note, a turned item, the grain -- would show
+   through from behind in Firefox unless it says so too, as on the cover. */
+.flip-face * { backface-visibility: hidden; }
 .flip-face .leaf { width: 100%; height: 100%; min-height: 0; }
-
-/* The shading that sweeps across a turning page. Paper catches the light as it
-   lifts, and without it the turn reads as a flat rectangle rotating. */
-.flip-shade {
+/* Each face darkens towards the binding as it lifts, and lightens as it lands. */
+.flip-face::after {
+  content: '';
   position: absolute;
   inset: 0;
+  z-index: 6;
   pointer-events: none;
-  background: linear-gradient(to left, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0) 45%);
   opacity: 0;
-  transition: opacity 520ms ease;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 55%);
 }
-.flipper[data-turning] .flip-shade { opacity: 1; }
+.flip-face.face-back::after { background: linear-gradient(to right, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 55%); }
+.flipper[data-turning] .face-front::after { animation: gs-face-dim 640ms ease-in forwards; }
+.flipper[data-turning] .face-back::after { animation: gs-face-lift 640ms ease-out forwards; }
+@keyframes gs-face-dim { from { opacity: 0; } to { opacity: 1; } }
+@keyframes gs-face-lift { from { opacity: 1; } to { opacity: 0; } }
+/* The page uncovered lies in the shadow of the leaf lifting off it, which moves away. */
+.book[data-turning] .book-spread > .leaf-recto::before,
+.book[data-turning-back] .book-spread > .leaf-verso::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  animation: gs-lift-shade 640ms ease-out forwards;
+}
+.book[data-turning] .book-spread > .leaf-recto::before { background: linear-gradient(to right, rgba(0, 0, 0, 0.3), transparent 70%); }
+.book[data-turning-back] .book-spread > .leaf-verso::before { background: linear-gradient(to left, rgba(0, 0, 0, 0.3), transparent 70%); }
+.flip-shade { display: none; }
+
 
 `;
 

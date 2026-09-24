@@ -29,7 +29,7 @@ import type { BookOp } from '~/draw/doc/book/patch.ts';
 import { apply, invert } from '~/draw/doc/book/patch.ts';
 
 /** How long one leaf takes to turn. Slower than this reads as a stuck page. */
-const FLIP_MS = 520;
+const FLIP_MS = 640;
 /** Turns actually animated when jumping a long way. */
 const RIFFLE = 4;
 const RIFFLE_MS = 130;
@@ -194,15 +194,58 @@ export class BookApp {
       `<div class="flip-face face-front">${frontHtml}</div>` +
       `<div class="flip-face face-back">${backHtml}</div>` +
       '<div class="flip-shade"></div>';
+    /*
+     * Underneath, while the leaf is in the air: on the side it has not reached yet, the page
+     * that is there now; on the side it has left, the page it uncovers. The page it will land
+     * on is on its back, not underneath -- underneath, it showed through the whole turn.
+     */
+    const spread = this.book.querySelector<HTMLElement>('.book-spread');
+    const [oldSide, newSide] = await Promise.all(
+      direction === 1
+        ? [this.leafHtml(this.leaf), this.leafHtml(next + 1)]
+        : [this.leafHtml(next), this.leafHtml(this.leaf + 1)],
+    );
     this.book.append(flipper);
-
-    await this.paint(next);
-    // One frame, so the browser has the starting transform before the class
-    // that animates away from it arrives. Without it the turn is instant.
-    await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+    // Our own server's leaves, as in paint().
+    if (spread) spread.innerHTML = direction === 1 ? oldSide + newSide : oldSide + newSide;
+    this.book.toggleAttribute(direction === 1 ? 'data-turning' : 'data-turning-back', true);
+    /*
+     * The turn, driven with an explicit midpoint where the leaf stands on its edge. Each face
+     * is shown only on its own half of the turn -- the front until the leaf is upright, the back
+     * after -- rather than trusting backface-visibility, which Firefox does not honour for
+     * everything on a page (a note, a turned item), so the front's words showed through the
+     * back, mirrored.
+     */
+    const rtl = document.documentElement.dir === 'rtl';
+    const sign = (direction === 1 ? -1 : 1) * (rtl ? -1 : 1);
+    const from = direction === 1 ? 0 : -sign * 180;
+    const to = direction === 1 ? sign * 180 : 0;
+    const mid = (from + to) / 2;
+    const turn = (deg: number): string => `perspective(2600px) rotateY(${deg}deg)`;
+    const timing = { duration: FLIP_MS, fill: 'forwards' as const };
     flipper.dataset.turning = '1';
-    await new Promise((done) => window.setTimeout(done, FLIP_MS));
+    const swing = flipper.animate(
+      [
+        { transform: turn(from), easing: 'cubic-bezier(0.45, 0.05, 0.7, 0.6)' },
+        { transform: turn(mid), offset: 0.5, easing: 'cubic-bezier(0.3, 0.4, 0.25, 1)' },
+        { transform: turn(to) },
+      ],
+      timing,
+    );
+    const halves = (first: boolean): Keyframe[] => [
+      { opacity: first ? 1 : 0 },
+      { opacity: first ? 1 : 0, offset: 0.5 },
+      { opacity: first ? 0 : 1, offset: 0.5 },
+      { opacity: first ? 0 : 1 },
+    ];
+    flipper.querySelector('.face-front')?.animate(halves(true), timing);
+    flipper.querySelector('.face-back')?.animate(halves(false), timing);
+    await swing.finished.catch(() => undefined);
+    // Landed: the spread is the one turned to, and the copy goes in the same frame.
+    await this.paint(next);
     flipper.remove();
+    this.book.removeAttribute('data-turning');
+    this.book.removeAttribute('data-turning-back');
     this.flipping = false;
   }
 
@@ -319,7 +362,12 @@ export class BookApp {
       const url = new URL(location.href);
       url.searchParams.delete('opening');
       history.replaceState(history.state, '', url);
-      window.setTimeout(() => this.open(), 260);
+      // Once the faces are loaded and a frame has been drawn, so nothing else competes with it.
+      void document.fonts.ready.then(() =>
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => window.setTimeout(() => this.open(), 180)),
+        ),
+      );
     }
     shut?.addEventListener('click', (event) => {
       event.stopPropagation();
