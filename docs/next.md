@@ -1,10 +1,10 @@
 # Round 3 -- the plan
 
 Every item below is also a GitHub issue on aturzone/grimstroke, under the milestone
-**Round 3** (issues #24-#42), so nothing is dropped. Close each from its commit with
+**Round 3** (issues #24-#43), so nothing is dropped. Close each from its commit with
 `Closes #N`. Each is done, tested in Firefox as a user and as an agent
-(the API), and closed from its commit. Nineteen items: seven reported by the user (U1-U7), twelve
-proposed (P1-P12). The order at the bottom is the order of work.
+(the API), and closed from its commit. Twenty items: seven reported by the user (U1-U7), thirteen
+proposed (P1-P13). The order at the bottom is the order of work.
 
 Working rules: test data is a copy (`GRIMSTROKE_HOME=<scratchpad>/work-data`, port 7788),
 the real workspace is `~/.grimstroke` on 7777 and is never touched without asking; rebuild AND
@@ -108,10 +108,14 @@ it where it was put; old covers with a card keep it where it was.
 ---
 
 ## P1 (#31) -- Git connection, step 1: connect and read  `git`
-Per-notebook connection dialog (sticker buttons: GitHub, GitLab, Gitea) for the company GitLab
-(`gitlab.example.com`, self-hosted, API v4) and GitHub (reuse `gh auth token`). Tokens stored per
-host in a `0600` settings file, never in a notebook, an archive or the browser (decision to
-confirm with the user: file or keyring). Live `issue` and `commit` cards from a pasted URL,
+Per-notebook connection, as a **guided setup** that walks the person through every step and
+checks each one before the next: pick the provider (sticker buttons: GitHub, GitLab, Gitea), the
+host (a self-hosted GitLab by its address), how to get a token -- with the exact link to the
+provider's token page, the scopes to tick, and "use `gh`" when it is logged in -- then test it and
+say what it can do, then pick the repository from a typeahead, then done, with a sticker on the
+cover. A notebook with no connection shows a "connect a repository" entry that starts it. Tokens
+stored per host in a `0600` settings file (chosen: no native dependency), never in a notebook,
+an archive or the browser. Live `issue` and `commit` cards from a pasted URL,
 read-only, snapshots kept for offline and exports. See docs/git-plan.md.
 
 ## P2 (#32) -- Git, step 2: the repository drawer  `git`
@@ -159,9 +163,18 @@ the cover editor -- with Persian text, in Firefox, at desktop, tablet and phone.
 
 ## P12 (#42) -- Release  `infra`
 Merge `workspace-studio` into `main` when the user is happy; update the README and AGENTS.md; the
-untracked `ink1.png`, `px1.png`, `px2.png` in the root are the user's and stay untouched. Also
-waiting on the user: whether to restore the four items missing from the real board
-(`shot-a`, `shot-b`, `photo-14-rljp4`, `ink3`) from `~/grimstroke-backup-2026-09-23.tgz`.
+untracked `ink1.png`, `px1.png`, `px2.png` in the root are the user's and stay untouched. The real
+board was cleared at the user's request on 2026-09-24 (a backup was taken first).
+
+## P13 (#43) -- Agents that write good documents  `enhancement` `docs`
+An agent must be able to lay out a clean, well-organised page on a board or in a notebook, not a
+pile. Audit what an agent has today (the API, docs/api.md, the CLI) by writing real documents
+with it, then add what is missing: a layout helper that flows blocks into columns and pages
+(`flow` op: headings, text, lists, tables, pictures, placed on a grid with the page's margins and
+continued onto the next page), a `GET /api/layout` that reports free space and overlaps, a
+`tidy` op that aligns and spaces a selection, and a guide in docs (`docs/writing.md`) with the
+grid, the type scale and worked examples. Test by having an agent document the project itself
+into a notebook through the API only, and looking at every page.
 
 ---
 
@@ -174,4 +187,5 @@ waiting on the user: whether to restore the four items missing from the real boa
 5. P8, P9, P5 -- pages, the easel, stickers.
 6. P1, P2, P3, P4 -- the git connection, in its four steps.
 7. P10, P11 -- measurement and the RTL pass over everything above.
-8. P12 -- release.
+8. P13 -- agents writing documents, checked on everything above.
+9. P12 -- release.
