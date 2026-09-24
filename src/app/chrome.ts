@@ -340,6 +340,19 @@ class Search {
 
 /** Wire the chrome every surface shares. Safe to call on a page that has none of it. */
 export function bootChrome(): void {
+  // Changes made offline, kept across a reload and sent again: say so, once.
+  window.addEventListener('gs-restored', (event) => {
+    const { count, stale } = (event as CustomEvent<{ count: number; stale: boolean }>).detail;
+    const what =
+      count === 1
+        ? 'one change made before the reload is'
+        : `${count} changes made before the reload are`;
+    toast(
+      stale
+        ? `${what} being sent -- the page changed meanwhile, so anything that no longer fits is left out`
+        : `${what} being sent`,
+    );
+  });
   bindMenus();
   const searchDialog = document.querySelector<HTMLDialogElement>('dialog[data-gs="search"]');
   const search = searchDialog ? new Search(searchDialog) : undefined;

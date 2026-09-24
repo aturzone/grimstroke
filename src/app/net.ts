@@ -82,7 +82,64 @@ export class Session<S extends Doc, O> {
     this.options = options;
     this.id = options.spec.id;
     this.spec = options.spec;
+    this.serverVersion = options.spec.version ?? 0;
     this.recall();
+    this.recallOutbox();
+  }
+
+  // ---------------------------------------------------------------- changes made offline
+
+  /** The version the server last said the document is at. */
+  private serverVersion = 0;
+  /** The server's version when the oldest unsent change was made. */
+  private outboxBase = 0;
+
+  private get outboxKey(): string {
+    return `gs-outbox:${this.options.kind}:${this.id}`;
+  }
+
+  /**
+   * Changes not yet on the server, kept for this tab across a reload.
+   *
+   * A move made offline and then a refresh used to be lost: the outbox lived only in memory.
+   * It is kept with the version it was made against; on the next load it is sent again. If the
+   * document has moved on meanwhile, it is still sent -- a move or an edit usually still applies
+   * -- and whatever the server refuses as naming something gone is dropped, and the page says how
+   * many changes that was.
+   */
+  private keepOutbox(): void {
+    try {
+      if (this.outbox.length === 0) sessionStorage.removeItem(this.outboxKey);
+      else
+        sessionStorage.setItem(
+          this.outboxKey,
+          JSON.stringify({ base: this.outboxBase, ops: this.outbox }),
+        );
+    } catch {
+      // No storage: unsent changes end with the tab, as they always did.
+    }
+  }
+
+  private recallOutbox(): void {
+    let kept: { base?: number; ops?: O[][] } | undefined;
+    try {
+      const raw = sessionStorage.getItem(this.outboxKey);
+      kept = raw ? (JSON.parse(raw) as { base?: number; ops?: O[][] }) : undefined;
+    } catch {
+      kept = undefined;
+    }
+    const ops = kept?.ops ?? [];
+    if (!ops.length) return;
+    const stale = kept?.base !== this.serverVersion;
+    for (const batch of ops) this.applyLocal(batch);
+    this.outbox.push(...ops);
+    this.outboxBase = this.serverVersion;
+    window.setTimeout(() => {
+      window.dispatchEvent(
+        new CustomEvent('gs-restored', { detail: { count: ops.length, stale } }),
+      );
+      void this.flush();
+    }, 0);
   }
 
   // ---------------------------------------------------------------- undo that outlives the tab
@@ -208,12 +265,16 @@ export class Session<S extends Doc, O> {
    * same note is the one that has to win.
    */
   private readonly outbox: O[][] = [];
+  /** Changes the server refused since the page loaded, for telling the person. */
+  dropped = 0;
   private flushing = false;
   private retry = 0;
   private backoff = 1000;
 
   private send(ops: O[]): Promise<void> {
+    if (this.outbox.length === 0) this.outboxBase = this.serverVersion;
     this.outbox.push(ops);
+    this.keepOutbox();
     return this.flush();
   }
 
@@ -235,6 +296,8 @@ export class Session<S extends Doc, O> {
           // Sending it again will not change that, so it is dropped, and the page is brought
           // back to what the server actually holds.
           this.outbox.shift();
+          this.keepOutbox();
+          this.dropped += 1;
           void this.refresh();
           continue;
         }
@@ -249,8 +312,10 @@ export class Session<S extends Doc, O> {
         return;
       }
       this.outbox.shift();
+      this.keepOutbox();
       this.backoff = 1000;
       this.spec.version = reply.version;
+      this.serverVersion = reply.version;
       this.options.onPatch(reply);
     }
     this.flushing = false;
