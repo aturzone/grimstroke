@@ -182,9 +182,10 @@ export class BoardApp implements BoardContext {
     for (const button of document.querySelectorAll<HTMLElement>('[data-gs="tool"]')) {
       button.setAttribute('aria-pressed', String(button.dataset.gsTool === tool));
     }
+    // Every tool put down the note's pen except the one it most looked like it should: Select.
+    this.notes.stopDrawing();
     if (tool !== 'select') {
       this.selection.clear();
-      this.notes.stopDrawing();
       this.notes.closeSettings();
     }
   }

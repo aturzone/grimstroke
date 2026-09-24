@@ -101,10 +101,7 @@ export class Notes {
       this.loop.add(note);
       // Modes live in the app, not in the markup the server sends back, so a note that was
       // re-rendered while drawing or with its panel open has to be put back into that mode.
-      if (this.drawingOn === id) {
-        note.sheet?.toggleAttribute('data-drawing', true);
-        note.mark('pen', true);
-      }
+      if (this.drawingOn === id) this.showDrawing(note, true);
       if (this.settingsFor === id) note.mark('settings', true);
     }
   }
@@ -126,8 +123,38 @@ export class Notes {
     if (!id) return;
     this.drawingOn = undefined;
     const live = this.live.get(id);
-    live?.sheet?.toggleAttribute('data-drawing', false);
-    live?.mark('pen', false);
+    if (live) this.showDrawing(live, false);
+  }
+
+  private startDrawing(id: string, live: LiveNote): void {
+    this.closeSettings();
+    this.drawingOn = id;
+    this.showDrawing(live, true);
+  }
+
+  /**
+   * Pen mode, shown: the toolbar pen pressed, a dashed edge, and a "done" chip on the note.
+   *
+   * There is always a visible way out. The chip is chrome on the viewport, not part of the
+   * note's markup, so an export never carries it.
+   */
+  private showDrawing(live: LiveNote, on: boolean): void {
+    live.sheet?.toggleAttribute('data-drawing', on);
+    live.mark('pen', on);
+    document.querySelector('.gs-note-done')?.remove();
+    if (!on) return;
+    // In screen space, not on the note: on a turned note at a fifth of full size a chip that
+    // turned and shrank with it was a speck nobody could read.
+    const done = document.createElement('div');
+    done.className = 'gs-note-done';
+    done.innerHTML =
+      '<span>Drawing on the note</span><button type="button">Done</button><kbd>Esc</kbd>';
+    done.addEventListener('pointerdown', (event) => event.stopPropagation());
+    done.querySelector('button')?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.stopDrawing();
+    });
+    this.ctx.viewport.append(done);
   }
 
   /** Rub one stroke off a note's own sheet. */
@@ -225,10 +252,10 @@ export class Notes {
 
       case 'pen': {
         const on = this.drawingOn !== id;
-        this.drawingOn = on ? id : undefined;
-        live.sheet?.toggleAttribute('data-drawing', on);
-        live.mark('pen', on);
+        // The tool first: choosing a tool puts any note's pen down, this one included.
         if (on) this.ctx.setTool('select');
+        else this.stopDrawing();
+        if (on) this.startDrawing(id, live);
         return;
       }
 
@@ -251,6 +278,7 @@ export class Notes {
       return;
     }
     this.closeSettings();
+    this.stopDrawing();
 
     const read = (): Extract<Block, { kind: 'note' }> | undefined => {
       const block = this.ctx.items().get(id)?.block;

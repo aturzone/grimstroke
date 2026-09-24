@@ -104,6 +104,15 @@ export class Gestures {
       if (this.touches.size > 2) return;
     }
     const tool: Tool = this.ctx.tool;
+    /*
+     * A press on a control that lives on an item is the control's, not the board's.
+     *
+     * The board used to capture the pointer first, which sent the release -- and so the click --
+     * to the viewport. A note's pen button pressed a second time never heard it, and the only
+     * way to put the pen down was a reload. A note being drawn on owns every press on it too.
+     */
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('.note .act, .note .grip, .note[data-drawing], .gs-note-done')) return;
     if (event.button === 1 || (event.button === 0 && tool === 'pan') || event.altKey) {
       this.mode = 'pan';
     } else if (event.button !== 0) {

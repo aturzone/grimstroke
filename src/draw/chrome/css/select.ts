@@ -71,6 +71,37 @@ export const SELECT = `/* ---- selection ----
   will-change: transform;
 }
 
+/* A note in pen mode says so, and offers the way out on itself. */
+.live .note[data-drawing] { outline: 1.5px dashed var(--accent); outline-offset: 5px; }
+.gs-note-done {
+  position: absolute;
+  inset-block-start: 84px;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 6px 5px 14px;
+  border: var(--keyline) solid var(--edge);
+  background: var(--mat-paper);
+  color: var(--gs-ink);
+  font-family: var(--hand-font);
+  font-size: 15px;
+  box-shadow: 3px 3px 0 var(--edge);
+}
+[dir="rtl"] .gs-note-done { translate: 50% 0; }
+.gs-note-done button {
+  padding: 3px 12px;
+  border: var(--keyline) solid var(--edge);
+  background: var(--accent);
+  color: var(--mat-paper);
+  font-family: var(--marker-font);
+  font-size: 14px;
+  cursor: pointer;
+}
+.gs-note-done kbd { font-size: 11px; opacity: 0.6; }
+
 .gs-marquee {
   position: absolute;
   z-index: 40;
