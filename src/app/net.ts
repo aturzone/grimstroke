@@ -82,6 +82,53 @@ export class Session<S extends Doc, O> {
     this.options = options;
     this.id = options.spec.id;
     this.spec = options.spec;
+    this.recall();
+  }
+
+  // ---------------------------------------------------------------- undo that outlives the tab
+
+  private get memoryKey(): string {
+    return `gs-undo:${this.options.kind}:${this.id}`;
+  }
+
+  /**
+   * The undo and redo stacks, kept for this tab across a reload.
+   *
+   * A Backspace and then a refresh used to lose the one thing that could bring the deletion
+   * back. The stacks are the inverse operations, so they are kept as they are, with the version
+   * of the document they were made against: brought back only if the document is still at that
+   * version -- if anyone else has changed it since, an old inverse could undo their work
+   * instead, and a lost undo is better than a wrong one.
+   */
+  private remember(): void {
+    try {
+      sessionStorage.setItem(
+        this.memoryKey,
+        JSON.stringify({
+          version: this.spec.version ?? 0,
+          past: this.past.slice(-60),
+          future: this.future.slice(-60),
+        }),
+      );
+    } catch {
+      // No storage (a private window, a full quota): undo simply ends with the tab, as before.
+    }
+  }
+
+  private recall(): void {
+    try {
+      const raw = sessionStorage.getItem(this.memoryKey);
+      if (!raw) return;
+      const kept = JSON.parse(raw) as { version?: number; past?: O[][]; future?: O[][] };
+      if (kept.version !== (this.spec.version ?? 0)) {
+        sessionStorage.removeItem(this.memoryKey);
+        return;
+      }
+      this.past.push(...(kept.past ?? []));
+      this.future.push(...(kept.future ?? []));
+    } catch {
+      // Whatever is there cannot be read; start clean.
+    }
   }
 
   get canUndo(): boolean {
@@ -208,6 +255,8 @@ export class Session<S extends Doc, O> {
     }
     this.flushing = false;
     this.options.onStatus('saved');
+    // Everything this tab did is on the server, at this version: the stacks match it.
+    this.remember();
   }
 
   /** How many changes are waiting for the server. */
