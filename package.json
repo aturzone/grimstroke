@@ -30,7 +30,8 @@
     "test:watch": "vitest",
     "look": "node --import ./tools/register.mjs tools/look.ts",
     "golden": "node --import ./tools/register.mjs tools/golden.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
+    "perf": "node --import ./tools/register.mjs tools/perf.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.0",

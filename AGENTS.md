@@ -139,6 +139,18 @@ be deeper than the mat is wide -- and it was, and it bit a notch out of a
 screenshot. Cropping evidence to make it look nicer is the worst thing this
 library could do, so the geometry makes it impossible rather than unlikely.
 
+## When you change how the board moves
+
+```sh
+pnpm build && pnpm perf            # headless: software rendering, the worst case
+pnpm build && pnpm perf --headed   # a real window, so this machine's GPU does the drawing
+```
+
+A board of 200 items and 2000 strokes, panned and zoomed by script, frames counted as the
+browser paints them. Measured on 2026-09-24, Firefox 155, integrated Intel graphics:
+headless 36 fps panning at fit / 43 at 100% / 39 zooming; headed 77 / 60 / 51. Keep panning
+at fit at 60 or better on real hardware.
+
 ## When you change how it looks
 
 ```sh
