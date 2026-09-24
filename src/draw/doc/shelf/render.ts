@@ -24,6 +24,8 @@ import { halftoneDefs } from '~/draw/material/note/render.ts';
 import { escapeHtml, inline, label } from '~/draw/type/text.ts';
 
 export interface ShelfOptions {
+  /** How wide a shelf is, in the bookcase's pixels. Narrower on a phone. */
+  width?: number;
   id?: string;
   /** The saved order of the shelves. Left out, the notebooks go on in their own order. */
   layout?: ShelfLayout;
@@ -136,11 +138,12 @@ function renderRoom(books: readonly BookSpec[], ctx: Surface, options: ShelfOpti
   const open = books.filter((b) => !b.archived);
   const put = books.filter((b) => b.archived);
   const byId = new Map(books.map((b) => [b.id, b]));
-  const rows = layOut(settle(options.layout ?? { rows: [] }, open), open);
-  const archive = layOut([put.map((b) => ({ id: b.id }))], put, 1).filter(
+  const width = Math.max(280, Math.min(SHELF_WIDTH, Math.round(options.width ?? SHELF_WIDTH)));
+  const rows = layOut(settle(options.layout ?? { rows: [] }, open), open, 3, width);
+  const archive = layOut([put.map((b) => ({ id: b.id }))], put, 1, width).filter(
     (row, i) => i === 0 || row.books.length > 0,
   );
-  const vars = `--shelf-width:${SHELF_WIDTH}px;--shelf-clear:${SHELF_CLEAR}px`;
+  const vars = `--shelf-width:${width}px;--shelf-clear:${SHELF_CLEAR}px`;
   const bookcase = (kind: 'use' | 'archive', list: PlacedRow[], name: string): string =>
     `<div class="bookcase bookcase-${kind}" data-gs="bookcase" data-case="${kind}" style="${vars}">` +
     `<h2 class="case-name"><span>${label(name, ctx.uppercase)}</span></h2>` +

@@ -85,13 +85,27 @@ export class ShelfApp {
   private fitRoom(): void {
     const room = this.room;
     if (!room) return;
-    const wide = 1140;
-    const scale = Math.max(0.56, Math.min(1, (window.innerWidth - 32) / wide));
+    const vw = window.innerWidth;
+    /*
+     * Wide screens zoom the full bookcase to fit. A phone gets a narrower bookcase instead --
+     * the same books in the same order, spilling onto more shelves -- drawn at a size a spine
+     * can be read at, so nothing scrolls sideways.
+     */
+    const narrow = vw < 760;
+    const scale = narrow ? 0.72 : Math.max(0.56, Math.min(1, (vw - 32) / 1140));
+    const width = narrow ? Math.max(280, Math.floor((vw - 20) / scale) - 150) : undefined;
     room.style.setProperty('--case-scale', scale.toFixed(3));
     document
       .querySelector<HTMLElement>('.case-trash')
       ?.style.setProperty('--case-scale', scale.toFixed(3));
+    if (width !== this.width) {
+      this.width = width;
+      void this.refresh();
+    }
   }
+
+  /** The shelf width asked of the server: undefined for the full bookcase. */
+  private width: number | undefined;
 
   get scale(): number {
     return Number(this.room?.style.getPropertyValue('--case-scale')) || 1;
@@ -289,7 +303,7 @@ export class ShelfApp {
   }
 
   async refresh(): Promise<void> {
-    const res = await fetch('/api/shelf');
+    const res = await fetch(`/api/shelf${this.width ? `?width=${this.width}` : ''}`);
     if (res.ok) this.absorb((await res.json()) as ShelfReply);
   }
 
@@ -304,7 +318,7 @@ export class ShelfApp {
     const res = await fetch('/api/shelf/drop', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ids, to, row, x }),
+      body: JSON.stringify({ ids, to, row, x, ...(this.width ? { width: this.width } : {}) }),
     });
     if (!res.ok) {
       toast('the bookcase could not be rearranged', 'error');

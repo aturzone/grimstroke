@@ -206,6 +206,7 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
       to?: unknown;
       row?: unknown;
       x?: unknown;
+      width?: unknown;
     };
     const ids = Array.isArray(body.ids)
       ? body.ids.filter((x): x is string => typeof x === 'string')
@@ -215,7 +216,9 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
       body.to === 'archive' ? 'archive' : 'use',
       Number(body.row) || 0,
       Number(body.x) || 0,
+      Number(body.width) || undefined,
     );
+    url.searchParams.set('width', String(Number(body.width) || ''));
   }
 
   if (path === '/api/shelf' || path === '/api/shelf/drop') {
@@ -232,7 +235,15 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
       rows,
       archive: books.filter((b) => b.archived).map((b) => b.id),
       trash,
-      html: renderCases(books, { layout: { rows }, edited, trash }),
+      html: renderCases(books, {
+        layout: { rows },
+        edited,
+        trash,
+        // A phone asks for a narrower bookcase with more shelves; the order is the same.
+        ...(Number(url.searchParams.get('width'))
+          ? { width: Number(url.searchParams.get('width')) }
+          : {}),
+      }),
     });
     return true;
   }

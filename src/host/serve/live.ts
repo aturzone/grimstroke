@@ -259,6 +259,7 @@ export class Live {
     to: 'use' | 'archive',
     row: number,
     x: number,
+    width?: number,
   ): Promise<void> {
     const { books, layout } = await this.shelf();
     const known = new Set(books.map((b) => b.id));
@@ -277,7 +278,7 @@ export class Live {
     const next =
       to === 'archive'
         ? rows.map((r) => r.filter((s) => !moving.includes(s.id)))
-        : dropInto(rows, open, moving, Math.max(0, Math.floor(row)), x);
+        : dropInto(rows, open, moving, Math.max(0, Math.floor(row)), x, width);
     await this.store.writeSettings({ ...(await this.store.readSettings()), shelf: { rows: next } });
   }
 

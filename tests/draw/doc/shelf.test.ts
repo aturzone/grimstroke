@@ -101,4 +101,17 @@ describe('the bookcase', () => {
     expect(html.indexOf('Open one')).toBeLessThan(html.indexOf('Done one'));
     expect(html).toContain('data-archived');
   });
+
+  it('spills onto more shelves on a narrower bookcase, in the same order', () => {
+    const many = Array.from({ length: 20 }, (_, i) => book(`b${i}`));
+    const slots = [many.map((b) => ({ id: b.id }))];
+    const wide = layOut(slots, many, 1);
+    const narrow = layOut(slots, many, 1, 320);
+    expect(narrow.length).toBeGreaterThan(wide.length);
+    expect(narrow.flatMap((r) => r.books.map((b) => b.id))).toEqual(
+      wide.flatMap((r) => r.books.map((b) => b.id)),
+    );
+    for (const row of narrow)
+      for (const b of row.books) expect(b.x + b.w).toBeLessThanOrEqual(320 + 60);
+  });
 });

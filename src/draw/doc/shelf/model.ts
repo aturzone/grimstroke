@@ -120,6 +120,8 @@ export function layOut(
   rows: readonly ShelfSlot[][],
   books: readonly BookSpec[],
   min = 3,
+  /** How wide a shelf is: a phone asks for a narrower bookcase with more shelves. */
+  width = SHELF_WIDTH,
 ): PlacedRow[] {
   const byId = new Map(books.map((b) => [b.id, b]));
   const queue = rows.map((row) => [...row]);
@@ -135,7 +137,7 @@ export function layOut(
       const spec = byId.get(slot.id);
       if (!spec) continue;
       const w = spineOf(spec);
-      if (x + w > SHELF_WIDTH && placed.length > 0) {
+      if (x + w > width && placed.length > 0) {
         spill.push(slot);
         continue;
       }
@@ -150,7 +152,7 @@ export function layOut(
       if (!spec) continue;
       const w = spineOf(spec);
       const h = heightOf(spec);
-      const at = Math.round(Math.min(SHELF_WIDTH - h, Math.max(end + 6, slot.flat ?? 0)));
+      const at = Math.round(Math.min(width - h, Math.max(end + 6, slot.flat ?? 0)));
       const under = flats.filter((f) => at < f.x + f.h && at + h > f.x);
       const y = under.reduce((top, f) => Math.max(top, f.y + f.w), 0);
       if (y + w > SHELF_CLEAR - 30) {
@@ -162,7 +164,7 @@ export function layOut(
     // The last of a run with room beside it leans back on the one before.
     const last = placed[placed.length - 1];
     const prev = placed[placed.length - 2];
-    const room = (flats.length ? Math.min(...flats.map((f) => f.x)) : SHELF_WIDTH) - end;
+    const room = (flats.length ? Math.min(...flats.map((f) => f.x)) : width) - end;
     if (last && prev && room > 24) {
       const t = (LEAN * Math.PI) / 180;
       const touch = Math.min(prev.h, last.h * Math.cos(t));
@@ -191,12 +193,13 @@ export function dropInto(
   ids: readonly string[],
   row: number,
   x: number,
+  width = SHELF_WIDTH,
 ): ShelfSlot[][] {
   const moving = new Set(ids);
   const next = rows.map((r) => r.filter((s) => !moving.has(s.id)));
   while (next.length <= row) next.push([]);
   const target = next[row] ?? [];
-  const placed = layOut([target], books, 1)[0];
+  const placed = layOut([target], books, 1, width)[0];
   const end = placed?.end ?? 0;
   const byId = new Map(books.map((b) => [b.id, b]));
   // Measured from the book's own near edge: one put down against the wall, or against the end of
