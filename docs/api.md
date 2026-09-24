@@ -48,8 +48,12 @@ page by its `book:` address: the same patch operations, the same events, the sam
 | board | `{ "op": "board", "patch": { "palette"?, "paper"?, "title"?, ... } }` -- on a page, only `paper` and `template` (`cornell`, `kanban`, or `null` for the book's) are the page's own |
 
 A `block` is anything a page can hold: `heading`, `text`, `label`, `bullets`, `table`, `code`,
-`quote`, `image`, `compare`, `note` (its text is markdown), `profile`, `stack` (a column of
-blocks as one object), `divider`, `spacer`. `ink` is `{ "d": "<svg path>", "colour", "weight",
+`quote`, `image`, `compare`, `note` (its text is markdown, and `:rocket:`-style shortcodes are
+drawn as small stickers), `profile`, `stack` (a column of blocks as one object), `divider`,
+`spacer`, and `sticker` -- `{ "kind": "sticker", "mark"? | "emoji"? | "words"?, "colour"? }`, a
+die-cut sticker: a mark from the sheet (`done`, `blocked`, `wip`, `ship`, `review`, `bug`,
+`star`, `heart`, `check`, `cross`, `arrow`, `warning`, `question`, `pin`, `bolt`, `eye`, and the
+services `github`, `gitlab`, `gitea`, `forgejo`), an emoji, or a few words as a stamp. `ink` is `{ "d": "<svg path>", "colour", "weight",
 "tool": "pen" | "pencil" | "marker" | "highlighter", "fill"? }`, relative to `at`.
 
 The reply says what happened: `placed` (items whose only change was position, with their new
@@ -78,7 +82,7 @@ surfaces hear it on their event streams.
 | leaf.blocks | `{ "op": "leaf.blocks", "id", "blocks": [...] }` -- a column, folded into one movable stack |
 | leaf.replace | `{ "op": "leaf.replace", "leaf": {...} }` |
 | cover | `{ "op": "cover", "patch": { "title"?, "colour"?, "ink"?, "material"?, "profile"? } }` |
-| sticker.add / .update / .remove | `label`, `picture`, `shape` (`circle`, `star`, `band`, `tape`), `portrait`, `card` -- each `{ id, kind, at: [x%, y%], width?: %, rotation? }`, placed from its centre |
+| sticker.add / .update / .remove | `label`, `picture`, `shape` (`circle`, `star`, `band`, `tape`), `portrait`, `card`, `mark` (a sheet mark or `emoji`) -- each `{ id, kind, at: [x%, y%], width?: %, rotation? }`, placed from its centre |
 | book | `{ "op": "book", "patch": { "title"?, "palette"?, "paper"?, "minLeaves"?, "pageSize"?, "template"? } }` -- `pageSize` is `a5` (the default), `a4`, `square` or `index`; `template` is what new pages are printed with |
 | archive | `{ "op": "archive", "archived": true }` -- put away, never thrown away |
 

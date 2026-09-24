@@ -64,8 +64,8 @@ export class ShelfApp {
   }
 
   boot(): void {
-    this.fit();
-    window.addEventListener('resize', () => this.fit());
+    this.fitRoom();
+    window.addEventListener('resize', () => this.fitRoom());
     this.bindNew();
     this.bindTrash();
     onClick('shelf-select', () => this.setSelecting(!this.selecting));
@@ -82,7 +82,7 @@ export class ShelfApp {
    * the pixels the layout was worked out in. On a phone it stops shrinking at a size a spine can
    * still be read at, and the shelves scroll sideways instead.
    */
-  private fit(): void {
+  private fitRoom(): void {
     const room = this.room;
     if (!room) return;
     const wide = 1140;
@@ -340,7 +340,7 @@ export class ShelfApp {
 
   private async nudge(spine: HTMLElement, key: string): Promise<void> {
     const shelf = spine.closest<HTMLElement>('[data-gs="shelf"]');
-    if (!shelf || shelf.dataset.shelf !== 'use') return;
+    if (shelf?.dataset.shelf !== 'use') return;
     const id = spine.dataset.gsId ?? '';
     const row = Number(shelf.dataset.row) || 0;
     const standing = [...shelf.querySelectorAll<HTMLElement>('.spine:not([data-flat])')];

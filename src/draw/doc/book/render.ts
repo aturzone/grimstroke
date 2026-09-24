@@ -30,6 +30,7 @@ import { templateLayer } from '~/draw/look/template.ts';
 import { halftoneDefs } from '~/draw/material/note/render.ts';
 import { renderPortrait, renderProfile } from '~/draw/material/profile/render.ts';
 import { ARABIC, leafText } from '~/draw/material/read.ts';
+import { renderStickerFace } from '~/draw/material/sticker/render.ts';
 import { escapeHtml, inline, label } from '~/draw/type/text.ts';
 
 export interface BookRenderOptions {
@@ -101,15 +102,17 @@ function renderSticker(sticker: Sticker, ctx: Surface): string {
       ? `<img src="${escapeHtml(servedPath(sticker.src ?? '', ctx))}" alt="" draggable="false">`
       : sticker.kind === 'portrait'
         ? `<span class="sticker-photo">${renderPortrait(sticker.portrait, '')}</span>`
-        : sticker.kind === 'card'
-          ? sticker.profile
-            ? renderProfile(sticker.profile)
-            : ''
-          : sticker.kind === 'shape'
-            ? `<span class="shape shape-${sticker.shape ?? 'circle'}"></span>`
-            : `<span class="sticker-text">${inline(sticker.text ?? '', {
-                digits: ctx.digits,
-              })}</span>`;
+        : sticker.kind === 'mark'
+          ? renderStickerFace({ mark: sticker.mark, emoji: sticker.emoji, colour: sticker.colour })
+          : sticker.kind === 'card'
+            ? sticker.profile
+              ? renderProfile(sticker.profile)
+              : ''
+            : sticker.kind === 'shape'
+              ? `<span class="shape shape-${sticker.shape ?? 'circle'}"></span>`
+              : `<span class="sticker-text">${inline(sticker.text ?? '', {
+                  digits: ctx.digits,
+                })}</span>`;
   return (
     `<div class="sticker sticker-${sticker.kind}" data-gs="sticker" ` +
     `data-gs-id="${escapeHtml(sticker.id)}" style="${style}">${body}</div>`

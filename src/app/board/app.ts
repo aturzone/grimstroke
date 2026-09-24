@@ -43,6 +43,7 @@ import {
   NOTE_MIN_WIDTH,
   NOTE_WIDTH,
 } from '~/draw/material/note/model.ts';
+import { MARKS } from '~/draw/material/sticker/marks.ts';
 
 export class BoardApp implements BoardContext {
   readonly view: View;
@@ -239,6 +240,15 @@ export class BoardApp implements BoardContext {
         this.setTool(tool);
       });
     }
+    for (const pick of document.querySelectorAll<HTMLElement>('[data-gs="sticker-choice"]')) {
+      pick.addEventListener('click', () => {
+        const face = pick.dataset.mark
+          ? { mark: pick.dataset.mark }
+          : { emoji: pick.dataset.emoji ?? '' };
+        this.placeSticker(face);
+        pick.closest('details')?.removeAttribute('open');
+      });
+    }
     for (const swatch of document.querySelectorAll<HTMLElement>('[data-gs="ink"]')) {
       swatch.addEventListener('click', () => {
         this.ink = swatch.dataset.gsInk ?? this.ink;
@@ -281,6 +291,32 @@ export class BoardApp implements BoardContext {
      */
     this.editNext = id;
     this.session.run([{ op: 'add', item }], '');
+  }
+
+  private stickersPlaced = 0;
+
+  /** A sticker from the sheet, stuck on the middle of what is in view, a little off true. */
+  private placeSticker(face: { mark?: string; emoji?: string }): void {
+    const box = this.viewport.getBoundingClientRect();
+    // Each one a little further along than the last, so a few in a row do not hide each other.
+    const step = (this.stickersPlaced++ % 6) * 36;
+    const at = this.view.toBoard({
+      x: box.left + box.width / 2 + step,
+      y: box.top + box.height / 2 + step * 0.4,
+    });
+    const id = this.nextId('sticker');
+    const size = face.mark && MARKS_STAMPS.has(face.mark) ? 150 : 88;
+    const item: BoardItem = {
+      id,
+      at: [Math.round(at.x - size / 2), Math.round(at.y - size / 2)],
+      z: topZ(this.session.spec) + 1,
+      size: [size],
+      rotation: Math.round((Math.random() - 0.5) * 14),
+      block: { kind: 'sticker', ...face },
+    };
+    this.session.run([{ op: 'add', item }], 'sticker');
+    this.selection.clear();
+    this.selection.set(id, true);
   }
 
   /** A just-made item to open for writing the moment its markup is on the page. */
@@ -737,3 +773,10 @@ async function pickPage(): Promise<string | undefined> {
     dialog.showModal();
   });
 }
+
+/** The stamps are words and want more width than a symbol does. */
+const MARKS_STAMPS: ReadonlySet<string> = new Set(
+  Object.entries(MARKS)
+    .filter(([, mark]) => mark.family === 'stamp')
+    .map(([name]) => name),
+);

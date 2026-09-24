@@ -39,6 +39,8 @@ export function textOf(block: Block): string[] {
       return profileText(block.profile);
     case 'stack':
       return block.blocks.flatMap(textOf);
+    case 'sticker':
+      return [block.words ?? block.mark ?? ''].filter(Boolean);
     case 'divider':
     case 'spacer':
       return [];

@@ -24,6 +24,8 @@ import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import { PAPERS } from '~/draw/look/grid.ts';
 import { PALETTES } from '~/draw/look/palette.ts';
 import { TEMPLATES } from '~/draw/look/template.ts';
+import { MARKS, markOf, SHORTCODES } from '~/draw/material/sticker/marks.ts';
+import { renderStickerFace } from '~/draw/material/sticker/render.ts';
 import { escapeHtml } from '~/draw/type/text.ts';
 
 interface Tool {
@@ -83,6 +85,39 @@ function toolButton(tool: Tool, divider: boolean): string {
     icon(tool.id) +
     `<span class="gs-tip" role="presentation">${escapeHtml(tool.label)} ${kbd(tool.key.toUpperCase())}</span>` +
     '</button>'
+  );
+}
+
+/**
+ * The sticker sheet: every mark and a handful of emoji, each a button that puts one on the
+ * middle of what you are looking at. The faces are drawn by the same renderer as the stickers.
+ */
+export function stickerSheet(): string {
+  const marks = Object.keys(MARKS)
+    .map(
+      (name) =>
+        `<button type="button" class="gs-sheet-pick" data-gs="sticker-choice" data-mark="${name}" ` +
+        `aria-label="${escapeHtml(markOf(name)?.label ?? name)} sticker">${renderStickerFace({ mark: name })}</button>`,
+    )
+    .join('');
+  const emoji = [...new Set(Object.values(SHORTCODES))]
+    .slice(0, 18)
+    .map(
+      (e) =>
+        `<button type="button" class="gs-sheet-pick" data-gs="sticker-choice" data-emoji="${e}" ` +
+        `aria-label="emoji sticker">${renderStickerFace({ emoji: e })}</button>`,
+    )
+    .join('');
+  return (
+    '<details class="gs-sheet" data-gs="sticker-sheet">' +
+    `<summary class="gs-btn gs-btn-icon" aria-label="stickers">${icon('sticker')}` +
+    '<span class="gs-tip" role="presentation">stickers</span></summary>' +
+    '<div class="gs-sheet-card gs-card" role="menu" aria-label="the sticker sheet">' +
+    '<p class="gs-menu-head">stickers</p>' +
+    `<div class="gs-sheet-grid">${marks}</div>` +
+    '<p class="gs-menu-head">emoji</p>' +
+    `<div class="gs-sheet-grid">${emoji}</div>` +
+    '</div></details>'
   );
 }
 
@@ -225,6 +260,7 @@ export function chrome(spec: BoardSpec): string {
     '<div class="gs-tray gs-card" data-gs="tray" role="toolbar" aria-label="tools">',
     `<div class="gs-tray-tools">${tools}</div>`,
     `<div class="gs-tray-inks" data-gs="inks" role="group" aria-label="ink">${inks}</div>`,
+    stickerSheet(),
     '</div>',
 
     // The camera and the undo stack: the two things you reach for without looking.

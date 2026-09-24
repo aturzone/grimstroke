@@ -218,4 +218,7 @@ body.on-book.live { padding-block: 76px 84px; }
 }
 .gs-pagesetup .gs-chip-row { padding: 0 12px 8px; }
 .gs-pagesetup-note { padding: 4px 16px 0; color: var(--gs-soft); font-size: var(--gs-t1); line-height: 1.5; }
+.gs-cover-sheet { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; padding: 0 2px; }
+.gs-cover-sheet .gs-sheet-pick:has(.dcut-stamp) { grid-column: span 2; aspect-ratio: 2.2; }
+.gs-cover-sheet .dcut-stamp .dcut-words { font-size: 22cqw; }
 `;

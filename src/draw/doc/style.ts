@@ -32,6 +32,7 @@ import { BLOCKS, CODE, TAPE } from '~/draw/material/css.ts';
 import { NOTE } from '~/draw/material/note/css.ts';
 import { MOUNT, PLATE, PLATE_LAYER, REDACT } from '~/draw/material/plate/css.ts';
 import { PORTRAIT, PROFILE } from '~/draw/material/profile/css.ts';
+import { STICKER } from '~/draw/material/sticker/css.ts';
 
 /** Layout, written in logical properties so a page mirrors with no branch. */
 export const BASE = [RESET, PAGE_LAYOUT, BLOCKS, PLATE, CODE, MOUNT].join('');
@@ -78,6 +79,7 @@ export const PIECES: Readonly<Record<string, string>> = {
   NOTE,
   PORTRAIT,
   PROFILE,
+  STICKER,
   BOARD,
   DESK,
   SPREAD,
@@ -97,6 +99,7 @@ export const PIECES: Readonly<Record<string, string>> = {
   SELECT,
   HANDLES,
   STUDIO,
+  SHELF_CHROME,
   SETTINGS,
   EDITOR,
   SCREEN,
@@ -104,6 +107,15 @@ export const PIECES: Readonly<Record<string, string>> = {
   SCRIPT,
 };
 
-export const STYLESHEET = [BASE, ZINE, NOTE, PORTRAIT, PROFILE, BOARD, BOOK, LIVE, SCRIPT].join(
-  '\n',
-);
+export const STYLESHEET = [
+  BASE,
+  ZINE,
+  NOTE,
+  PORTRAIT,
+  PROFILE,
+  STICKER,
+  BOARD,
+  BOOK,
+  LIVE,
+  SCRIPT,
+].join('\n');

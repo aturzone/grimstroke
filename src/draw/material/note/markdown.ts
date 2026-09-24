@@ -12,6 +12,7 @@
  */
 
 import { type Block, type Inline, type ListItem, lex } from '~/draw/material/note/md-lex.ts';
+import { withShortcodes } from '~/draw/material/sticker/render.ts';
 import { escapeHtml, inline } from '~/draw/type/text.ts';
 
 export interface MarkdownOptions {
@@ -88,7 +89,7 @@ function runs(tokens: Inline[], o: MarkdownOptions): string {
     .map((token) => {
       switch (token.type) {
         case 'text':
-          return inline(token.text, o);
+          return withShortcodes(inline(token.text, o));
         case 'br':
           return '<br>';
         case 'code':

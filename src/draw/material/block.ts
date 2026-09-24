@@ -16,6 +16,7 @@ import type { NoteStyle } from '~/draw/material/note/model.ts';
 import { renderNote } from '~/draw/material/note/render.ts';
 import { plate, renderCompare } from '~/draw/material/plate/render.ts';
 import { renderProfile } from '~/draw/material/profile/render.ts';
+import { renderSticker } from '~/draw/material/sticker/render.ts';
 import {
   renderBullets,
   renderCode,
@@ -73,6 +74,8 @@ export function renderBlock(block: Block, ctx: Surface, place: BlockPlacement = 
       return '<hr class="block">';
     case 'spacer':
       return `<div class="block" style="height:${block.size ?? 12}px"></div>`;
+    case 'sticker':
+      return renderSticker(block);
   }
 }
 

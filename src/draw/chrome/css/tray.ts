@@ -131,4 +131,40 @@ export const TRAY = `/* ---- the tray ---- */
 @media (hover: none) {
   .gs-tip { display: none; }
 }
+
+/* The sticker sheet: a card that opens above the tray. */
+.gs-sheet { position: relative; display: flex; align-items: center; }
+.gs-sheet > summary { list-style: none; cursor: pointer; }
+.gs-sheet > summary::-webkit-details-marker { display: none; }
+.gs-sheet[open] > summary { background: var(--gs-wash); }
+.gs-sheet-card {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  inset-inline-end: -8px;
+  width: min(360px, calc(100vw - 24px));
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 6px 4px 10px;
+}
+.gs-sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  padding: 4px 12px 8px;
+}
+.gs-sheet-pick {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  padding: 6px;
+  border: 0;
+  border-radius: var(--gs-radius);
+  background: repeating-conic-gradient(var(--gs-wash) 0 25%, transparent 0 50%) 0 0 / 10px 10px;
+  cursor: pointer;
+  transition: transform var(--gs-fast) var(--gs-ease);
+}
+.gs-sheet-pick:hover { transform: rotate(-6deg) scale(1.08); }
+/* A stamp is words, so it is given two cells' width. */
+.gs-sheet-pick:has(.dcut-stamp) { grid-column: span 2; aspect-ratio: 2.2; }
+.gs-sheet-pick .dcut-stamp .dcut-words { font-size: 22cqw; }
 `;

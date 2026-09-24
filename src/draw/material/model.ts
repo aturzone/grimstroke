@@ -157,7 +157,12 @@ export type Block =
    */
   | { kind: 'stack'; blocks: Block[] }
   | { kind: 'divider' }
-  | { kind: 'spacer'; size?: number };
+  | { kind: 'spacer'; size?: number }
+  /**
+   * A die-cut sticker: a mark from the sheet (a stamp, a symbol, a service's logo), an emoji, or
+   * a few words as a stamp. See material/sticker/marks.ts for the names.
+   */
+  | { kind: 'sticker'; mark?: string; emoji?: string; words?: string; colour?: string };
 
 /**
  * A stroke drawn on a note.

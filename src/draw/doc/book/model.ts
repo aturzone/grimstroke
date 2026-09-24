@@ -40,7 +40,7 @@ export const MATERIALS: readonly CoverMaterial[] = ['card', 'cloth', 'kraft', 'l
  */
 export interface Sticker {
   id: string;
-  kind: 'label' | 'picture' | 'shape' | 'portrait' | 'card';
+  kind: 'label' | 'picture' | 'shape' | 'portrait' | 'card' | 'mark';
   /** Percent of the cover, from its top-left. */
   at: [number, number];
   /** Width as a percent of the cover. Height follows the content. */
@@ -54,6 +54,9 @@ export interface Sticker {
   shape?: 'circle' | 'star' | 'band' | 'tape';
   /** For a portrait: the drawing, by value, as it was when it was stuck on. */
   portrait?: Portrait;
+  /** For a mark: a name from the sticker sheet (material/sticker/marks.ts), or an emoji. */
+  mark?: string;
+  emoji?: string;
   /**
    * For a card: the profile card, by value, as it was when it was put on -- so the cover still
    * says whose it was after the profile has been redrawn. A notebook is a record.
