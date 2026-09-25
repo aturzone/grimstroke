@@ -146,6 +146,8 @@ export class ShelfApp {
       this.width = width;
       void this.refresh();
     }
+    // The pet is drawn at whole pixels for the zoom: a new zoom, a new scale.
+    this.pet.refit();
   }
 
   /** The shelf width asked of the server: undefined for the full bookcase. */

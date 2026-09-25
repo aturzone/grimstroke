@@ -137,10 +137,10 @@ body.on-profile {
 .pf-pet-stage canvas { width: 144px; height: 120px; image-rendering: pixelated; margin-block-start: -24px; }
 .pf-pet-row { padding: 0 12px; align-items: center; }
 .pf-pet-on { margin-inline-start: auto; font-size: var(--gs-t2); display: flex; gap: 6px; align-items: center; }
-.pf-coats { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; padding: 0 12px; }
+.pf-coats { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; padding: 0 12px; }
 .pf-coat { display: grid; justify-items: center; gap: 2px; padding: 4px 2px; border: 1.5px solid var(--gs-faint); border-radius: var(--gs-radius); background: var(--gs-paper); cursor: pointer; font: inherit; font-size: var(--gs-t1); color: var(--gs-soft); }
 .pf-coat[hidden] { display: none; }
-.pf-coat canvas { width: 72px; height: 60px; image-rendering: pixelated; }
+.pf-coat canvas { width: 96px; height: 80px; image-rendering: pixelated; }
 .pf-coat[aria-pressed='true'] { border-color: var(--gs-ink); box-shadow: 2px 2px 0 var(--gs-line); color: var(--gs-ink); }
 .pf-pet .pf-field, .pf-pet .pf-note { padding-inline: 12px; }
 `;
