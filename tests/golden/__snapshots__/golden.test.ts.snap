@@ -2,14 +2,14 @@
 
 exports[`golden > renders every surface exactly as before 1`] = `
 {
-  "board": "6825b3b650e52ff4 205619",
-  "board-live": "20eea52a346f1b33 278216",
-  "page-carbon-ltr": "51ab487c4bb06de2 207253",
-  "page-carbon-rtl": "3fd86c1193015a84 207222",
-  "page-newsprint-ltr": "e3b0c6c525275408 207266",
-  "page-newsprint-rtl": "b3575e81e6a77043 207220",
-  "page-studio-ltr": "8e00297d62fce4a7 207272",
-  "page-studio-rtl": "40f3ee0f633d2476 207255",
+  "board": "eb146f5ad7b2f9f0 205619",
+  "board-live": "516eaab5b0efc884 278216",
+  "page-carbon-ltr": "2cb85335a79df843 207253",
+  "page-carbon-rtl": "9866163808b29805 207222",
+  "page-newsprint-ltr": "93867b2b6a1fff12 207266",
+  "page-newsprint-rtl": "32d3e7888726acba 207220",
+  "page-studio-ltr": "bfdc9e0e0c8b6df1 207272",
+  "page-studio-rtl": "368f1560815fadf8 207255",
   "profile": "0fe1e412cd7bbf0f 244305",
   "shelf": "cc7890c58694b7c4 232238",
   "spread-live-ltr": "fb80eddc308dda3d 221176",
