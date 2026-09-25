@@ -527,3 +527,42 @@ export function tidyMoves(
   }
   return moves;
 }
+
+/**
+ * Moves that undo overlaps: in reading order, anything lying on something above it slides down
+ * just clear of it, and so on down the page. Ink and stickers are meant to sit on things and are
+ * left where they are; a locked item neither moves nor is moved off.
+ */
+export function settleMoves(
+  items: readonly BoardItem[],
+  boxes: readonly Box[],
+  gap = 14,
+): Array<{ op: 'move'; id: string; at: [number, number] }> {
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const solid = boxes.filter((b) => {
+    const item = byId.get(b.id);
+    return item && !item.ink && item.block?.kind !== 'sticker';
+  });
+  const order = [...solid].sort((a, b) => a.y - b.y || a.x - b.x);
+  const placed: Box[] = [];
+  const moves: Array<{ op: 'move'; id: string; at: [number, number] }> = [];
+  for (const b of order) {
+    const item = byId.get(b.id) as BoardItem;
+    let y = b.y;
+    if (!item.locked) {
+      for (let guard = 0; guard < 50; guard++) {
+        const hit = placed.find(
+          (p) =>
+            Math.min(p.x + p.w, b.x + b.w) - Math.max(p.x, b.x) > 4 &&
+            Math.min(p.y + p.h, y + b.h) - Math.max(p.y, y) > 4,
+        );
+        if (!hit) break;
+        y = hit.y + hit.h + gap;
+      }
+    }
+    if (y !== b.y)
+      moves.push({ op: 'move', id: b.id, at: [item.at[0], Math.round(item.at[1] + y - b.y)] });
+    placed.push({ ...b, y });
+  }
+  return moves;
+}

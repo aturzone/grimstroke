@@ -221,7 +221,10 @@ export function chrome(spec: BoardSpec): string {
               `<button type="button" class="gs-btn gs-chip-btn" data-gs="template-choice" ` +
               `data-gs-template="${kind}" aria-pressed="${kind === (spec.template ?? 'none')}">${kind}</button>`,
           )
-          .join('')}</div>`
+          .join('')}</div>` +
+        heading('tidy') +
+        `<div class="gs-chip-row"><button type="button" class="gs-btn gs-chip-btn" data-gs="page-tidy">` +
+        'move apart what overlaps</button></div>'
       : '');
 
   const bar = sheet

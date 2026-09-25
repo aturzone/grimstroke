@@ -7,6 +7,7 @@ import {
   firstEmptyPage,
   planFlow,
   planWrite,
+  settleMoves,
   tidyMoves,
   type WriteBlock,
 } from '~/host/write.ts';
@@ -144,5 +145,29 @@ describe('a document with figures, references and columns', () => {
     expect(plan.columns).toBe(2);
     expect(plan.pages[0]?.length).toBe(2);
     expect(plan.pages.flat(2).length).toBe(one.pages.flat(2).length);
+  });
+});
+
+describe('moving apart what overlaps', () => {
+  it('slides what lies on something down below it, in reading order, and leaves ink and stickers', () => {
+    const items = [
+      { id: 'h', at: [40, 40], block: { kind: 'heading', text: 'A long heading' } },
+      { id: 't', at: [40, 90], block: { kind: 'text', text: 'Under it' } },
+      { id: 'n', at: [60, 100], block: { kind: 'text', text: 'And this' } },
+      { id: 's', at: [50, 60], block: { kind: 'sticker', mark: 'done' } },
+      { id: 'i', at: [40, 60], ink: { d: 'M0 0 L10 10' } },
+    ] as never;
+    const boxes = [
+      { id: 'h', x: 40, y: 40, w: 400, h: 110 },
+      { id: 't', x: 40, y: 90, w: 400, h: 30 },
+      { id: 'n', x: 60, y: 100, w: 200, h: 40 },
+      { id: 's', x: 50, y: 60, w: 80, h: 80 },
+      { id: 'i', x: 40, y: 60, w: 10, h: 10 },
+    ];
+    const moves = settleMoves(items, boxes, 10);
+    expect(moves).toEqual([
+      { op: 'move', id: 't', at: [40, 160] },
+      { op: 'move', id: 'n', at: [60, 200] },
+    ]);
   });
 });

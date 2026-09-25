@@ -45,6 +45,7 @@ import {
   firstEmptyPage,
   layoutOf,
   planWrite,
+  settleMoves,
   tidyMoves,
   type WriteBlock,
 } from '~/host/write.ts';
@@ -737,23 +738,35 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
       gap?: number;
       at?: [number, number];
       columns?: number;
+      fix?: 'overlaps';
     };
     const address = body.board ?? ask.board;
     const spec = await live.board(address);
     const report = await layoutOf(spec);
-    const moves = tidyMoves(spec.items, report.items, body.ids ?? [], {
-      as: body.as ?? 'column',
-      ...(body.gap !== undefined ? { gap: body.gap } : {}),
-      ...(body.at ? { at: body.at } : {}),
-      ...(body.columns ? { columns: body.columns } : {}),
+    const moves =
+      body.fix === 'overlaps'
+        ? settleMoves(spec.items, report.items, body.gap)
+        : tidyMoves(spec.items, report.items, body.ids ?? [], {
+            as: body.as ?? 'column',
+            ...(body.gap !== undefined ? { gap: body.gap } : {}),
+            ...(body.at ? { at: body.at } : {}),
+            ...(body.columns ? { columns: body.columns } : {}),
+          });
+    const reply = moves.length
+      ? await applyBoard(live, address, moves, header(req, 'x-grimstroke-client'))
+      : undefined;
+    const after =
+      moves.length && body.fix === 'overlaps' ? await layoutOf(await live.board(address)) : report;
+    send(res, 200, {
+      moved: moves.length,
+      measured: report.measured,
+      overlaps: after.overlaps,
+      outside: after.outside,
+      reply,
     });
-    const reply = moves.length ? await applyBoard(live, address, moves) : undefined;
-    send(res, 200, { moved: moves.length, measured: report.measured, reply });
     return true;
   }
 
-  // A notebook as one PDF: what it will hold, and the page that makes it. The PDF itself is
-  // written by a browser's print -- the page sets the paper size -- so the words stay words.
   // The PDF itself, made here, for an agent with no browser: Chromium prints the same page.
   if (path === '/api/export/book.pdf') {
     const spec = await live.book(url.searchParams.get('id') ?? '');
@@ -779,6 +792,8 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     return true;
   }
 
+  // A notebook as one PDF: what it will hold, and the page that makes it. The PDF itself is
+  // written by a browser's print -- the page sets the paper size -- so the words stay words.
   if (path === '/api/export/book') {
     const id = url.searchParams.get('id') ?? ((await readBody(req)) as { id?: string }).id ?? '';
     const spec = await live.book(id);

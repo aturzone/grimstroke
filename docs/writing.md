@@ -64,6 +64,11 @@ measured box, the pairs that overlap (ink over something is not counted -- that 
 the items that run over a page's edge, and on a page the clear band left below everything
 (`page.freeFrom`, `page.freeHeight`). Check it after placing anything by hand.
 
+**Undo overlaps.** `POST /api/tidy` with `{ "board", "fix": "overlaps" }` measures the page and
+slides whatever lies on something above it down clear of it, in reading order -- the fix for a
+heading that wrapped onto the paragraph under it. On a page, a person has the same thing in the
+page menu: "move apart what overlaps".
+
 **Line things up.** `POST /api/tidy` with `{ "board", "ids", "as": "column" | "row" | "grid",
 "gap"?, "at"?, "columns"? }` moves the items into a column, a row or a grid in the order given,
 with even gaps, using their measured sizes.

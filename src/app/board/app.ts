@@ -526,6 +526,23 @@ export class BoardApp implements BoardContext {
         } as unknown as Partial<BoardSpec>);
       });
     }
+    // Measured on the server, so the boxes are the real ones: what lies on something slides down.
+    for (const b of document.querySelectorAll<HTMLElement>('[data-gs="page-tidy"]')) {
+      b.addEventListener('click', async () => {
+        const res = await fetch('/api/tidy', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ board: this.session.spec.id, fix: 'overlaps' }),
+        });
+        const data = (await res.json()) as { moved?: number; overlaps?: unknown[]; error?: string };
+        if (!res.ok) {
+          toast(data.error ?? 'the page could not be tidied', 'error');
+          return;
+        }
+        await this.session.refresh();
+        toast(data.moved ? `moved ${data.moved} apart` : 'nothing on this page overlaps');
+      });
+    }
     for (const chip of document.querySelectorAll<HTMLElement>('[data-gs="paper-choice"]')) {
       chip.addEventListener('click', () =>
         reloadWith({ paper: (chip.dataset.gsPaper ?? 'squared') as BoardSpec['paper'] & string }),
