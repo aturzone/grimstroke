@@ -143,7 +143,9 @@ turned and resized like any sticker. `cover` with `profile` still works: set, it
 page number printed on it. `print` is `/print?book=<id>`, the page that holds the cover, the
 contents and every written page, one sheet each at the notebook's page size (`@page` is set, so
 there are no margins to choose); a browser prints it to PDF, and `save` opens the print dialog
-by itself. Blank pages after the last written one are left out. In the notebook, **PDF** on the
+by itself. `pdf` is `/api/export/book.pdf?id=<id>`: the PDF file itself, printed on the server by
+Chromium (the one engine Playwright can print with; everything else stays on Firefox) -- for an
+agent with no browser of its own. Blank pages after the last written one are left out. In the notebook, **PDF** on the
 bar goes there.
 
 ## The bookcase, and throwing away

@@ -136,6 +136,7 @@ export function renderPrint(spec: BookSpec, options: { scripts?: string[] } = {}
     '<nav class="print-bar" data-gs="print-bar">' +
       `<a class="print-back" href="/book?id=${encodeURIComponent(spec.id)}">back to the notebook</a>` +
       `<span class="print-count" dir="ltr">${leaves.length} ${leaves.length === 1 ? 'page' : 'pages'}, with the cover and the contents</span>` +
+      `<a class="print-back" href="/api/export/book.pdf?id=${encodeURIComponent(spec.id)}" data-gs="print-download" download>download PDF</a>` +
       '<button type="button" class="print-save" data-gs="print-save">save as PDF</button></nav>',
     halftoneDefs(),
     `<main class="print-book" data-gs="print" data-gs-id="${escapeHtml(spec.id)}">`,

@@ -14,7 +14,7 @@ function routes(): Set<string> {
   const found = new Set<string>();
   for (const file of readdirSync(SERVE).filter((f) => f.endsWith('.ts'))) {
     const text = readFileSync(join(SERVE, file), 'utf8');
-    for (const m of text.matchAll(/path === '(\/api\/[a-z/_-]+)'/g)) found.add(m[1] as string);
+    for (const m of text.matchAll(/path === '(\/api\/[a-z/_.-]+)'/g)) found.add(m[1] as string);
     // The bookcase's objects share one handler, named in a list.
     const shelf = text.match(/\['style', 'decor', 'remove', 'decal'\]/);
     if (shelf) for (const w of ['style', 'decor', 'remove', 'decal']) found.add(`/api/shelf/${w}`);

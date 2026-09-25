@@ -14,7 +14,7 @@ import { apply, type Op, PatchError, topZ } from '~/draw/doc/board/patch.ts';
 import { extentOf, renderBoard, renderOneItem } from '~/draw/doc/board/render.ts';
 import { bookTitle, boundLeaves, LEAF_MARGIN, leafSize } from '~/draw/doc/book/model.ts';
 import { apply as applyBook, type BookOp, BookPatchError } from '~/draw/doc/book/patch.ts';
-import { contentsOf, printedLeaves } from '~/draw/doc/book/print.ts';
+import { contentsOf, printedLeaves, renderPrint } from '~/draw/doc/book/print.ts';
 import { renderCover, renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { search } from '~/draw/doc/search.ts';
 import { BACKS, type Decal, type ShelfLayout, settle, WOODS } from '~/draw/doc/shelf/model.ts';
@@ -35,7 +35,7 @@ import { PACKS } from '~/draw/material/sticker/packs.ts';
 import { classify } from '~/draw/shape/classify.ts';
 import { INTENTS, isIntent, SHAPE_INTENTS } from '~/draw/shape/intents.ts';
 import { renderShape, type ShapeBlock, type ShapeState, summarize } from '~/draw/shape/render.ts';
-import { exportPages } from '~/host/export.ts';
+import { exportPages, exportPdf } from '~/host/export.ts';
 import { capabilities } from '~/host/serve/capabilities.ts';
 import { type Ask, header, readBody, readRaw, send } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
@@ -754,6 +754,31 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
 
   // A notebook as one PDF: what it will hold, and the page that makes it. The PDF itself is
   // written by a browser's print -- the page sets the paper size -- so the words stay words.
+  // The PDF itself, made here, for an agent with no browser: Chromium prints the same page.
+  if (path === '/api/export/book.pdf') {
+    const spec = await live.book(url.searchParams.get('id') ?? '');
+    const page = renderPrint(spec);
+    live.allow(page.assets);
+    let bytes: Buffer;
+    try {
+      bytes = await exportPdf(page);
+    } catch (error) {
+      send(res, 503, {
+        error:
+          'a PDF made on the server needs Playwright with Chromium. Open /print?book= in any browser and print it instead. ' +
+          `(${error instanceof Error ? error.message : String(error)})`,
+      });
+      return true;
+    }
+    res.writeHead(200, {
+      'content-type': 'application/pdf',
+      'content-length': bytes.length,
+      'content-disposition': `attachment; filename="${encodeURIComponent(spec.id)}.pdf"`,
+    });
+    res.end(bytes);
+    return true;
+  }
+
   if (path === '/api/export/book') {
     const id = url.searchParams.get('id') ?? ((await readBody(req)) as { id?: string }).id ?? '';
     const spec = await live.book(id);
@@ -761,6 +786,7 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     send(res, 200, {
       print,
       save: `${print}&print`,
+      pdf: `/api/export/book.pdf?id=${encodeURIComponent(spec.id)}`,
       pageSize: leafSize(spec),
       pages: printedLeaves(spec).length,
       contents: contentsOf(spec),

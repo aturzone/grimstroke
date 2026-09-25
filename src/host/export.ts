@@ -85,6 +85,7 @@ interface RouteLike {
 
 interface PageLike {
   goto(url: string, options: { waitUntil: 'load' }): Promise<unknown>;
+  pdf?(options: { printBackground: boolean; preferCSSPageSize: boolean }): Promise<Buffer>;
   evaluate(fn: () => unknown): Promise<unknown>;
   evaluate(fn: (arg: string) => unknown, arg: string): Promise<unknown>;
   $(selector: string): Promise<ElementLike | null>;
@@ -104,6 +105,52 @@ async function loadPlaywright(from?: string): Promise<PlaywrightLike> {
         'renderPage().html and screenshot it with the browser you already have. ' +
         `(${error instanceof Error ? error.message : String(error)})`,
     );
+  }
+}
+
+/**
+ * A page as a PDF, written by Chromium's print -- the only engine Playwright can print with.
+ *
+ * Firefox stays the engine for everything else. The page sets its own paper with @page (the
+ * printed notebook does), so the PDF has the notebook's page size and no margins, and the text
+ * in it is text. Served exactly as a PNG export is: the page and its own assets, nothing else.
+ */
+export async function exportPdf(page: RenderedPage, options: ExportOptions = {}): Promise<Buffer> {
+  const playwright = await loadPlaywright(options.playwrightModule);
+  const engine = playwright.chromium;
+  if (!engine) throw new Error('this Playwright has no Chromium to print with');
+  const browser = await engine.launch({ headless: true });
+  try {
+    const context = await browser.newContext({ deviceScaleFactor: 1 });
+    const allow = new Map<string, string>();
+    for (const [served, source] of Object.entries(page.assets))
+      allow.set(served, resolvePath(source));
+    await context.route('**/*', async (route) => {
+      const url = new URL(route.request().url());
+      if (url.origin !== ORIGIN) return route.abort();
+      const key = url.pathname.replace(/^\//, '');
+      if (key === '' || key === 'index.html') {
+        return route.fulfill({
+          status: 200,
+          contentType: 'text/html; charset=utf-8',
+          body: page.html,
+        });
+      }
+      const source = allow.get(key);
+      if (!source) return route.abort();
+      return route.fulfill({
+        status: 200,
+        contentType: TYPES[extname(source).toLowerCase()] ?? 'application/octet-stream',
+        body: await readFile(source),
+      });
+    });
+    const tab = await context.newPage();
+    await tab.goto(`${ORIGIN}/`, { waitUntil: 'load' });
+    await tab.evaluate(() => document.fonts.ready);
+    if (!tab.pdf) throw new Error('this browser cannot print to PDF');
+    return await tab.pdf({ printBackground: true, preferCSSPageSize: true });
+  } finally {
+    await browser.close();
   }
 }
 
