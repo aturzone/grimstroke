@@ -19,6 +19,7 @@ import { PRINT } from '~/draw/chrome/css/print.ts';
 import { SCREEN } from '~/draw/chrome/css/screen.ts';
 import { EDITOR, HANDLES, SELECT } from '~/draw/chrome/css/select.ts';
 import { SETTINGS } from '~/draw/chrome/css/settings.ts';
+import { SHAPE_BAR } from '~/draw/chrome/css/shape.ts';
 import { SHELF_CHROME } from '~/draw/chrome/css/shelf.ts';
 import { STUDIO } from '~/draw/chrome/css/studio.ts';
 import { TOP } from '~/draw/chrome/css/top.ts';
@@ -34,6 +35,7 @@ import { MOUNT, PLATE, PLATE_LAYER, REDACT } from '~/draw/material/plate/css.ts'
 import { PORTRAIT, PROFILE } from '~/draw/material/profile/css.ts';
 import { REMOTE } from '~/draw/material/remote/css.ts';
 import { STICKER } from '~/draw/material/sticker/css.ts';
+import { SHAPE } from '~/draw/shape/css.ts';
 
 /** Layout, written in logical properties so a page mirrors with no branch. */
 export const BASE = [RESET, PAGE_LAYOUT, BLOCKS, PLATE, CODE, MOUNT].join('');
@@ -69,6 +71,7 @@ export const LIVE = [
   SHELF_CHROME,
   SETTINGS,
   EDITOR,
+  SHAPE_BAR,
   SCREEN,
   PRINT,
 ].join('');
@@ -92,6 +95,7 @@ export const PIECES: Readonly<Record<string, string>> = {
   PROFILE,
   STICKER,
   REMOTE,
+  SHAPE,
   BOARD,
   DESK,
   SPREAD,
@@ -115,6 +119,7 @@ export const PIECES: Readonly<Record<string, string>> = {
   SHELF_CHROME,
   SETTINGS,
   EDITOR,
+  SHAPE_BAR,
   SCREEN,
   PRINT,
   SCRIPT,
@@ -128,6 +133,7 @@ export const STYLESHEET = [
   PROFILE,
   STICKER,
   REMOTE,
+  SHAPE,
   BOARD,
   BOOK,
   LIVE,

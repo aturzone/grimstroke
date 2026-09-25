@@ -251,6 +251,9 @@ export function chrome(spec: BoardSpec): string {
     `<div class="gs-tray-tools">${tools}</div>`,
     `<div class="gs-tray-inks" data-gs="inks" role="group" aria-label="ink">${inks}</div>`,
     stickerSheet(),
+    // Type anything and it becomes a card: "/" from the keyboard, this from a finger.
+    `<button type="button" class="gs-btn gs-btn-icon" data-gs="shape-open" aria-keyshortcuts="/" ` +
+      `aria-label="type anything">${icon('shape')}<span class="gs-tip" role="presentation">type anything ${kbd('/')}</span></button>`,
     // A page's repository: its drawer of issues, merge requests and commits.
     spec.sheet
       ? `<button type="button" class="gs-btn gs-btn-icon" data-gs="repo-drawer" aria-pressed="false" ` +

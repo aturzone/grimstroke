@@ -80,6 +80,33 @@ The reply says what happened: `placed` (items whose only change was position, wi
 `x-grimstroke-client` header naming your tab, and your own patches are not echoed back to you
 on the event stream.
 
+## Shapes: a line of text that becomes a card
+
+On a board or a page, **/** opens one box: type a plan, a list, a colour or a sum and it becomes a
+card -- an event, a checklist, a timer, a colour, a split, an expense, a conversion, a sum, a
+trip, a poll, a contact, a bookmark, a countdown, a time zone, a dice roll, a goal or a note.
+**/** again in the empty box lists every kind, to choose one by hand. English and Persian both
+work ("شام با مریم جمعه ساعت ۸ شب" is an event on Friday at 20:00).
+
+Which card a line is comes from a small classifier that ships inside the page (55 KB of int8
+weights, a logistic model over named facts and character n-grams, trained on generated English
+and Persian sentences; 97% on phrasings it never saw). Everything on the card -- dates, amounts,
+units, sums -- is computed by code, never guessed.
+
+| | |
+|---|---|
+| `GET /api/shape/kinds` | every kind, with its English and Persian name and an example of each |
+| `POST /api/shape` `{ text, intent? }` | read a line as the bar does: `intent`, `confidence`, `probabilities`, `readiness` (0-2), `signals` (video call? urgent? shopping?), and -- when it is a card -- `card`, `summary`, the `block` and its `html` |
+| `POST /api/shape/place` `{ board, text, intent?, at?, width?, state? }` | put a line on a board or page as its card; `intent` forces the kind; answers with the new `id` and the `summary` |
+
+A placed card is an item whose block is `{ "kind": "shape", "intent", "text", "made", "state"? }`.
+`made` is when it was written: relative dates in its text are read against it. `state` is what has
+been done to it since, and changes with an ordinary `update` patch: `done` (ticked checklist
+indices), `votes` (per poll option), `people` and `total` (a split), `days` and `log` (a habit's
+weekdays and the dates it was done), `current` (a goal), `elapsed` and `startedAt` (a timer, in
+seconds and epoch ms), `to` (the unit a conversion shows), `result` (the last roll), `closed`
+(a reminder done). Searching finds a card by its words and by its summary.
+
 ## Moving things between surfaces
 
 `POST /api/items/move` with `{ "from": "<address>", "to": "<address>", "ids": [...] }` takes the

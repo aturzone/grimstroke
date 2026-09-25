@@ -85,7 +85,7 @@ export function topBar(o: TopOptions): string {
       : '',
     '<button type="button" class="gs-btn gs-search-open" data-gs="search-open" ' +
       'aria-label="search everything" aria-keyshortcuts="Control+K /">' +
-      `${icon('search')}<span class="gs-btn-text">search</span>${kbd('/')}</button>`,
+      `${icon('search')}<span class="gs-btn-text">search</span>${kbd('mod+K')}</button>`,
     menu({
       gs: 'more',
       label: 'more',
@@ -147,13 +147,15 @@ export function helpDialog(): string {
     `<form method="dialog"><button class="gs-btn gs-btn-icon" aria-label="close">${icon('close')}</button></form></header>` +
     '<div class="gs-keys-grid">' +
     keys('everywhere', [
-      ['/', 'search'],
       ['mod+K', 'search'],
+      ['/', 'search, off a board'],
       ['?', 'this sheet'],
       ['mod+Z', 'undo'],
       ['mod+Shift+Z', 'redo'],
     ]) +
     keys('the board', [
+      ['/', 'type anything: it becomes a card'],
+      ['/ /', 'every kind of card'],
       ['V', 'select'],
       ['H', 'pan'],
       ['N', 'sticky note'],

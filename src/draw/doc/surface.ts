@@ -32,6 +32,22 @@ export interface Surface {
   warnings: string[];
   /** Bumped per generative element, so two identical notes do not match. */
   seq: number;
+  /**
+   * The moment the surface is drawn at, if the host gave a clock (see `useClock`). Only cards
+   * that count days or say "today" read it; without it they speak as of when they were made,
+   * which keeps every drawing a pure function of its document.
+   */
+  now?: number;
+}
+
+let clock: (() => number) | undefined;
+
+/**
+ * The host hands draw/ its clock, once, at start. draw/ never reads the time itself: a test or
+ * an export that gives no clock gets the same drawing every time.
+ */
+export function useClock(fn: (() => number) | undefined): void {
+  clock = fn;
 }
 
 export interface SurfaceOptions {
@@ -54,6 +70,7 @@ export function surface(id: string, options: SurfaceOptions = {}): Surface {
     assets: {},
     warnings: [],
     seq: 0,
+    ...(clock ? { now: clock() } : {}),
   };
 }
 

@@ -26,6 +26,7 @@ import { Handles } from '~/app/board/handles.ts';
 import { Notes } from '~/app/board/notes.ts';
 import { RemoteCards } from '~/app/board/remote.ts';
 import { Selection } from '~/app/board/select.ts';
+import { ShapeBar } from '~/app/board/shape.ts';
 import { DRAWING, type Tool } from '~/app/board/tools.ts';
 import { type Point, View } from '~/app/board/view.ts';
 import { toast } from '~/app/chrome.ts';
@@ -47,6 +48,8 @@ import {
 import { MARKS } from '~/draw/material/sticker/marks.ts';
 
 export class BoardApp implements BoardContext {
+  /** The "/" bar: a typed line becomes a card. */
+  private readonly shapes = new ShapeBar(this);
   readonly view: View;
   readonly viewport: HTMLElement;
   readonly board: HTMLElement;
@@ -93,7 +96,8 @@ export class BoardApp implements BoardContext {
     new Gestures(this, {
       editor: this.editor,
       create: (kind, at) => this.create(kind, at),
-      edit: (id) => this.editor.edit(id),
+      edit: (id) =>
+        this.items().get(id)?.block?.kind === 'shape' ? this.shapes.edit(id) : this.editor.edit(id),
       zoomed: () => this.showZoom(),
       gone: (id) => this.notes.forget(id),
       eraseNoteInk: (id, index) => this.notes.eraseInk(id, index),
@@ -112,6 +116,7 @@ export class BoardApp implements BoardContext {
     );
     this.bindKeys();
     new RemoteCards(this).bind();
+    this.shapes.bind();
     this.files = new Files(this, (message) => toast(message, 'error'));
     this.files.bind();
     this.bindBar();

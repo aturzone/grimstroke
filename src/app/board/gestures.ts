@@ -114,7 +114,7 @@ export class Gestures {
     const target = event.target as HTMLElement | null;
     if (
       target?.closest(
-        '.note .act, .note .grip, .note[data-drawing], .gs-note-done, .rc-tick, .rc-reply, .rc-open, .rc-count',
+        '.note .act, .note .grip, .note[data-drawing], .gs-note-done, .rc-tick, .rc-reply, .rc-open, .rc-count, .sc-act, .sc a',
       )
     )
       return;

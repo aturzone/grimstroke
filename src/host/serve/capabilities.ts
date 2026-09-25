@@ -19,6 +19,7 @@ import { COATS } from '~/draw/material/pet/art.ts';
 import { ACCENTS, PAPERS as PHOTO_PAPERS } from '~/draw/material/profile/model.ts';
 import { MARKS } from '~/draw/material/sticker/marks.ts';
 import { PACKS } from '~/draw/material/sticker/packs.ts';
+import { SHAPE_INTENTS } from '~/draw/shape/intents.ts';
 
 /** One line per route: `METHOD path` and what it does. */
 export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
@@ -52,6 +53,13 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
     'POST /api/export': 'a PNG of a board, or of chosen items on it',
     'GET /api/export/book?id=':
       'a notebook as one PDF: its contents, and /print?book= -- the page a browser prints to PDF',
+  },
+  shapes: {
+    'GET /api/shape/kinds': 'every kind of card a typed line can become, with an example of each',
+    'POST /api/shape':
+      'read a line as the "/" bar does { text, intent? }: which card, how sure, and the card',
+    'POST /api/shape/place':
+      'put a line on a board or page as its card { board, text, intent?, at?, width?, state? }',
   },
   bookcase: {
     'GET /api/shelf': 'the shelves, the archive and the trash',
@@ -119,7 +127,9 @@ export function capabilities(): Record<string, unknown> {
         'spacer',
         'sticker',
         'remote',
+        'shape',
       ],
+      shapeKinds: SHAPE_INTENTS,
       inkTools: ['pen', 'pencil', 'marker', 'highlighter'],
       palettes: PALETTES.map((p) => ({ id: p.id, label: p.label, dark: p.dark })),
       rulings: RULINGS,

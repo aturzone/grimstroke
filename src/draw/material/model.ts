@@ -14,6 +14,7 @@ import type { Issue, Merge, RemoteQuery, RemoteRef, Seen } from '~/draw/doc/remo
 import type { FrameKind } from '~/draw/look/frame.ts';
 import type { NoteStyle } from '~/draw/material/note/model.ts';
 import type { Profile } from '~/draw/material/profile/model.ts';
+import type { ShapeBlock } from '~/draw/shape/render.ts';
 
 /**
  * Where a rectangle's numbers live.
@@ -180,7 +181,9 @@ export type Block =
       error?: string;
       /** A commit on the same page that says it closes this issue. */
       fixedBy?: string;
-    };
+    }
+  /** A line of text that became a card: an event, a checklist, a timer (see draw/shape). */
+  | ShapeBlock;
 
 /**
  * A stroke drawn on a note.

@@ -382,7 +382,8 @@ export function bootChrome(): void {
       return;
     }
     if (typing(event.target) || open || event.ctrlKey || event.metaKey || event.altKey) return;
-    if (event.key === '/') {
+    // "/" is the shape bar's on a board or a page; everywhere else it still searches.
+    if (event.key === '/' && !document.querySelector('[data-gs="board"]')) {
       event.preventDefault();
       search?.open();
     } else if (event.key === '?') {

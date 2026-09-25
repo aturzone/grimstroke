@@ -19,6 +19,7 @@ import { randomBytes } from 'node:crypto';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { extname } from 'node:path';
+import { useClock } from '~/draw/doc/surface.ts';
 import { api } from '~/host/serve/api.ts';
 import {
   type Ask,
@@ -54,6 +55,8 @@ export interface Serving {
 }
 
 export async function serve(options: ServeOptions = {}): Promise<Serving> {
+  // Cards that count days, and say "today", are drawn against the real time here.
+  useClock(Date.now);
   const store = new Store(options.dir === undefined ? {} : { dir: options.dir });
   await store.ready();
 

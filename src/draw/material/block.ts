@@ -27,6 +27,7 @@ import {
   renderTable,
   renderText,
 } from '~/draw/material/words.ts';
+import { renderShape } from '~/draw/shape/render.ts';
 
 /**
  * What the board knows about a block that a page does not.
@@ -79,6 +80,8 @@ export function renderBlock(block: Block, ctx: Surface, place: BlockPlacement = 
       return renderSticker(block);
     case 'remote':
       return renderRemote(block);
+    case 'shape':
+      return renderShape(block, ctx.now ? { now: new Date(ctx.now) } : {});
   }
 }
 

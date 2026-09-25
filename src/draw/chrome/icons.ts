@@ -17,6 +17,9 @@ export const ICONS = {
     'M12 3 V21 M3 12 H21 M12 3 L9.6 5.6 M12 3 L14.4 5.6 M12 21 L9.6 18.4 M12 21 L14.4 18.4 ' +
     'M3 12 L5.6 9.6 M3 12 L5.6 14.4 M21 12 L18.4 9.6 M21 12 L18.4 14.4',
   sticky: 'M4 4 H20 V14.5 L14.5 20 H4 Z M20 14.5 H14.5 V20',
+  // A line of text becoming a card: the slash that opens the bar, inside a card.
+  shape:
+    'M3.5 6 A2.5 2.5 0 0 1 6 3.5 H18 A2.5 2.5 0 0 1 20.5 6 V18 A2.5 2.5 0 0 1 18 20.5 H6 A2.5 2.5 0 0 1 3.5 18 Z M14 7.5 L10 16.5',
   text: 'M5 6.5 V4 H19 V6.5 M12 4 V20 M8.5 20 H15.5',
   label: 'M3 9.4 L21 8.2 L20.6 15.8 L3.4 15 Z',
   image: 'M3 5 H21 V19 H3 Z M3 15.5 L8.5 10 L12.5 14 L16 10.5 L21 15.5 M15.8 8.6 h0.01',

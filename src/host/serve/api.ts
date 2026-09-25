@@ -12,7 +12,7 @@ import { extname, join } from 'node:path';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import { apply, type Op, PatchError, topZ } from '~/draw/doc/board/patch.ts';
 import { extentOf, renderBoard, renderOneItem } from '~/draw/doc/board/render.ts';
-import { bookTitle, boundLeaves, leafSize } from '~/draw/doc/book/model.ts';
+import { bookTitle, boundLeaves, LEAF_MARGIN, leafSize } from '~/draw/doc/book/model.ts';
 import { apply as applyBook, type BookOp, BookPatchError } from '~/draw/doc/book/patch.ts';
 import { contentsOf, printedLeaves } from '~/draw/doc/book/print.ts';
 import { renderCover, renderOneLeaf } from '~/draw/doc/book/render.ts';
@@ -32,6 +32,9 @@ import {
 } from '~/draw/material/profile/model.ts';
 import { renderProfile } from '~/draw/material/profile/render.ts';
 import { PACKS } from '~/draw/material/sticker/packs.ts';
+import { classify } from '~/draw/shape/classify.ts';
+import { INTENTS, isIntent, SHAPE_INTENTS } from '~/draw/shape/intents.ts';
+import { renderShape, type ShapeBlock, type ShapeState, summarize } from '~/draw/shape/render.ts';
 import { exportPages } from '~/host/export.ts';
 import { capabilities } from '~/host/serve/capabilities.ts';
 import { type Ask, header, readBody, readRaw, send } from '~/host/serve/http.ts';
@@ -172,6 +175,96 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
   }
 
   /** A new notebook, named. The id is made from the name and never collides with another. */
+  // ---------------------------------------------------------------- shapes
+  // A line of text read the way the "/" bar reads it: which card, how sure, and what is on it.
+  if (path === '/api/shape/kinds') {
+    send(res, 200, {
+      kinds: SHAPE_INTENTS.map((k) => ({
+        id: k,
+        label: INTENTS[k].label,
+        fa: INTENTS[k].fa,
+        example: INTENTS[k].example,
+        exampleFa: INTENTS[k].exampleFa,
+      })),
+    });
+    return true;
+  }
+  if (path === '/api/shape' && req.method === 'POST') {
+    const body = (await readBody(req)) as { text?: string; intent?: string };
+    const text = String(body.text ?? '').trim();
+    if (!text) {
+      send(res, 400, { error: 'text is needed: a plan, a list, a colour, a sum...' });
+      return true;
+    }
+    const now = new Date();
+    const r = classify(text, now);
+    const chosen = isIntent(body.intent)
+      ? body.intent
+      : r.intent.value === 'none'
+        ? undefined
+        : r.intent.value;
+    const block: ShapeBlock | undefined = chosen
+      ? { kind: 'shape', intent: chosen, text, made: new Date().toISOString() }
+      : undefined;
+    send(res, 200, {
+      intent: r.intent.value,
+      confidence: Math.round(r.intent.confidence * 1000) / 1000,
+      probabilities: Object.fromEntries(
+        Object.entries(r.intent.probabilities)
+          .filter(([, p]) => p >= 0.01)
+          .sort((a, b) => b[1] - a[1])
+          .map(([k, p]) => [k, Math.round(p * 1000) / 1000]),
+      ),
+      readiness: r.readiness,
+      signals: r.signals,
+      model: r.model,
+      ...(block
+        ? {
+            card: chosen,
+            summary: summarize(block),
+            block,
+            html: renderShape(block, { interactive: false }),
+          }
+        : {}),
+    });
+    return true;
+  }
+  if (path === '/api/shape/place' && req.method === 'POST') {
+    const body = (await readBody(req)) as {
+      board?: string;
+      text?: string;
+      intent?: string;
+      at?: [number, number];
+      width?: number;
+      state?: ShapeState;
+    };
+    const address = body.board ?? ask.board;
+    const text = String(body.text ?? '').trim();
+    const intent = isIntent(body.intent) ? body.intent : classify(text, new Date()).intent.value;
+    if (!text || intent === 'none') {
+      send(res, 400, {
+        error:
+          'that is not a card yet: say more, or name the kind with intent (GET /api/shape/kinds)',
+      });
+      return true;
+    }
+    const spec = await live.board(address);
+    const id = `card-${Date.now().toString(36)}`;
+    const block: ShapeBlock = {
+      kind: 'shape',
+      intent,
+      text,
+      made: new Date().toISOString(),
+      ...(body.state ? { state: body.state } : {}),
+    };
+    const at: [number, number] = body.at ?? [LEAF_MARGIN[0], LEAF_MARGIN[1]];
+    const reply = await applyBoard(live, address, [
+      { op: 'add', item: { id, at, size: [body.width ?? 360], z: topZ(spec) + 1, block } },
+    ]);
+    send(res, 200, { id, card: intent, summary: summarize(block, new Date()), reply });
+    return true;
+  }
+
   if (path === '/api/capabilities') {
     send(res, 200, capabilities());
     return true;

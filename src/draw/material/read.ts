@@ -11,6 +11,7 @@
 import type { Block } from '~/draw/material/model.ts';
 import type { Profile } from '~/draw/material/profile/model.ts';
 import { remoteText } from '~/draw/material/remote/render.ts';
+import { summarize } from '~/draw/shape/render.ts';
 
 /** Every run of text a block shows, in reading order. */
 export function textOf(block: Block): string[] {
@@ -44,6 +45,8 @@ export function textOf(block: Block): string[] {
       return [block.words ?? block.mark ?? ''].filter(Boolean);
     case 'remote':
       return remoteText(block);
+    case 'shape':
+      return [block.text, summarize(block)].filter((v, i, a) => a.indexOf(v) === i);
     case 'divider':
     case 'spacer':
       return [];
