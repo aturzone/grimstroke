@@ -277,6 +277,31 @@ export function parseTodo(text: string): TodoData {
   return { items, shopping };
 }
 
+const FA_WORDS: Record<string, number> = {
+  یک: 1,
+  یه: 1,
+  دو: 2,
+  سه: 3,
+  چهار: 4,
+  پنج: 5,
+  شش: 6,
+  هفت: 7,
+  هشت: 8,
+  نه: 9,
+  ده: 10,
+  پانزده: 15,
+  بیست: 20,
+  سی: 30,
+  چهل: 40,
+  پنجاه: 50,
+  شصت: 60,
+};
+/** A Persian number word just before a unit of time: «ده دقیقه» is 10 minutes. */
+const FA_DURATION_WORD = new RegExp(
+  `(?<![\\p{L}\\d])(${Object.keys(FA_WORDS).join('|')})(?=\\s*(دقیقه|ثانیه|ساعت))`,
+  'gu',
+);
+
 export function parseTimer(text: string): TimerData {
   let rest = ` ${fold(text).toLowerCase()} `;
   let seconds = 0;
@@ -295,6 +320,7 @@ export function parseTimer(text: string): TimerData {
     }
   }
   const unit = (u: string): number => (/^(h|ساعت)/.test(u) ? 3600 : /^(s|ثانیه)/.test(u) ? 1 : 60);
+  rest = rest.replace(FA_DURATION_WORD, (w) => String(FA_WORDS[w] ?? w));
   rest = rest.replace(
     /(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m|seconds?|secs?|s|ساعت|دقیقه|ثانیه)(?=\s|$|[^a-z])/g,
     (_, n: string, u: string) => {

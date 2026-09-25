@@ -106,7 +106,7 @@ work ("شام با مریم جمعه ساعت ۸ شب" is an event on Friday at 
 
 Which card a line is comes from a small classifier that ships inside the page (55 KB of int8
 weights, a logistic model over named facts and character n-grams, trained on generated English
-and Persian sentences; 97% on phrasings it never saw). Everything on the card -- dates, amounts,
+and Persian sentences; 97% on held-out phrasings, 99.9% on whole unseen sentences). Everything on the card -- dates, amounts,
 units, sums -- is computed by code, never guessed.
 
 | | |

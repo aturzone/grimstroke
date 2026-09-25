@@ -393,6 +393,12 @@ const T: Record<IntentKey, Gen[]> = {
       ),
   ],
   reminder: [
+    (r) => `don't let me forget ${pick(r, TASKS)} ${pick(r, DAYS)}`,
+    (r) => `یادت نره ${pick(r, FA_DAYS)} ${pick(r, FA_TASKS)}`,
+    (r) =>
+      `need to ${pick(r, TASKS)} before ${pick(r, ['friday', 'monday', 'the weekend', 'june', 'tomorrow'])}`,
+    (r) => `have to ${pick(r, TASKS)} by ${pick(r, ['friday', 'tonight', '5pm', 'next week'])}`,
+    (r) => `باید تا ${pick(r, FA_DAYS)} ${pick(r, FA_TASKS)}`,
     (r) => `remind me to ${pick(r, TASKS)} ${pick(r, DAYS)}`,
     (r) => `remind me to ${pick(r, TASKS)}`,
     (r) => `don't forget to ${pick(r, TASKS)} ${pick(r, TIMES)}`,
@@ -405,6 +411,8 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => `فراموش نکنم ${pick(r, FA_TASKS)}`,
   ],
   todo: [
+    (r) => `${pick(r, ITEMS)} ${pick(r, ITEMS)} ${pick(r, ITEMS)} ${pick(r, ITEMS)}`,
+    (r) => `${pick(r, FA_ITEMS)} ${pick(r, FA_ITEMS)} ${pick(r, FA_ITEMS)}`,
     (r) => `buy ${pick(r, ITEMS)}, ${pick(r, ITEMS)}, ${pick(r, ITEMS)} and ${pick(r, ITEMS)}`,
     (r) => `${pick(r, ITEMS)}, ${pick(r, ITEMS)}, ${pick(r, ITEMS)}`,
     (r) => `groceries: ${pick(r, ITEMS)}, ${pick(r, ITEMS)} and ${pick(r, ITEMS)}`,
@@ -419,6 +427,9 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => `خرید ${pick(r, FA_ITEMS)} و ${pick(r, FA_ITEMS)}`,
   ],
   timer: [
+    (r) =>
+      `${pick(r, ['ده', 'بیست', 'پنج', 'سی', 'پانزده'])} دقیقه ${pick(r, ['استراحت', 'تمرکز', 'مطالعه', ''])}`,
+    (r) => `${n(r, 5, 60)}m ${pick(r, ['deep work', 'focus', 'break'])}`,
     (r) =>
       `${n(r, 5, 90)} min ${pick(r, ['focus', 'break', 'timer', 'rest', 'deep work', 'study', ''])}`,
     (r) => `timer ${n(r, 1, 60)} minutes`,
@@ -435,6 +446,7 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => faDigits(`${n(r, 10, 59)} ثانیه`, r),
   ],
   habit: [
+    (r) => `روزی ${pick(r, ['دو لیتر آب', 'ده صفحه کتاب', 'یک ساعت ورزش', 'بیست دقیقه مدیتیشن'])}`,
     (r) => `${pick(r, HABITS)} every ${pick(r, ['morning', 'day', 'night', 'evening'])}`,
     (r) => `${pick(r, HABITS)} daily`,
     (r) => `${pick(r, HABITS)} ${n(r, 2, 5)}x a week`,
@@ -463,6 +475,9 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => `رنگ ${pick(r, ['دریا', 'غروب', 'نعنا'])}`,
   ],
   split: [
+    (r) =>
+      `${pick(r, ['dinner', 'lunch', 'cab', 'groceries'])} bill ${n(r, 40, 900)} for ${n(r, 2, 6)} of us`,
+    (r) => faDigits(`${pick(r, FA_MEALS)} ${n(r, 1, 9)} میلیون شد، ${n(r, 2, 6)} نفر بودیم`, r),
     (r) => `split ${n(r, 100, 9000)} between ${n(r, 2, 8)}`,
     (r) => `split ${n(r, 100, 9000)} among ${pick(r, ['three', 'four', 'five', 'two'])} friends`,
     (r) => `${n(r, 100, 9000)} split ${n(r, 2, 6)} ways`,
@@ -506,6 +521,9 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => faDigits(`تبدیل ${n(r, 1, 500)} ${pick(r, ['پوند', 'مایل', 'فوت'])}`, r),
   ],
   calc: [
+    (r) => `${n(r, 5, 25)}% ${pick(r, ['tip', 'tax'])} on ${n(r, 20, 900)}`,
+    (r) => faDigits(`${n(r, 100, 9999)} تقسیم بر ${n(r, 2, 30)}`, r),
+    (r) => `${n(r, 100, 9999)} * 0.${n(r, 1, 99)}`,
     (r) => `${n(r, 1, 50)}% of ${n(r, 100, 9000)}`,
     (r) => `${n(r, 2, 999)} * ${n(r, 2, 99)}`,
     (r) => `${n(r, 2, 9999)} + ${n(r, 2, 9999)} - ${n(r, 2, 999)}`,
@@ -602,6 +620,8 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => faDigits(`ساعت ${n(r, 1, 12)} ${pick(r, ['لندن', 'برلین', 'دبی'])} به وقت تهران`, r),
   ],
   random: [
+    (r) => faDigits(`یه عدد بین ${n(r, 1, 10)} تا ${n(r, 20, 1000)}`, r),
+    (r) => `a number between ${n(r, 1, 10)} and ${n(r, 20, 1000)}`,
     (r) => `roll ${pick(r, ['2d6', 'd20', '3d8', 'a die', 'dice', 'two dice'])}`,
     () => `flip a coin`,
     (r) => `random number between ${n(r, 1, 10)} and ${n(r, 20, 1000)}`,

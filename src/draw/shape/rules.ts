@@ -26,8 +26,10 @@ const CONVERT_FULL = new RegExp(
 );
 const CONVERT_PART = new RegExp(`\\d\\s*(?:${UNIT_PATTERN})(?![a-z\\u0600-\\u06ff])`);
 const CLOCK = /\b\d{1,2}(:\d{2})?\s*(am|pm)\b|\b\d{1,2}:\d{2}\b|\b(noon|midnight)\b|ساعت\s*\d/;
-const DURATION =
-  /\b\d+\s*(h|hr|hrs|hours?|m|min|mins|minutes?|s|sec|secs|seconds?)\b|\d+\s*(دقیقه|ثانیه)|\d+\s*ساعت(?!\s*(دیگه|بعد))/;
+const FA_NUM = '(?:\\d+|یک|یه|دو|سه|چهار|پنج|شش|هفت|هشت|نه|ده|پانزده|بیست|سی|چهل|پنجاه|شصت|نود)';
+const DURATION = new RegExp(
+  `\\b\\d+\\s*(h|hr|hrs|hours?|m|min|mins|minutes?|s|sec|secs|seconds?)\\b|${FA_NUM}\\s*(دقیقه|ثانیه)|\\d+\\s*ساعت(?!\\s*(دیگه|بعد))|نیم ?ساعت|\\bhalf an? hour\\b`,
+);
 
 /** Every named fact about the text, 0 or 1 (or a small count). */
 export function ruleFeatures(t: string): Record<string, number> {
@@ -71,9 +73,14 @@ export function ruleFeatures(t: string): Record<string, number> {
       /\b09\d{9}\b|\b09\d{2}\s?\d{3}\s?\d{4}\b/.test(t),
   );
   set('contact.say', /\b(contact|number|phone|save)\b|شماره|مخاطب|تلفن|موبایل/.test(t));
+  // An obligation with a deadline: "need to renew my visa before friday", "باید تا شنبه ... بدم".
+  set(
+    'reminder.must',
+    /\b(need to|have to|must|gotta|should)\b.*\b(before|by|until)\b|باید.*(تا|قبل از)/.test(t),
+  );
   set(
     'reminder.say',
-    /\b(remind|reminder|don'?t forget|remember to)\b|یادم بنداز|یادآوری|یادت باشه|یادم باشه|فراموش نکن/.test(
+    /\b(remind|reminder|don'?t forget|remember to|let me forget)\b|یادم بنداز|یادآوری|یادت باشه|یادم باشه|فراموش نکن|یادت نره|یادم نره|فراموشم نشه/.test(
       t,
     ),
   );
@@ -84,6 +91,15 @@ export function ruleFeatures(t: string): Record<string, number> {
       t,
     ),
   );
+  // A bill shared: "bill 180 for 4 of us", "۱.۲ میلیون شد، ۳ نفر بودیم".
+  set(
+    'split.us',
+    /\b(for|between|among) (\d+|two|three|four|five|six) of us\b|\d+ نفر (بودیم|هستیم)|\bbill\b.*\d.*\bfor \d+/.test(
+      t,
+    ),
+  );
+  // "۱۲۰۰ تقسیم بر ۷" is division, not a split: nobody is named or counted as people.
+  set('calc.divide', /\d\s*(تقسیم بر|divided by)\s*\d+(?!\s*(نفر|people))/.test(t));
   set('money.people', /\d+\s*(نفر|people|persons|friends|ways)/.test(t));
   set('expense.say', /\b(spent|paid|bought|cost|expense)\b|خرج|دادم|پرداخت|خریدم|هزینه/.test(t));
   set('money.sign', /^(₹|rs\.?|\$|€|£)\s?\d|تومن|تومان|ریال|دلار|یورو|\$|€|£/.test(t));
@@ -92,7 +108,7 @@ export function ruleFeatures(t: string): Record<string, number> {
   set('convert.part', CONVERT_PART.test(t) && !DURATION.test(t));
   set('convert.say', /\bconvert\b|تبدیل|چند (کیلو|متر|مایل|پوند|فوت)/.test(t));
   set('calc.expr', /^[\d\s+\-*/x×÷^().,%]+$/.test(t) && /\d\s*[+\-*/x×÷^%]\s*[\d(]/.test(t));
-  set('calc.percent', /\d\s*(%|درصد)\s*(of|off|از|تخفیف)/.test(t));
+  set('calc.percent', /\d\s*(%|درصد)\s*(of|off|tip|tax|از|تخفیف|انعام|مالیات)/.test(t));
   set(
     'calc.say',
     /\b(what'?s|calculate|compute)\b.*\d|حساب کن|چند میشه|چقدر میشه|ضرب|تقسیم بر|به علاوه|منهای/.test(
@@ -106,7 +122,7 @@ export function ruleFeatures(t: string): Record<string, number> {
     'habit.every',
     /\b(every\s*day|daily|every (morning|night|evening)|each (day|morning)|\d\s*x\s*a\s*week|times a week|habit|weekly|every (mon|tue|wed|thu|fri|sat|sun))/.test(
       t,
-    ) || /هر روز|روزانه|هر صبح|هر شب|هفته ?ای \S+ بار|عادت|هفتگی/.test(t),
+    ) || /هر روز|روزانه|هر صبح|هر شب|هفته ?ای \S+ بار|عادت|هفتگی|(^|\s)روزی \S+/.test(t),
   );
   set(
     'travel.say',
@@ -142,6 +158,11 @@ export function ruleFeatures(t: string): Record<string, number> {
   set('tz.clock', CLOCK.test(t));
   set('tz.time', /\btime\b|به وقت|ساعت چنده|ساعت چند/.test(t));
   set(
+    'random.between',
+    /\b(a |random )?number (between|from) \d+/.test(t) ||
+      /عدد (تصادفی |رندوم )?(بین|از) \d+/.test(t),
+  );
+  set(
     'random.say',
     /\b(roll|flip|toss)\b|\b\d*d\d+\b|\bcoin\b|\bdice\b|\bdie\b|\brandom\b|\b(pick|choose) (one|a random|for me)\b|تاس|سکه|شیر یا خط|تصادفی|قرعه|یکی رو انتخاب/.test(
       t,
@@ -157,6 +178,15 @@ export function ruleFeatures(t: string): Record<string, number> {
   set('todo.many', listSeps >= 2);
   set('todo.one', listSeps === 1);
   set('todo.buy', /^(buy|get|pick up|grab)\b|بخر|خرید|بگیرم|بگیر$/.test(t));
+  // A bare list of things to buy, with no commas: "eggs flour sugar butter".
+  set(
+    'todo.goods',
+    (
+      t.match(
+        /\b(milk|eggs?|bread|coffee|flour|sugar|butter|rice|apples?|cheese|tea|pasta|onions?|tomatoes?|yogurt|soap|salt|oil)\b|شیر|تخم ?مرغ|نان|نون|قهوه|آرد|شکر|کره|برنج|سیب|پنیر|چای|ماکارونی|پیاز|گوجه|ماست|صابون|نمک|روغن/g,
+      ) ?? []
+    ).length >= 3,
+  );
   set('todo.head', /^(todo|to do|groceries|list)\b|^(کارها|لیست)/.test(t));
   set('event.date', DATE_WORDS.test(t) || FA_WEEKDAY.test(t));
   set('event.gather', GATHER.test(t));
@@ -189,9 +219,12 @@ export function ruleScores(t: string): Partial<Record<ShapeIntent | 'none', numb
   if (on('contact.phone')) add('contact', 4);
   if (on('contact.say')) add('contact', 1);
   if (on('reminder.say')) add('reminder', 6);
+  if (on('reminder.must')) add('reminder', 4.5);
   if (on('split.say')) add('split', on('num.any') ? 5 : 3);
   if (on('split.among') && on('num.any')) add('split', 2.5);
   if (on('money.people')) add('split', 2);
+  if (on('split.us') && on('num.any')) add('split', 5);
+  if (on('calc.divide')) add('calc', 6);
   if (on('expense.say')) add('expense', on('num.any') ? 5 : 3);
   if (on('money.sign')) add('expense', 1.5);
   if (on('convert.full')) add('convert', 7);
@@ -216,12 +249,14 @@ export function ruleScores(t: string): Partial<Record<ShapeIntent | 'none', numb
   else if (on('tz.two')) add('timezone', 5);
   else if (on('tz.one') && (on('tz.clock') || on('tz.time'))) add('timezone', 5.5);
   if (on('random.say')) add('random', 6.5);
+  if (on('random.between')) add('random', 7);
   if (on('goal.of')) add('goal', 4.5);
   if (on('goal.say')) add('goal', 3);
   if (on('goal.done')) add('goal', on('num.two') ? 5 : 2.5);
   if (on('todo.many')) add('todo', 4);
   else if (on('todo.one') && (on('todo.buy') || on('todo.head'))) add('todo', 3);
   if (on('todo.buy')) add('todo', 2);
+  if (on('todo.goods')) add('todo', 4.5);
   if (on('event.date')) add('event', on('event.gather') || !on('len.long') ? 2.5 : 1);
   if (on('event.gather')) add('event', 3);
   if (on('event.call')) add('event', 2);
@@ -263,5 +298,8 @@ export function ruleScores(t: string): Partial<Record<ShapeIntent | 'none', numb
     cap('calc', 1);
   }
   if ((s.goal ?? 0) >= 4.5) cap('calc', 1);
+  if (on('random.between')) cap('split', 1);
+  if (on('calc.divide')) cap('split', 2);
+  if ((s.reminder ?? 0) >= 4.5) cap('event', 3);
   return s;
 }
