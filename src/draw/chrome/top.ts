@@ -73,7 +73,7 @@ export function topBar(o: TopOptions): string {
     '<span class="gs-brand-mark" aria-hidden="true">g</span>',
     '<span class="gs-brand-word">grimstroke</span></a>',
     back,
-    `<span class="gs-name" data-gs="title" dir="auto">${escapeHtml(o.title)}</span>`,
+    `<span class="gs-name" data-gs="title" dir="auto" title="${escapeHtml(o.title)}">${escapeHtml(o.title)}</span>`,
     o.saved
       ? '<span class="gs-saved" data-gs="saved" data-state="saved" role="status" aria-live="polite">saved</span>'
       : '',

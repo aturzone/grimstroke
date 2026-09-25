@@ -70,6 +70,9 @@ export const TOP = `/* ---- the top ----
 .gs-mast .gs-back { flex: none; }
 .gs-name {
   min-width: 0;
+  /* A long name gives way before the places do: it ends in an ellipsis (the full name is its
+     title), and the audit in tools/layout.ts holds it to that at every width. */
+  max-width: clamp(120px, 18vw, 420px);
   overflow: hidden;
   padding-inline-start: 11px;
   border-inline-start: 1.5px solid var(--gs-faint);
@@ -160,7 +163,9 @@ export const TOP = `/* ---- the top ----
   .gs-place:not([aria-current]) > span { display: none; }
   .gs-place:not([aria-current]) { padding-inline: 9px; }
 }
-@media (max-width: 1180px) {
+/* A laptop screen keeps the mark and the search button, not their words: with a long title and a
+   page's actions the three cards met at 1280px. */
+@media (max-width: 1366px) {
   .gs-brand-word { display: none; }
   .gs-search-open { min-width: 0; }
   .gs-search-open .gs-btn-text { display: none; }
@@ -175,6 +180,17 @@ export const TOP = `/* ---- the top ----
   .gs-narrow-only { display: block; }
   .gs-search-open .gs-kbd { display: none; }
   .gs-search-open { width: var(--gs-control); padding: 0; justify-content: center; border-color: transparent; }
+}
+/* A surface with six or more things to do -- a notebook has seven -- folds into the menu below
+   1100px rather than 1000px. The audit in tools/layout.ts found its cards overlapping at 1024px
+   with a long right-to-left name. */
+@media (max-width: 1100px) {
+  :root:has(.gs-acts-own > .gs-btn:nth-of-type(6)) .gs-top { display: flex; justify-content: space-between; }
+  :root:has(.gs-acts-own > .gs-btn:nth-of-type(6)) .gs-places { display: none; }
+  :root:has(.gs-acts-own > .gs-btn:nth-of-type(6)) .gs-menu-places { display: block; }
+  :root:has(.gs-acts-own > .gs-btn:nth-of-type(6)) .gs-wide-only { display: none; }
+  :root:has(.gs-acts-own > .gs-btn:nth-of-type(6)) .gs-narrow-only { display: block; }
+  :root:has(.gs-acts-own > .gs-btn:nth-of-type(6)) .gs-search-open .gs-kbd { display: none; }
 }
 @media (max-width: 520px) {
   .gs-top { inset-block-start: 8px; inset-inline: 8px; gap: 6px; }

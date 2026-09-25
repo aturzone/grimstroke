@@ -103,6 +103,10 @@ you have opened it.
 pnpm check
 ```
 
+It types, lints, tests, builds, and then runs the responsive audit (`pnpm layout`, about a
+minute in Firefox): every surface at six sizes from a phone to a desktop, failing on chrome that
+overlaps, runs off the window or scrolls sideways.
+
 Commit only on a green check, gated on its exit code -- `pnpm check && git commit`, never a
 pipe through grep that swallows the failure. A red commit got in exactly that way.
 
