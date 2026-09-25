@@ -43,7 +43,7 @@ describe('the pets, drawn', () => {
           const g = petFrame(coat.species, coat, pose, n);
           const solid = g.flat().filter((k) => k !== '.').length;
           // A frame name the drawings lack comes back empty, not as an error: count the pixels.
-          if (solid < 250) bad.push(`${coat.id} ${pose}${n}: only ${solid} pixels`);
+          if (solid < 80) bad.push(`${coat.id} ${pose}${n}: only ${solid} pixels`);
           const lowest = g.findLastIndex((row) => row.some((k) => k !== '.'));
           const airborne = pose === 'leap' || pose === 'run' || pose === 'happy';
           if (lowest > PET_GROUND || (!airborne && lowest !== PET_GROUND))
@@ -54,7 +54,7 @@ describe('the pets, drawn', () => {
     expect(bad).toEqual([]);
   });
 
-  it('draws the walk and the run in six frames, each different', () => {
+  it('draws the walk and the run in four frames, each different', () => {
     for (const pose of ['walk', 'run'] as const) {
       const coat = COATS[0];
       if (!coat) continue;
@@ -63,8 +63,30 @@ describe('the pets, drawn', () => {
           .map((r) => r.join(''))
           .join('\n'),
       );
-      expect(frames.length).toBe(6);
-      expect(new Set(frames).size).toBe(6);
+      expect(frames.length).toBe(4);
+      expect(new Set(frames).size).toBe(4);
+    }
+  });
+
+  it('faces you when it sits: the head is a mirror of itself', () => {
+    for (const id of ['ginger', 'golden', 'husky']) {
+      const coat = COATS.find((c) => c.id === id);
+      if (!coat) continue;
+      const g = petFrame(coat.species, coat, 'sit', 0);
+      // The head: the rows above the shoulders. Compare each pixel with its mirror about the
+      // head's own middle, ignoring colour and counting only filled against empty.
+      let same = 0;
+      let all = 0;
+      for (const row of g.slice(3, 16)) {
+        const xs = row.flatMap((k, x) => (k === '.' ? [] : [x]));
+        if (!xs.length) continue;
+        const mid = ((xs[0] ?? 0) + (xs[xs.length - 1] ?? 0)) / 2;
+        for (const x of xs) {
+          all++;
+          if (row[Math.round(2 * mid - x)] !== '.') same++;
+        }
+      }
+      expect(same / all).toBeGreaterThan(0.9);
     }
   });
 

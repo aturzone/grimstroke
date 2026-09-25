@@ -16,7 +16,7 @@
  * drawn inside it had its art pixels land on 1.1 or 1.7 screen pixels -- uneven, soft, some
  * pixels wider than others, which is most of why the old one looked wrong. So the pet is not in
  * the zoomed room: it stands in the room's un-zoomed parent, placed from room coordinates, at a
- * whole number of device pixels per art pixel chosen from the zoom (two at full size), and its
+ * whole number of device pixels per art pixel chosen from the zoom (three at full size), and its
  * position is rounded to device pixels. Every art pixel is then a crisp, equal square.
  */
 
@@ -36,7 +36,7 @@ import {
 import type { Pet } from '~/draw/material/profile/model.ts';
 
 /** Screen pixels per art pixel at full size; the zoom scales it, rounded to whole pixels. */
-const PX = 2;
+const PX = 3;
 
 interface Ledge {
   y: number;
@@ -200,7 +200,7 @@ export class ShelfPet {
 
   /**
    * The scale: whole device pixels per art pixel, as near the room's zoom as whole numbers go --
-   * two at full size, one on a phone -- and where the room's corner is in the pet's layer.
+   * three at full size, two on a phone -- and where the room's corner is in the pet's layer.
    */
   private fitScale(): void {
     const room = this.room;

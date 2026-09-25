@@ -1,21 +1,23 @@
 /**
  * The pets: a cat and a dog, in several coats, in every pose they have.
  *
- * Every frame is drawn by hand, pixel by pixel, in sprites.ts -- as text, one letter per pixel,
- * each letter a role (outline, light fur, shade, cream, points...) rather than a colour. This file
- * puts a frame together from its parts, then colours it for a coat: a ginger tabby's stripes, a
- * Siamese's points, a calico's patches, a Dalmatian's spots, a beagle's saddle.
+ * Every part and frame is drawn by hand in sprites.ts, as text, one letter per pixel, each letter a
+ * role (outline, light fur, cream, points...) rather than a colour. This file puts a frame together
+ * from its parts, then colours it for a coat: a tabby's stripes, a Siamese's points, a calico's
+ * patches, a Dalmatian's spots, a beagle's saddle.
  *
- * Every frame is drawn once into one sprite sheet per pet and coat (see app/shelf/pet.ts); after
- * that a pet costs a background-position change when its frame changes, and nothing else.
+ * The style follows Stardew Valley's pets (see sprites.ts): a small grid at a whole-number scale,
+ * resting poses facing the viewer. Every frame is drawn once into one sprite sheet per pet and coat
+ * (see app/shelf/pet.ts); after that a pet costs a background-position change when its frame
+ * changes, and nothing else.
  */
 
-import { CAT_ART, DOG_ART } from '~/draw/material/pet/sprites.ts';
+import { ART } from '~/draw/material/pet/sprites.ts';
 
-export const PET_W = 48;
-export const PET_H = 40;
-/** The row the paws stand on. */
-export const PET_GROUND = 37;
+export const PET_W = 32;
+export const PET_H = 28;
+/** The row the pet stands on: its contact shadow. The paws are the row above. */
+export const PET_GROUND = 26;
 
 export type Species = 'cat' | 'dog';
 
@@ -38,18 +40,21 @@ export type PetPose =
   | 'leap'
   | 'land';
 
-/** Frames per pose, and how many a second they play at. */
+/**
+ * Frames per pose, and how many a second they play at. A four-frame walk, as Stardew's pets walk;
+ * a sit that breathes, slowly.
+ */
 export const PET_FRAMES: Readonly<Record<PetPose, { count: number; fps: number }>> = {
-  walk: { count: 6, fps: 9 },
-  run: { count: 6, fps: 14 },
-  sit: { count: 1, fps: 1 },
+  walk: { count: 4, fps: 7 },
+  run: { count: 4, fps: 11 },
+  sit: { count: 2, fps: 1 },
   blink: { count: 3, fps: 12 },
   flick: { count: 4, fps: 8 },
   happy: { count: 2, fps: 3 },
   look: { count: 1, fps: 1 },
   yawn: { count: 4, fps: 5 },
   wash: { count: 4, fps: 5 },
-  lick: { count: 4, fps: 5 },
+  lick: { count: 4, fps: 4 },
   loaf: { count: 1, fps: 1 },
   sleep: { count: 2, fps: 1 },
   stretch: { count: 3, fps: 4 },
@@ -232,95 +237,94 @@ export function coatOf(id: string | undefined, species: Species = 'cat'): Coat {
 
 type Grid = string[][];
 
-interface Block {
+interface Part {
   x: number;
-  y: number | undefined;
-  inc: Array<{ name: string; dx: number; dy: number; mode: '' | '~' | '%' }>;
+  y: number;
+  inc: Array<{ name: string; dx: number; dy: number; far: boolean }>;
   rows: string[];
 }
 
-function parse(art: string): Map<string, Block> {
-  const blocks = new Map<string, Block>();
-  let cur: Block | undefined;
+function parse(art: string): Map<string, Part> {
+  const parts = new Map<string, Part>();
+  let cur: Part | undefined;
   for (const raw of art.split('\n')) {
     const line = raw.trimEnd();
     if (line.startsWith('==')) {
       const [, name = '', rest = ''] = /^==\s*(\S+)\s*(.*)$/.exec(line) ?? [];
       const x = /\bx=(-?\d+)/.exec(rest);
       const y = /\by=(-?\d+)/.exec(rest);
-      cur = { x: x ? Number(x[1]) : 0, y: y ? Number(y[1]) : undefined, inc: [], rows: [] };
-      blocks.set(name, cur);
+      cur = { x: x ? Number(x[1]) : 0, y: y ? Number(y[1]) : 0, inc: [], rows: [] };
+      parts.set(name, cur);
     } else if (!cur || !line.trim() || line.trimStart().startsWith('#')) {
-      // Between blocks, or a note.
+      // Between parts, or a note.
     } else if (line.startsWith('@')) {
       const [ref = '', dx = '0', dy = '0'] = line.slice(1).split(/\s+/);
-      const mode = ref.endsWith('~') ? '~' : ref.endsWith('%') ? '%' : '';
-      cur.inc.push({ name: mode ? ref.slice(0, -1) : ref, dx: Number(dx), dy: Number(dy), mode });
+      const far = ref.endsWith('~');
+      cur.inc.push({ name: far ? ref.slice(0, -1) : ref, dx: Number(dx), dy: Number(dy), far });
     } else {
       cur.rows.push(line.split(' ')[0] ?? '');
     }
   }
-  return blocks;
+  return parts;
 }
 
 /** A far limb, behind the body: the same drawing, in the shade tones. */
 const FAR: Readonly<Record<string, string>> = {
   l: 'd',
   f: 'd',
-  s: 'S',
   w: 'v',
-  b: 'B',
-  P: 'q',
-  p: 'q',
   a: 'A',
+  p: 'q',
+  P: 'q',
+  s: 'S',
+  t: 'T',
+  b: 'B',
+  L: 'D',
+  F: 'D',
 };
 
-/** Fur a mask may mark: the saddle darkens exactly these. */
-const MASKABLE = new Set(['l', 'f', 'd', 's', 'S']);
+let parts: Map<string, Part> | undefined;
 
-let cat: Map<string, Block> | undefined;
-let dog: Map<string, Block> | undefined;
-
-function art(species: Species): { own: Map<string, Block>; shared: Map<string, Block> } {
-  cat ??= parse(CAT_ART);
-  dog ??= parse(DOG_ART);
-  return species === 'dog' ? { own: dog, shared: cat } : { own: cat, shared: cat };
-}
-
-function compose(species: Species, name: string, swap: Readonly<Record<string, string>>): Grid {
-  const { own, shared } = art(species);
-  const key = swap[name] ?? name;
-  const block = own.get(key) ?? shared.get(key);
+function compose(name: string, swap: Readonly<Record<string, string>>): Grid {
+  parts ??= parse(ART);
+  const part = parts.get(swap[name] ?? name);
   const g: Grid = Array.from({ length: PET_H }, () => Array.from({ length: PET_W }, () => '.'));
-  if (!block) return g;
-  for (const inc of block.inc) {
-    const part = compose(species, inc.name, swap);
+  if (!part) return g;
+  for (const inc of part.inc) {
+    const under = compose(inc.name, swap);
     for (let y = 0; y < PET_H; y++) {
       for (let x = 0; x < PET_W; x++) {
-        const c = part[y]?.[x] ?? '.';
+        const c = under[y]?.[x] ?? '.';
+        const row = g[y + inc.dy];
         const tx = x + inc.dx;
-        const ty = y + inc.dy;
-        const row = g[ty];
         if (c === '.' || !row || tx < 0 || tx >= PET_W) continue;
-        if (inc.mode === '%') {
-          const under = row[tx] ?? '.';
-          if (MASKABLE.has(under)) row[tx] = `M${under}`;
-        } else row[tx] = inc.mode === '~' ? (FAR[c] ?? c) : c;
+        row[tx] = inc.far ? (FAR[c] ?? c) : c;
       }
     }
   }
-  const top = block.y ?? PET_GROUND + 1 - block.rows.length;
-  block.rows.forEach((line, dy) => {
-    const row = g[top + dy];
+  part.rows.forEach((line, dy) => {
+    const row = g[part.y + dy];
     if (!row) return;
     [...line].forEach((c, dx) => {
-      const x = block.x + dx;
+      const x = part.x + dx;
       if (c === '.' || x < 0 || x >= PET_W) return;
       row[x] = c === '_' ? '.' : c;
     });
   });
   return g;
 }
+
+/** A pricked-eared dog (shiba, husky): its own head, and a tail curled over its back. */
+const PRICKED: Readonly<Record<string, string>> = {
+  dhead: 'dheadU',
+  dshead: 'dsheadU',
+  dstail: 'dstailU',
+  dstailw: 'dstailwU',
+  dhalf: 'dhalfU',
+  dshut: 'dshutU',
+  dhappy: 'dhappyU',
+  dup: 'dupU',
+};
 
 const drawn = new Map<string, Grid>();
 
@@ -329,9 +333,7 @@ function drawing(species: Species, ears: 'up' | 'flop', pose: PetPose, n: number
   const key = `${species}:${ears}:${pose}:${n}`;
   const made = drawn.get(key);
   if (made) return made;
-  const swap: Record<string, string> =
-    species === 'dog' && ears === 'up' ? { _dhead: '_dheadU', _dtail: '_dtailU' } : {};
-  const g = compose(species, `${species === 'dog' ? 'd' : ''}${pose}${n}`, swap);
+  const g = compose(`${species}.${pose}.${n}`, species === 'dog' && ears === 'up' ? PRICKED : {});
   drawn.set(key, g);
   return g;
 }
@@ -347,14 +349,13 @@ function hash(x: number, y: number, seed: number): number {
 
 const TONE: Readonly<Record<string, 'l' | 'f' | 'd'>> = {
   l: 'l',
-  P: 'l',
   f: 'f',
-  p: 'f',
-  s: 'f',
-  y: 'f',
   d: 'd',
-  q: 'd',
+  s: 'f',
   S: 'd',
+  L: 'l',
+  F: 'f',
+  D: 'd',
 };
 
 /** A calico's patches, a Dalmatian's spots: the fur a coat marks, not drawn but placed. */
@@ -365,18 +366,17 @@ function marks(g: Grid, coat: Coat): Grid {
       const tone = TONE[c];
       if (!tone) return c;
       if (coat.pattern === 'patches') {
-        // Big soft-edged patches: cells of 6x5, their borders nudged so they do not look ruled.
-        const cx = Math.floor((x + (hash(0, y, 7) < 0.5 ? 0 : 1)) / 6);
-        const cy = Math.floor((y + (hash(x, 0, 9) < 0.5 ? 0 : 1)) / 5);
+        // Big patches: cells of 5x4, their edges nudged so they do not look ruled.
+        const cx = Math.floor((x + (hash(0, y, 7) < 0.5 ? 0 : 1)) / 5);
+        const cy = Math.floor((y + (hash(x, 0, 9) < 0.5 ? 0 : 1)) / 4);
         const r = hash(cx, cy, 3);
-        if (r < 0.34) return `X${tone}`;
-        if (r < 0.52) return `Y${tone}`;
+        if (r < 0.3) return `X${tone}`;
+        if (r < 0.48) return `Y${tone}`;
         return c;
       }
-      // Spots: two by two, scattered, a few of them.
-      const r = hash(Math.floor(x / 3), Math.floor(y / 3), 5);
-      const inSpot = (x % 3) + (y % 3) < 3 && (x % 3 !== 2 || y % 3 !== 2);
-      return r < 0.2 && inSpot ? `X${tone}` : c;
+      // Spots: a pixel or two, scattered.
+      const r = hash(Math.floor(x / 2), Math.floor(y / 2), 5);
+      return r < 0.16 && (x + y) % 2 === 0 ? `X${tone}` : c;
     }),
   );
 }
@@ -398,14 +398,14 @@ export function petFrame(species: Species, coat: Coat, pose: PetPose, n: number)
   const count = PET_FRAMES[pose].count;
   const k = ((n % count) + count) % count;
   const g = marks(drawing(species, coat.ears ?? 'flop', pose, k), coat).map((row) => [...row]);
-  if (pose === 'sleep') glyph(g, ['zzz', '..z', '.z.', 'zzz'], 'z', 42, 12 - k);
-  if (pose === 'happy') glyph(g, ['.h.h.', 'hhhhh', 'hhhhD', '.hhD.', '..D..'], 'h', 41, 4 - k);
+  if (pose === 'sleep') glyph(g, ['zzz', '..z', '.z.', 'zzz'], 'z', 27, 8 - k);
+  if (pose === 'happy') glyph(g, ['.h.h.', 'hhhhh', 'hhhhD', '.hhD.', '..D..'], 'h', 25, 2 - k);
   return g;
 }
 
 // ---------------------------------------------------------------- colours
 
-/** A colour pulled toward black by `t` (0..1): the outline and the line inside the fur. */
+/** A colour pulled toward black by `t` (0..1): the outline, a dark shade of the fur itself. */
 function darker(hex: string, t: number): string {
   const n = Number.parseInt(hex.slice(1), 16);
   const ch = (s: number): string =>
@@ -426,14 +426,14 @@ export function colourOf(coat: Coat, key: string): string | undefined {
   const points = coat.pattern === 'points';
   const tabby = coat.pattern === 'tabby';
   const point: [string, string, string] = points ? second : coat.fur;
-  // A black coat's outline is blacker still, or the silhouette melts into the fur.
-  const dark = Number.parseInt(fd.slice(1, 3), 16) < 0x40;
   // The saddle: a beagle's black back, a husky's darker one; on any other coat, only fur.
   const saddle: [string, string, string] =
     coat.pattern === 'saddle' || coat.pattern === 'mask' ? second : coat.fur;
+  // A coloured outline, as Stardew draws it: the darkest fur, darker still. A black coat's has to
+  // be near black, or the silhouette melts into the fur.
+  const dark = Number.parseInt(fd.slice(1, 3), 16) < 0x40;
   const table: Record<string, string> = {
-    o: dark ? '#141218' : '#2a1c16',
-    i: darker(fd, 0.28),
+    o: dark ? '#121015' : darker(fd, 0.58),
     l: fl,
     f: fm,
     d: fd,
@@ -442,22 +442,16 @@ export function colourOf(coat: Coat, key: string): string | undefined {
     P: point[0],
     p: point[1],
     q: point[2],
-    y: tabby ? second[1] : points ? second[2] : fm,
+    L: saddle[0],
+    F: saddle[1],
+    D: saddle[2],
     w: cream[0],
     v: cream[1],
     b: belly[0],
     B: belly[1],
-    // A muzzle stays cream even on a Siamese: a dark one this small reads as a moustache.
     c: cream[0],
-    C: cream[1],
     a: points ? second[1] : cream[0],
     A: points ? second[2] : cream[1],
-    j: coat.second ? second[1] : fd,
-    Ml: saddle[0],
-    Mf: saddle[1],
-    Md: saddle[2],
-    Ms: tabby ? second[1] : saddle[1],
-    MS: tabby ? second[2] : saddle[2],
     Xl: second[0],
     Xf: second[1],
     Xd: second[2],
@@ -465,12 +459,15 @@ export function colourOf(coat: Coat, key: string): string | undefined {
     Yf: third[1],
     Yd: third[2],
     e: coat.eye,
-    u: '#1b120e',
+    u: dark ? '#050406' : '#1b120e',
     k: '#ffffff',
     n: coat.nose ?? (coat.species === 'dog' ? '#221816' : '#e0707e'),
     m: '#5a2a22',
-    t: '#ef8a9a',
-    r: '#f3a3b0',
+    t: '#f0a0a8',
+    T: '#c47a84',
+    r: '#ef8a9a',
+    // The contact shadow: see-through, so it darkens whatever wood the shelf is.
+    g: 'rgba(20, 10, 4, 0.32)',
     z: '#ffffff',
     h: '#f0506e',
     H: '#b8304c',

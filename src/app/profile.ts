@@ -16,7 +16,15 @@ import { confirmCard, toast } from '~/app/chrome.ts';
 import { go, must, onClick, typing } from '~/app/dom.ts';
 import { letterOf } from '~/app/keys.ts';
 import { detailRow } from '~/draw/chrome/detail.ts';
-import { COATS, coatOf, colourOf, type PetPose, petFrame } from '~/draw/material/pet/art.ts';
+import {
+  COATS,
+  coatOf,
+  colourOf,
+  PET_H,
+  PET_W,
+  type PetPose,
+  petFrame,
+} from '~/draw/material/pet/art.ts';
 import {
   DEFAULT_PET,
   type Pet,
@@ -399,12 +407,15 @@ class ProfileEditor {
     const coat = coatOf(pet.coat, pet.species);
     const g = petFrame(pet.species, coat, pose, n);
     c.clearRect(0, 0, canvas.width, canvas.height);
+    // Centred on its ground: the canvas is a little larger than the pet's grid.
+    const ox = Math.floor((canvas.width - PET_W) / 2);
+    const oy = canvas.height - PET_H;
     for (let y = 0; y < g.length; y++) {
       for (let x = 0; x < (g[y]?.length ?? 0); x++) {
         const colour = colourOf(coat, g[y]?.[x] ?? '.');
         if (!colour) continue;
         c.fillStyle = colour;
-        c.fillRect(x, y, 1, 1);
+        c.fillRect(ox + x, oy + y, 1, 1);
       }
     }
   }

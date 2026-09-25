@@ -1,223 +1,1161 @@
 /**
- * The pets, drawn by hand: every pixel of every frame, as text.
+ * The pets, drawn by hand: every part and every frame, as text, one letter per pixel.
  *
- * One letter is one pixel, and a letter is a ROLE, not a colour -- `o` the outline, `l` `f` `d` the
- * fur's light, base and shade, `w` the cream of a chest -- so a single drawing is every coat (see
- * colourOf in art.ts). A block is a frame or, when its name starts with `_`, a part:
+ * STYLE -- Stardew Valley's pets are the reference for the style, not for the pixels: nothing here
+ * is traced or copied. What is taken is how they are made: a small grid shown at a whole-number
+ * scale; a big head on a short body; an outline that is a dark shade of the fur, not black; three
+ * tones per material, lit from the upper left; eyes as two dark pixels; a pink nose and inner ear;
+ * a soft contact shadow; a tail wrapped round the feet. And the thing that made the old sit look
+ * wrong: a pet at rest FACES YOU -- sitting, blinking, yawning, washing, sleeping -- and turns
+ * side-on only to walk, run, stretch or eat.
  *
- *     == name x=NN [y=NN]     where the rows go: the top-left corner, or the bottom row on the
- *                             ground when y is left out
- *     @part dx dy             another block's pixels first, moved; `@part~` draws it in shade,
- *                             for the far legs, and `@part%` only marks the fur it covers
- *     rows                    then these, over them; `.` is nothing, `_` rubs out
+ * The grid is 32 x 28; the paws stand on row 25 and the shadow lies on row 26.
  *
- * The roles:
+ * FORMAT -- `== name x= y=` starts a part; its rows are placed with their top-left at (x, y).
+ * `@part dx dy` draws another part first, moved by (dx, dy); `@part~` draws it in the shade tones,
+ * for a far leg. `.` is nothing and `_` clears a pixel. Frames are the parts named
+ * `cat.<pose>.<n>` and `dog.<pose>.<n>`; a pricked-eared dog swaps in the parts ending in `U`.
  *
- *     o outline     i a line inside the fur      l f d fur: light, base, shade
- *     s S stripes   P p q points (ears, tail)    y a stripe on the tail
- *     w v cream     b B cream belly (some coats) c C the muzzle      a A paws
- *     e iris        u pupil and lids             k catch-light       n nose
- *     m mouth       t tongue                     r inside an ear     j a dog's hanging ear
- *
- * Drawn to these rules, from pixel-art practice and a study of good pixel cats and dogs:
- *
- * - The head is big -- two fifths of a sitting pet -- set on a smaller body: cute, but a real
- *   animal's shape. Ears grow out of the head outline as clean triangles; eyes sit low and wide,
- *   three pixels square with a pupil and a catch-light.
- * - Light comes from the upper left: a light tone along the top edges, the base colour, a shade
- *   along the underside, wrapped just inside the outline. Never pillow shading round every edge.
- * - The outline is a dark warm brown, not black, and inside the silhouette the fur is separated
- *   by a darker fur line (`i`), not by the outline: selective outlining.
- * - Curves step evenly (3-2-1), with no doubled pixels or stray corners.
- * - Walking is six frames, legs in diagonal pairs with the body lifting a pixel as they pass; the
- *   far legs are the same drawings in shade. Running is a six-frame gallop, the legs thrown out.
+ * LETTERS -- roles, not colours (art.ts colours them for a coat):
+ *   o outline   l f d fur, light to dark   s S tabby stripe   w v cream   b B belly
+ *   a A paws    P p q tail and ear backs (a Siamese's points)   L F saddle (a beagle's back)
+ *   t inner ear   u pupil   e eye   n nose   m mouth   r tongue   g shadow
  */
 
-/** The cat, and the parts the dog borrows: legs, bodies, a tail streaming as it runs. */
-export const CAT_ART = String.raw`
-== sit x=12
-......o.........o......
-......oo.......oo......
-.....oPro.....orpo.....
-.....oPrro...orrpo.....
-.....oPrrooooorrqo.....
-....ollllsslslffdo.....
-....ollllsslllfffdo....
-....oluuullllfuuudo....
-...oilkuelllffkuedo....
-...olleuellllfeuedo....
-..olfilllllcncffffdo...
-..olfiffllcCcCcffddo...
-.olffifffccccccfddo....
-.olfffiffwwwwwwwdo.....
-olllsffivvvvvvvvdo.....
-ollffsfffiwwwwwvdo.....
-olfffsffffiwwwwvdo.....
-olffffsffffiwwwwvdo....
-olfffsffffffidlffdo....
-olffffsfffffidlffdo....
-olfffffsffffidlffdo....
-offffffsfffdidlffdo....
-offfffffffddidlffdo....
-offfffffffddidlffdo....
-offffffddddiidlffdo....
-odddddddaaaiaalffo..oo.
-.dddddddaaaiaaaaAo.oPpo
-.ddddddaooooooooooooPpo
-.oddddooPPPyPPyPPyPpqqo
-..ooooooqqqqqqqqqqqqqo.
-........oooooooooooooo.
+export const ART = String.raw`
+== fhead x=7 y=7
+...oo........oo...
+..otto......otto..
+..otpoooooooopto..
+..oflllsllslllfo..
+..ofllllssllllfo..
+.oflllullllulllfo.
+.oflllellllelllfo.
+.olfflwwnnwwlffdo.
+..offfwwwwwwffdo..
+...oddfwwwwfddo...
 
-== sit0 x=0
-@sit 0 0
-== _eyehalf x=18 y=14
-lll.....fff
-uuu.....uuu
-eue.....eue
-== _eyeshut x=18 y=14
-lll.....fff
-ulu.....ufu
-lul.....fuf
-== _eyehappy x=18 y=14
-lll.....fff
-lul.....fuf
-ulu.....ufu
-== _eyewide x=18 y=14
-uuu.....uuu
-kuu.....kuu
-uuu.....uuu
-== blink0 x=0
-@sit 0 0
-@_eyehalf 0 0
-== blink1 x=0
-@sit 0 0
-@_eyeshut 0 0
-== blink2 x=0
-@sit 0 0
-@_eyehalf 0 0
+== fhalf x=7 y=12
+......d....d......
+......o....o......
 
-== flick0 x=0
-@sit 0 0
-== flick1 x=30 y=30
-@sit 0 0
-______
-...oo.
-..oPpo
-.oPpo.
-.oPpo.
-== flick2 x=30 y=29
-@sit 0 0
+== fshut x=7 y=12
+......l....l......
+.....oo....oo.....
+
+== fhappy x=7 y=12
+......o....o......
+.....olo..olo.....
+..t............t..
+
+== fup x=7 y=11
+......u....u......
+......e....e......
+......l....l......
+
+== fyawn1 x=7 y=12
+......l....l......
+.....oo....oo.....
+........oo........
+........mm........
+
+== fyawn2 x=7 y=12
+......l....l......
+.....oo....oo.....
+.......mnnm.......
+.......mrrm.......
+........mm........
+
+== ftongue x=7 y=12
+......l....l......
+.....oo....oo.....
+..................
+........rr........
+
+== fbody x=7 y=17
+...olffwwwwffdo...
+..olfffwwwwfffdo..
+..olfffvwwvfffdo..
+.olffdlfvvlfdffdo.
+.olsfdlffdlfdsfdo.
+.olfsdlffdlfdfsdooo.
+.olffdlffdlfdfdoqqqo
+.oldfdaffdooooooqqpo
+..oooaaaaoqqqqqqqpo.
+...gggooooooooooog..
+
+== fflick1 x=7 y=21
+..................oo
+.................opo
+.................opo
+...............oo.o.
+
+== fflick2 x=7 y=20
+.................o..
+................opo.
+................opo.
+................opo.
+...............oo...
+
+== fpaw x=7 y=17
+..........oooo....
+.........oaaaao...
+.........oaavao...
+..........ofloo...
+..........oflo....
+..........oflo....
+..........oflo....
+..........odfo....
+
+== fbodyw x=7 y=17
+...olffwwwwffdo...
+..olfffwwwwfffdo..
+..olfffvwwvfffdo..
+.olffdlfvvffdffdo.
+.olsfdlffdfffsfdo.
+.olfsdlffdffffsdooo.
+.olffdlffdffffdoqqqo
+.oldfdaffdooooooqqpo
+..oooaaaaoqqqqqqqpo.
+...gggooooooooooog..
+
+== cat.sit.0
+@fbody
+@fhead
+
+== cat.sit.1
+@fbody
+@fhead 0 1
+
+== cat.blink.0
+@fbody
+@fhead
+@fhalf
+
+== cat.blink.1
+@fbody
+@fhead
+@fshut
+
+== cat.blink.2
+@fbody
+@fhead
+@fhalf
+
+== cat.flick.0
+@fbody
+@fhead
+@fflick1
+
+== cat.flick.1
+@fbody
+@fhead
+@fflick2
+
+== cat.flick.2
+@fbody
+@fhead
+@fflick1
+
+== cat.flick.3
+@fbody
+@fhead
+
+== cat.happy.0
+@fbody
+@fhead
+@fhappy
+
+== cat.happy.1
+@fbody
+@fhead 0 1
+@fhappy 0 1
+
+== cat.look.0
+@fbody
+@fhead
+@fup
+
+== cat.yawn.0
+@fbody
+@fhead
+@fshut
+
+== cat.yawn.1
+@fbody
+@fhead
+@fyawn1
+
+== cat.yawn.2
+@fbody
+@fhead
+@fyawn2
+
+== cat.yawn.3
+@fbody
+@fhead
+@fyawn1
+
+== cat.wash.0
+@fbodyw
+@fhead
+@fpaw 0 0
+
+== cat.wash.1
+@fbodyw
+@fhead
+@fpaw 0 -1
+@ftongue
+
+== cat.wash.2
+@fbodyw
+@fhead 1 0
+@fpaw 0 -2
+@fshut 1 0
+
+== cat.wash.3
+@fbodyw
+@fhead
+@fpaw 0 -1
+@ftongue
+
+== cat.lick.0
+@fbody
+@fhead 0 2
+@fshut 0 2
+
+== cat.lick.1
+@fbody
+@fhead 0 3
+@ftongue 0 3
+
+== cat.lick.2
+@fbody
+@fhead 0 3
+@fshut 0 3
+
+== cat.lick.3
+@fbody
+@fhead 0 3
+@ftongue 0 3
+
+== chead x=16 y=9
+..o.....o...
+.oto...oto..
+.otpoooopto.
+.ofllllllfo.
+offllllllllo
+offlllllulwo
+offllllllewn
+odfffllllwwo
+.oddfffwwwo.
+..oooooooo..
+
+== cbody x=7 y=14
+..oooooooooo.
+.ollllllllllo
+olffsffsfffffo
+offsfffsffffdo
+offffffffffddo
+odffffffffffdo
+.oddbbbbbbdddo
+..oo......ooo.
+
+== ctail x=1 y=5
+..oo...
+.oPpo..
+.opoo..
+.opo...
+.opo...
+..opo..
+..opo..
+...opo.
+...opo.
+....opoo
+.....opo
+......oo
+
+== legS
+olfo
+olfo
+olfo
+oaao
+oooo
+
+== legF
+.olfo
+olfo.
+olfo.
+oaao.
+oooo.
+
+== legB
+olfo.
+.olfo
+.olfo
+.oaao
+.oooo
+
+== cat.walk.0
+@gsh
+@legB~ 9 21
+@legF~ 16 21
+@ctail
+@cbody
+@legF 7 21
+@legB 17 21
+@chead
+
+== cat.walk.1
+@gsh
+@legS~ 10 21
+@legS~ 16 21
+@ctail
+@cbody
+@legS 8 21
+@legS 17 21
+@chead
+
+== cat.walk.2
+@gsh
+@legF~ 9 21
+@legB~ 16 21
+@ctail
+@cbody
+@legB 7 21
+@legF 17 21
+@chead
+
+== cat.walk.3
+@gsh
+@legS~ 8 21
+@legS~ 17 21
+@ctail
+@cbody
+@legS 10 21
+@legS 16 21
+@chead
+
+== gsh x=6 y=26
+gggggggggggggggg
+
+== ctaillow x=0 y=12
+.oo......
+oPpo.....
+.oPpoo...
+..ooPpoo.
+....ooppo
+......ooo
+
+== legXF
+olfo..
+.olfo.
+..olfo
+..oaao
+..oooo
+
+== legXB
+..olfo
+.olfo.
+olfo..
+oaao..
+oooo..
+
+== legT
+olfo
+oaao
+oooo
+
+== cat.run.0
+@gsh
+@legXB~ 8 21
+@legXF~ 15 21
+@ctaillow
+@cbody
+@legXB 6 21
+@legXF 17 21
+@chead
+
+== cat.run.1
+@gsh
+@legS~ 11 20
+@legS~ 14 20
+@ctaillow 0 -1
+@cbody 0 -1
+@legS 9 20
+@legS 16 20
+@chead 0 -1
+
+== cat.run.2
+@gsh
+@legXF~ 8 21
+@legXB~ 15 21
+@ctaillow
+@cbody
+@legXB 7 21
+@legXF 16 21
+@chead
+
+== cat.run.3
+@gsh
+@legS~ 10 20
+@legS~ 15 20
+@ctaillow 0 -2
+@cbody 0 -2
+@legS 8 19
+@legS 17 19
+@chead 0 -2
+
+== cat.crouch.0
+@gsh
+@legT~ 10 23
+@legT~ 17 23
+@ctaillow 0 3
+@cbody 0 3
+@legT 8 23
+@legT 18 23
+@chead 0 3
+
+== cat.leap.0
+@legXB~ 7 18
+@legXF~ 16 16
+@ctaillow 0 -3
+@cbody 0 -3
+@legXB 5 18
+@legXF 18 16
+@chead 0 -4
+
+== cat.land.0
+@gsh
+@legT~ 10 23
+@legXF~ 16 21
+@ctaillow 0 2
+@cbody 0 2
+@legT 8 23
+@legXF 18 21
+@chead 0 3
+
+== cat.eat.0
+@gsh
+@legS~ 10 21
+@legS~ 16 21
+@ctail
+@cbody
+@legS 8 21
+@legS 17 21
+@chead 3 7
+@cshut 3 7
+
+== cat.eat.1
+@gsh
+@legS~ 10 21
+@legS~ 16 21
+@ctail
+@cbody
+@legS 8 21
+@legS 17 21
+@chead 3 6
+@cshut 3 6
+
+== cshut x=16 y=14
+........l..
+........o..
+
+== cat.loaf.0
+@gsh
+@ctaillow 0 5
+@cloaf
+@chead 0 6
+@chalf 0 6
+
+== chalf x=16 y=14
+........d..
+........o..
+
+== cloaf x=7 y=19
+..oooooooooo.
+.ollllllllllo
+olffsffsfffffo
+offsfffsffffdo
+odffffffffffdo
+.oaaoooooaaoo.
+
+== cat.sleep.0
+@gsh
+@csleep
+
+== cat.sleep.1
+@gsh
+@csleep
+@csleepb
+
+== csleep x=5 y=13
+.......oo....oo.......
+......otto..otto......
+.....oooooooooooooo...
+....olllllllllllllfo..
+...ollsllsllsllllffdo.
+..olffffllllllllfffdo.
+..olfoolllllllooffddo.
+.olfffffllnnlffffffddo
+.olffffffwwwwffffffddo
+.olfffffffffffffffddoo
+.oldffffffffffffffddpo
+..oddffffffffffffddppo
+...ooqqqqqqqqqqqqppoo.
+....oooooooooooooooo..
+
+== csleepb x=5 y=15
+....oooooooooooooooo..
+...olllllllllllllllfo.
+
+== cbow x=5 y=11
+..ooooo............
+.olllllooo.........
+olffsfflllloo......
+offsfffsffffllooo..
+offffffffffffffllo.
+odffffffffffffffflo
+.oddbbbbbbbbbbbbbdo
+..oooo.......oooo..
+
+== legLong
+olfo
+olfo
+olfo
+olfo
+olfo
+olfo
+oaao
+oooo
+
+== legFlat
+.oooooo
+olllllfo
+offffaao
+.ooooooo
+
+== ctailup x=0 y=3
 ..oo..
 .oPpo.
-.oPpo.
-.oPpo.
-.oPpo.
-.oPpo.
-== flick3 x=30 y=30
-@sit 0 0
-______
-.oo...
-oPpo..
-.oPpo.
-.oPpo.
+.opoo.
+.opo..
+..opo.
+..opo.
+...opo
+...opo
+....oo
 
-== happy0 x=0
-@sit 0 0
-@_eyehappy 0 0
-== happy1 x=0
-@sit 0 -1
-@_eyehappy 0 -1
-== look0 x=0
-@sit 0 0
-@_eyewide 0 0
+== cat.stretch.0
+@gsh
+@legS~ 10 21
+@legS~ 16 21
+@ctail
+@cbody
+@legS 8 21
+@legS 17 21
+@chead
 
-== _yawn1 x=22 y=18
-.mmm.
-.mtm.
-== _yawn2 x=22 y=18
-mmmmm
-mtttm
-.mmm.
-== yawn0 x=0
-@sit 0 0
-@_eyehalf 0 0
-@_yawn1 0 0
-== yawn1 x=0
-@sit 0 0
-@_eyeshut 0 0
-@_yawn2 0 0
-== yawn2 x=0
-@sit 0 0
-@_eyeshut 0 0
-@_yawn2 0 0
-@_yawn1 0 2
-== yawn3 x=0
-@sit 0 0
-@_eyehalf 0 0
-@_yawn1 0 0
+== cat.stretch.1
+@gsh
+@legLong~ 8 18
+@legFlat~ 17 22
+@ctailup
+@cbow
+@legLong 6 18
+@legFlat 19 23
+@chead 2 7
 
-== _head x=27 y=11
-..o.........o..
-..oo.......oo..
-.oPro.....orpo.
-.oPrro...orrpo.
-.oPrrooooorrqo.
-olllsslsllffdo.
-ollllslllffffdo
-oluuullllfuuudo
-ilkuelllffkuedo
-ileuellllfeuedo.
-illlllcncffffddo
-iffllcCcCcffddo.
-iffffccccccfddo
-.iffwwwwwwwfdo.
-..iivvvvvvvoo..
+== cat.stretch.2
+@gsh
+@legLong~ 8 18
+@legFlat~ 17 22
+@ctailup
+@cbow
+@legLong 6 18
+@legFlat 19 23
+@chead 3 8
+@cshut 3 8
 
-== _body x=6 y=17
-....ooooooooo..............
-...olllllllllooooooooooo....
-..olllllllllllllllllllllo...
-.olfffsffffsffffsffffffffo..
-.olffsffffsffffsfffffffffo..
-.offfsfffsffffsffffffffffwo.
-.offffffffffffffffffffffwwvo
-.offffffffffffffffffffffwwvo
-.odfffffffffffffffffffffwwvo
-.oddffffffffffffffffffffwvvo
-..oddfbbbbbbbbbbbbbbbbbbwvvo
-...odBBBBBBBBBBBBBBBBBBBvvo.
-....ooooooooooooooooooooo...
+== dhead x=6 y=5
+......oooooooo......
+....oollllllllfoo...
+...ollllllllllllfo..
+.oooolllllllllllfoooo
+oqpqolllllllllllfoqpqo
+oqpqollullllullffoqpqo
+oqpqollellllellffoqpqo
+oqqqofllwwwwwwlffoqqqo
+.oqqofwwwwnnwwwwfoqqo.
+..ooofwwwwnnwwwwdooo..
+....ofwwwwwwwwwwdo....
+.....odwwwmmwwwddo....
+......oowwwwwwwoo.....
 
-== _tail x=0 y=5
-....oo.....
-...oPpo....
-...oPyo....
-..oPpo.....
-..oPpo.....
-.oPyo......
-.oPpo......
-.oPpo......
-.oPyo......
-.oPpo......
-..oPpo.....
-..oPyo.....
-...oPpo....
-....oPpoo..
-.....oPppo.
-......ooPpo
+== dtongue x=6 y=16
+..........orro......
+..........orro......
+...........oo.......
 
-# legs: nine rows, the top one hidden under the body unless it bobs up
-== _Lfwd x=0
+== dbody x=7 y=16
+.....olfwwwwfdo....
+....olffwwwwffdo...
+...olfffwwwwfffdo..
+...olffdlffldffdo..
+..olfffdlffldfffdo.
+..olfffdlffldfffdo.
+..olfffdlffldfffdo.
+..oldffdlffldffddo.
+..oldffdaffadffddo.
+...oooooaaooaaooooo
+....ggggggggggggggg
+
+== dtail x=8 y=17
+..................oo.
+.................oplo
+.................opo.
+................opo..
+...............opo...
+
+== dtail2 x=8 y=16
+...................oo
+..................oplo
+.................opo.
+................opo..
+...............opo...
+...............oo....
+
+== dog.sit.0
+@dtail
+@dbody
+@dhead
+@dtongue
+
+== dog.sit.1
+@dtail2
+@dbody
+@dhead 0 1
+@dtongue 0 1
+
+== dshead x=17 y=7
+...oooooo.....
+..olllllloo...
+.ollllllllloo.
+.oqqollllulloo
+oqpqollllewwwoo
+oqpqoflllwwwwno
+oqpqofllwwwwwno
+oqqqoffddwwwwo.
+.oqqodffdmmmoo.
+..ooo.ooooooo..
+
+== dsbody x=4 y=12
+..oooooooooooooo.
+.oLLLLLLLLLLLLLFo
+oLFFFFFFFFFFFFFFo
+oFFFFFFFFFFFFFFdo
+offffffffffffffdo
+odffffffffffffddo
+.oddbbbbbbbbbbddo
+..ooo.......ooo..
+
+== dstail x=0 y=4
+.oo.....
+oPpo....
+.opo....
+.opPo...
+..opo...
+..opPo..
+...opo..
+...opPo.
+....opoo
+.....opo
+......oo
+
+== dstailw x=0 y=5
+........
+oo......
+oPpoo...
+.oopPo..
+...opPo.
+....opPo
+.....opo
+......oo
+
+== dleg
+olffo
+olffo
+olffo
+olffo
+olffo
+oaaao
+ooooo
+
+== dlegF
+.olffo
+.olffo
+olffo.
+olffo.
+olffo.
+oaaao.
+ooooo.
+
+== dlegB
+olffo.
+olffo.
+.olffo
+.olffo
+.olffo
+.oaaao
+.ooooo
+
+== dgsh x=3 y=26
+ggggggggggggggggggggggggg
+
+== dog.walk.0
+@dgsh
+@dlegB~ 8 20
+@dlegF~ 15 20
+@dstail
+@dsbody
+@dlegF 5 20
+@dlegB 17 20
+@dshead
+
+== dog.walk.1
+@dgsh
+@dleg~ 8 20
+@dleg~ 16 20
+@dstailw
+@dsbody
+@dleg 6 20
+@dleg 17 20
+@dshead
+
+== dog.walk.2
+@dgsh
+@dlegF~ 8 20
+@dlegB~ 15 20
+@dstail
+@dsbody
+@dlegB 5 20
+@dlegF 17 20
+@dshead
+
+== dog.walk.3
+@dgsh
+@dleg~ 7 20
+@dleg~ 17 20
+@dstailw
+@dsbody
+@dleg 9 20
+@dleg 15 20
+@dshead
+
+== dheadU x=6 y=3
+...o..............o...
+..oLo............oLo..
+..oLvo..........ovLo..
+.oLvvFo........oFvvLo.
+.oLLLLooooooooooLLLFo.
+..olllllllllllllllfo..
+...olwwllllllllwwfo...
+...owwwullllllulwwo...
+...owwwellllllelwwo...
+...owwwwwwwwwwwwwwo...
+....owwwwwnnwwwwwo....
+....owwwwwnnwwwwdo....
+....ofwwwwwwwwwwdo....
+.....odwwwmmwwwddo....
+......oowwwwwwwoo.....
+
+== dsheadU x=17 y=5
+...oo.........
+..otto........
+..otFoooo.....
+..oLLLLLLoo...
+.oLLLLLLLLLoo.
+.olllllllulloo
+ollllllllewwwoo
+offllllllwwwwno
+offdllllwwwwwno
+odddffddwwwwo..
+.oodffdmmmoo...
+..oooooooooo...
+
+== dstailU x=2 y=5
+..oooo..
+.oPPPpo.
+oPpooPpo
+opo..opo
+oPo..opo
+.opoopo.
+..oooo..
+
+== dstailwU x=2 y=4
+..oooo..
+.oPPPpo.
+oPpooPpo
+opo..opo
+oPo..opo
+.opoopo.
+..oooo..
+
+== dhalf x=6 y=10
+.......d....d.........
+.......o....o.........
+
+== dshut x=6 y=10
+.......l....l.........
+......oo....oo........
+
+== dhappy x=6 y=10
+.......o....o.........
+......olo..olo........
+
+== dup x=6 y=9
+.......u....u.........
+.......e....e.........
+.......l....l.........
+
+== dyawn x=6 y=15
+.........ommmmo.......
+.........omrrmo.......
+..........oooo........
+
+== dlick x=6 y=13
+..........or..........
+..........rr..........
+
+== dtail3 x=8 y=18
+.................oo..
+................oplo.
+...............opo...
+..............opo....
+
+== dog.blink.0
+@dtail
+@dbody
+@dhead
+@dhalf
+
+== dog.blink.1
+@dtail
+@dbody
+@dhead
+@dshut
+
+== dog.blink.2
+@dtail
+@dbody
+@dhead
+@dhalf
+
+== dog.flick.0
+@dtail2
+@dbody
+@dhead
+@dtongue
+
+== dog.flick.1
+@dtail3
+@dbody
+@dhead
+@dtongue
+
+== dog.flick.2
+@dtail2
+@dbody
+@dhead
+@dtongue
+
+== dog.flick.3
+@dtail
+@dbody
+@dhead
+@dtongue
+
+== dog.happy.0
+@dtail2
+@dbody
+@dhead
+@dhappy
+@dtongue
+
+== dog.happy.1
+@dtail3
+@dbody
+@dhead 0 1
+@dhappy 0 1
+@dtongue 0 1
+
+== dog.look.0
+@dtail
+@dbody
+@dhead
+@dup
+
+== dog.yawn.0
+@dtail
+@dbody
+@dhead
+@dshut
+
+== dog.yawn.1
+@dtail
+@dbody
+@dhead
+@dshut
+@dtongue
+
+== dog.yawn.2
+@dtail
+@dbody
+@dhead
+@dshut
+@dyawn
+
+== dog.yawn.3
+@dtail
+@dbody
+@dhead
+@dshut
+@dtongue
+
+== dog.wash.0
+@dtail
+@dbody
+@dhead -1 0
+@dshut -1 0
+
+== dog.wash.1
+@dtail2
+@dbody
+@dhead 1 0
+@dshut 1 0
+
+== dog.wash.2
+@dtail
+@dbody
+@dhead -1 0
+@dshut -1 0
+
+== dog.wash.3
+@dtail3
+@dbody
+@dhead
+
+== dog.lick.0
+@dtail
+@dbody
+@dhead
+@dlick
+
+== dog.lick.1
+@dtail
+@dbody
+@dhead
+@dshut
+@dlick 0 -1
+
+== dog.lick.2
+@dtail
+@dbody
+@dhead
+@dlick
+
+== dog.lick.3
+@dtail
+@dbody
+@dhead
+@dhalf
+
+== dlegXF
 olffo..
-olffo..
-olffo..
-.olffo.
 .olffo.
 ..olffo
 ..olffo
 ..oaaao
 ..ooooo
-== _Lmid x=0
+
+== dlegXB
+..olffo
+.olffo.
+olffo..
+olffo..
+oaaao..
+ooooo..
+
+== dlegT
+olffo
+oaaao
+ooooo
+
+== dstaillow x=0 y=10
+oo.......
+oPo......
+.oPpoo...
+..ooPpoo.
+....ooppo
+......ooo
+
+== dog.run.0
+@dgsh
+@dlegXB~ 7 20
+@dlegXF~ 15 20
+@dstaillow
+@dsbody
+@dlegXB 5 20
+@dlegXF 17 20
+@dshead
+
+== dog.run.1
+@dgsh
+@dleg~ 9 19
+@dleg~ 14 19
+@dstaillow 0 -1
+@dsbody 0 -1
+@dleg 7 19
+@dleg 16 19
+@dshead 0 -1
+
+== dog.run.2
+@dgsh
+@dlegXF~ 7 20
+@dlegXB~ 15 20
+@dstaillow
+@dsbody
+@dlegXB 6 20
+@dlegXF 16 20
+@dshead
+
+== dog.run.3
+@dgsh
+@dleg~ 8 18
+@dleg~ 15 18
+@dstaillow 0 -2
+@dsbody 0 -2
+@dleg 6 18
+@dleg 17 18
+@dshead 0 -2
+
+== dog.crouch.0
+@dgsh
+@dlegT~ 8 23
+@dlegT~ 16 23
+@dstaillow 0 4
+@dsbody 0 5
+@dlegT 6 23
+@dlegT 17 23
+@dshead 0 5
+
+== dog.leap.0
+@dlegXB~ 6 17
+@dlegXF~ 15 15
+@dstaillow 0 -3
+@dsbody 0 -4
+@dlegXB 4 17
+@dlegXF 17 15
+@dshead 0 -5
+
+== dog.land.0
+@dgsh
+@dlegT~ 8 23
+@dlegXF~ 15 20
+@dstaillow 0 3
+@dsbody 0 3
+@dlegT 6 23
+@dlegXF 17 20
+@dshead 0 4
+
+== dog.eat.0
+@dgsh
+@dleg~ 8 20
+@dleg~ 16 20
+@dstail
+@dsbody
+@dleg 6 20
+@dleg 17 20
+@dshead 2 8
+@dsshut 2 8
+
+== dog.eat.1
+@dgsh
+@dleg~ 8 20
+@dleg~ 16 20
+@dstailw
+@dsbody
+@dleg 6 20
+@dleg 17 20
+@dshead 2 7
+@dsshut 2 7
+
+== dsshut x=17 y=10
+.........l....
+........oo....
+
+== dsloaf x=4 y=19
+..oooooooooooooo.
+.oLLLLLLLLLLLLLFo
+oLFFFFFFFFFFFFFFo
+oFFFFFFFFFFFFFFdo
+odffffffffffffddo
+.oaaaoooooooaaaoo
+
+== dog.loaf.0
+@dgsh
+@dstaillow 0 8
+@dsloaf
+@dshead 0 7
+@dsshut 0 7
+
+== dlie x=2 y=16
+......oooooooooooooooo.....
+....oollllllllllllllllfoo..
+...ollllllllllllllllllfffo.
+..olfffffffffffffffffffffdo
+..olfffffffffffffffffffffdo
+.olffffffffffffffffffffffddo
+.olffffffffffffffffffffffddo
+.oldfffffffffffffffffffffddoo
+..oddffffffffffffffffffdddqqo
+...oooooooooooooooooooooooooo
+
+== dpaws x=6 y=23
+..ooooo.......ooooo...
+.oaaaaao.....oaaaaao..
+.ooooooo.....ooooooo..
+
+== dlieb x=2 y=15
+......oooooooooooooooo.....
+....oollllllllllllllllfoo..
+
+== dog.sleep.0
+@dgsh
+@dlie
+@dhead 0 9
+@dshut 0 9
+@dpaws
+
+== dog.sleep.1
+@dgsh
+@dlie
+@dlieb
+@dhead 0 9
+@dshut 0 9
+@dpaws
+
+== dbow x=3 y=10
+..oooooo.............
+.oLLLLLLooooo........
+oLFFFFFFLLLLLoooo....
+oFFFFFFFFFFFFLLLLooo.
+offffffffffffffffflo.
+odffffffffffffffffflo
+.oddbbbbbbbbbbbbbbbdo
+..oooo..........oooo.
+
+== dlegLong
 olffo
 olffo
 olffo
@@ -227,999 +1165,69 @@ olffo
 olffo
 oaaao
 ooooo
-== _Lback x=0
-..olffo
-..olffo
-..olffo
-.olffo.
-.olffo.
-olffo..
-olffo..
-oaaao..
-ooooo..
-== _Lliftb x=0
-.olffo.
-.olffo.
-.olffo.
-olffo..
-olffo..
-oaao...
+
+== dlegFlat
+.oooooo.
+olllllfo
+offfffaao
+.oooooooo
+
+== dstailup x=0 y=1
 .oo....
-.......
-.......
-== _Lswing x=0
-olffo..
-olffo..
-olffo..
-olfffo.
-.olfaao
-..oooo.
-.......
-.......
-.......
-== _Lreach x=0
-olffo...
-olffo...
-.olffo..
-..olffo.
-..olfffo
-...oaaao
-...ooooo
-........
-........
+oPpo...
+.opo...
+.opPo..
+..opo..
+..opPo.
+...opo.
+...opPo
+....ooo
 
-# pair A = near front + far hind; pair B = far front + near hind
-== walk0 x=0
-@_Lback~ 10 0
-@_Lfwd~ 21 0
-@_Lfwd 5 0
-@_Lback 25 0
-@_tail 0 0
-@_body 0 0
-@_head 0 0
-== walk1 x=0
-@_Lliftb~ 10 0
-@_Lmid~ 22 0
-@_Lmid 6 0
-@_Lliftb 25 0
-@_tail 0 -1
-@_body 0 -1
-@_head 0 -1
-== walk2 x=0
-@_Lswing~ 10 0
-@_Lback~ 21 0
-@_Lback 5 0
-@_Lswing 25 0
-@_tail 0 0
-@_body 0 0
-@_head 0 0
-== walk3 x=0
-@_Lfwd~ 10 0
-@_Lback~ 21 0
-@_Lback 5 0
-@_Lfwd 25 0
-@_tail 1 0
-@_body 0 0
-@_head 0 0
-== walk4 x=0
-@_Lmid~ 11 0
-@_Lliftb~ 21 0
-@_Lliftb 5 0
-@_Lmid 26 0
-@_tail 1 -1
-@_body 0 -1
-@_head 0 -1
-== walk5 x=0
-@_Lback~ 10 0
-@_Lswing~ 21 0
-@_Lswing 5 0
-@_Lback 25 0
-@_tail 1 0
-@_body 0 0
-@_head 0 0
+== dog.stretch.0
+@dgsh
+@dleg~ 8 20
+@dleg~ 16 20
+@dstail
+@dsbody
+@dleg 6 20
+@dleg 17 20
+@dshead
 
-== _loafbody x=6
-........oooooooooo........
-.....ooolllllllllloooo....
-....ollllllllllllllllllo..
-...ollfffsffffsfffffffffo.
-..olfffsffffsffffffffffo..
-..offffffffffffffffffffdo.
-.olfffffffffffffffffffddo.
-.offfffffffffffffffffdddo.
-.offffffffffffffffffddddo.
-.oddffffffffffffffffdddaao
-.odddddffffffffffdddddaaao
-..oddddddddddddddddddAAAo.
-...oooooooooooooooooooooo.
-== _loaftail x=0
-...oo...
-..oPpo..
-.oPpo...
-.oPyo...
-.oPpooo.
-..oPPPPo
-...oooo.
-== loaf0 x=0
-@_loaftail 1 0
-@_loafbody 0 0
-@_head -1 10
-@_eyehalf 10 14
+== dog.stretch.1
+@dgsh
+@dlegLong~ 6 18
+@dlegFlat~ 16 23
+@dstailup
+@dbow
+@dlegLong 4 18
+@dlegFlat 18 23
+@dshead 1 9
 
-# asleep: curled round, head down on the front paws, tail round the front
-== sleep0 x=9
-......................o....o...
-......................oo..oo...
-...........ooooooo...olro.orlo.
-........ooollllllloooolrrorrrdo
-......oolllllllllllllolllllffdo
-....olllffsffsffsfffilllllfffdo
-...ollfsffsffsffsfffiulullufudo
-..olffsfffffffffffffilulllfufdo
-..offffffffffffffffilllllcncfdo
-.offfffffffffffffffilllcCcCcfdo
-.offfffffffffffffffilllcccccfdo
-.oddffffffffffffffooiffcccccddo
-.odddffoooooooooooolliddvvvvddo
-.oddooPPPyPPPPyPPPPPpPiddddddo.
-..ooPppppyppppyppppppqdoooooo..
-...oqqqqqqqqqqqqqqqqqqo........
-....oooooooooooooooooo.........
-== sleep1 x=9 y=20
-......................o....o...
-......................oo..oo...
-...........ooooooo...olro.orlo.
-........ooollllllloooolrrorrrdo
-......oolllllllllllllolllllffdo
-....olllffsffsffsfffilllllfffdo
-...ollfsffsffsffsfffiulullufudo
-..olffsfffffffffffffilulllfufdo
-..offffffffffffffffilllllcncfdo
-.offfffffffffffffffilllcCcCcfdo
-.offfffffffffffffffilllcccccfdo
-.offfffffffffffffffilllcccccfdo
-.oddffffffffffffffooiffwwwwwddo
-.odddffoooooooooooolliddvvvvddo
-.oddooPPPyPPPPyPPPPPpPiddddddo.
-..ooPppppyppppyppppppqdoooooo..
-...oqqqqqqqqqqqqqqqqqqo........
-....oooooooooooooooooo.........
+== dog.stretch.2
+@dgsh
+@dlegLong~ 6 18
+@dlegFlat~ 16 23
+@dstailup
+@dbow
+@dlegLong 4 18
+@dlegFlat 18 23
+@dshead 2 10
+@dsshut 2 10
 
-# eating: crouched at the bowl, head down, the neck bent to it
-== _crouchbody x=6 y=22
-....ooooooooo..............
-...olllllllllooooooooooo...
-..olllllllllllllllllllllo..
-.olfffsffffsffffsfffffffffo
-.olffsffffsffffsffffffffffo
-.offfsfffsffffsfffffffffffo
-.offffffffffffffffffffffffo
-.odfffffffffffffffffffffffo
-..oddbbbbbbbbbbbbbbbbbbbddo
-...ooooooooooooooooooooooo.
-== _Lbent x=0
-.olfo.
-olffo.
-olffo.
-oaaao.
-ooooo.
-== _Lbentb x=0
-olfffo
-.olffo
-.oaaao
-.ooooo
-== eat0 x=0
-@_Lbent~ 12 0
-@_Lbent~ 24 0
-@_Lbentb 6 0
-@_Lbent 27 0
-@_tail 0 5
-@_crouchbody 0 0
-@_head 4 11
-@_eyehalf 14 14
-== eat1 x=0
-@_Lbent~ 12 0
-@_Lbent~ 24 0
-@_Lbentb 6 0
-@_Lbent 27 0
-@_tail 0 5
-@_crouchbody 0 0
-@_head 4 12
-@_eyeshut 14 15
+== dhalfU x=6 y=10
+.......d......d.......
+.......o......o.......
 
-# ---- running, leaping: legs thrown forward and back, the tail streaming
-== _tailrun x=0 y=16
-oo..........
-oPo.........
-oPpo........
-.oPpo.......
-.oPypooo....
-..oPppPPoo..
-...ooopppPo.
-......oooPo.
-== _Rfwd x=0
-olffo....
-olfffo...
-.olfffoo.
-..olffaao
-...ooooo.
-.........
-.........
-.........
-.........
-== _Rback x=0
-...olffo
-..olfffo
-.oolffo.
-oaalfo..
-.oooo...
-........
-........
-........
-........
-== _Rtuck x=0
-olffo.
-olfffo
-.olaao
-..ooo.
-......
-......
-......
-......
-......
-== run0 x=0
-@_Rback~ 8 -1
-@_Rfwd~ 23 -1
-@_Rback 3 -1
-@_Rfwd 27 -1
-@_tailrun 0 -1
-@_body 0 -1
-@_head 0 -1
-== run1 x=0
-@_Rtuck~ 10 -1
-@_Rfwd~ 23 -1
-@_Rback 3 -1
-@_Lfwd 25 0
-@_tailrun 0 -1
-@_body 0 -1
-@_head 0 -1
-== run2 x=0
-@_Rtuck~ 11 0
-@_Lmid~ 22 0
-@_Rtuck 6 0
-@_Lback 25 0
-@_tailrun 0 0
-@_body 0 0
-@_head 0 1
-== run3 x=0
-@_Lfwd~ 11 0
-@_Lback~ 20 0
-@_Lfwd 8 0
-@_Lback 23 0
-@_tailrun 1 0
-@_body 0 0
-@_head 0 1
-== run4 x=0
-@_Lmid~ 11 0
-@_Rtuck~ 23 -1
-@_Lback 5 0
-@_Rtuck 27 -1
-@_tailrun 1 -1
-@_body 0 -1
-@_head 0 -1
-== run5 x=0
-@_Lback~ 9 -2
-@_Rtuck~ 23 -2
-@_Rback 4 -2
-@_Rfwd 27 -2
-@_tailrun 0 -2
-@_body 0 -2
-@_head 0 -2
+== dshutU x=6 y=10
+.......w......w.......
+......oo......oo......
 
-== crouch0 x=0
-@_Lbent~ 12 0
-@_Lbent~ 24 0
-@_Lbentb 6 0
-@_Lbent 27 0
-@_tailrun 1 5
-@_crouchbody 0 0
-@_head 0 6
-== leap0 x=0
-@_Rback~ 8 -8
-@_Rfwd~ 23 -8
-@_Rback 3 -8
-@_Rfwd 27 -8
-@_tailrun 0 -8
-@_body 0 -8
-@_head 0 -9
-@_eyewide 11 -5
-== land0 x=0
-@_Rtuck~ 11 -2
-@_Lfwd~ 22 0
-@_Rtuck 6 -2
-@_Lfwd 26 0
-@_tailrun 0 -2
-@_body 0 -2
-@_head 0 -1
+== dhappyU x=6 y=10
+.......o......o.......
+......owo....owo......
 
-# ---- stretching: a bow, front paws flat out ahead, the back end up
-== _bowbody x=5 y=15
-..oooooooo..................
-.ollllllllooo...............
-olllfffflllllooo............
-olffsfffsffllllloooo........
-offsfffsfffsfflllllloooo....
-offfffffffffffsfffllllllooo.
-offfffffffffffffffsffflllllo
-oddffffffffffffffffffsffffwo
-.oddfffffffffffffffffffffwwo
-..oddffffffffffffffffffffwvo
-...oodbbbbbffffffffffffffwvo
-.....ooBBBbbbbbbbbbbfffffvvo
-.......oooooBBBBBBBBbbbbbvvo
-............ooooooooBBBBBvvo
-....................oooooooo
-== _paws x=27
-.ooooooooooooo.
-olllllllllllaao
-offfffffffffaao
-.oooooooooooooo
-== stretch0 x=0
-@_Lmid~ 11 -3
-@_Lmid~ 11 0
-@_Lmid 6 -3
-@_Lmid 6 0
-@_paws 0 0
-@_tail 2 -4
-@_bowbody 0 0
-@_head 2 11
-@_eyeshut 13 15
-== stretch1 x=0
-@_Lmid~ 11 -4
-@_Lmid~ 11 0
-@_Lmid 6 -4
-@_Lmid 6 0
-@_paws 1 0
-@_tail 2 -5
-@_bowbody 0 -1
-@_head 3 12
-@_eyeshut 14 16
-@_yawn1 13 16
-== stretch2 x=0
-@_Lmid~ 22 0
-@_Lback~ 11 0
-@_Lmid 26 0
-@_Rback 0 0
-@_tail 0 0
-@_body 0 0
-@_head 0 0
-@_eyehalf 11 4
-
-# ---- washing: the near paw up to the mouth, licked, then wiped over the face
-== _washleg x=23 y=16
-..ooo...
-.oaaao..
-.oaaao..
-..oalo..
-..olffo.
-...olffo
-...olffo
-....olfo
-....olfo
-...dddo.
-...dddo.
-...dddo.
-...dddo.
-...dddo.
-...dddo.
-...dddo.
-..AAAAo.
-.AAAAAo.
-== _washup x=23 y=13
-..ooo...
-.oaaao..
-.oaaao..
-..oalo..
-..olffo.
-..olffo.
-...olffo
-...olffo
-...olffo
-....olfo
-....olfo
-...dddo.
-...dddo.
-...dddo.
-...dddo.
-...dddo.
-...dddo.
-...dddo.
-..AAAAo.
-.AAAAAo.
-== wash0 x=0
-@sit 0 0
-@_eyehalf 0 0
-@_washleg 0 0
-== wash1 x=27 y=19
-@sit 0 0
-@_eyeshut 0 0
-@_washleg 0 0
-t
-== wash2 x=0
-@sit 0 0
-@_eyeshut 0 0
-@_washup 0 0
-== wash3 x=27 y=19
-@sit 0 0
-@_eyeshut 0 0
-@_washleg 0 0
-t
-
-# ---- a leg licked clean: sat back, the near hind leg up, head bowed to it
-== _lickbody x=12 y=21
-olllsffivvvvvvvvdo.....
-ollffsfffiwwwwwvdo.....
-olfffsffffiwwwwvdo.....
-olffffsffffiwwwwvdo....
-olfffsffffffidlffdo....
-olffffsfffffidlffdo....
-olfffffsffffidlffdo....
-offffffsfffdidlffdo....
-offfffffffddidlffdo....
-offfffffffddidlffdo....
-offffffddddiidlffdo....
-odddddddaaaiaalffo..oo.
-.dddddddaaaiaaaaAo.oPpo
-.ddddddaooooooooooooPpo
-.oddddooPPPyPPyPPyPpqqo
-..ooooooqqqqqqqqqqqqqo.
-........oooooooooooooo.
-== _upleg x=19 y=10
-......oooo.
-.....oaaaao
-.....oaaaao
-......olffo
-......olffo
-.....olffo.
-.....olffo.
-....olffo..
-....olffo..
-...olfffo..
-...olfffo..
-..olffffo..
-..olffffo..
-.olfffffo..
-.olfffffo..
-olffffffo..
-
-== lick0 x=0
-@_lickbody 0 0
-@_upleg 0 0
-@_head 1 6
-@_eyeshut 12 10
-== lick1 x=35 y=29
-@_lickbody 0 0
-@_upleg 0 0
-@_head 1 6
-@_eyeshut 12 10
-t
-== lick2 x=0
-@_lickbody 0 0
-@_upleg 0 0
-@_head 1 7
-@_eyeshut 12 11
-== lick3 x=35 y=30
-@_lickbody 0 0
-@_upleg 0 0
-@_head 1 7
-@_eyeshut 12 11
-t
-`;
-
-/** The dog: its own head, ears, tails and sitting body; the rest comes from the cat. */
-export const DOG_ART = String.raw`
-# ---- the dog's head: a round skull, a cream muzzle, a dark nose; ears are separate parts
-== _dface x=27 y=14
-....ooooooo....
-..oollllllffoo.
-.olllllllllfffo
-ollllllllllffdo
-olllllllllfffdo
-olluullllluufdo
-ollkulllllkufdo
-ollllwwwwwfffdo
-olllwwnnnwwffdo
-olllwwwnwwwffdo
-offlwwmwmwwfddo
-.offwwwwwwwfdo.
-..oovvvvvvvoo..
-== _dearF x=24 y=14
-...oo.
-..ojjo
-.ojjjo
-.ojjjo
-ojjjo.
-ojjjo.
-ojjjo.
-ojjo..
-.oo...
-== _dearFR x=38 y=14
-oo....
-ojjo..
-ojjj..
-.jjjo.
-.jjjo.
-.jjjo.
-..jjo.
-...oo.
-== _dearU x=27 y=11
-.o.........o...
-.oo.......oo...
-oPro.....orpo..
-oPrro...orrpo..
-oPrrro.orrrpo..
-== _dhead x=0
-@_dface 0 0
-@_dearF 0 0
-@_dearFR 0 0
-== _dheadU x=0
-@_dearU 0 0
-@_dface 0 0
-
-== _deyehalf x=30 y=19
-ll.....ff
-ku.....ku
-== _deyeshut x=30 y=19
-ll.....ff
-uu.....uu
-== _deyewide x=30 y=19
-uu.....uu
-kk.....kk
-== _dmouth x=32 y=24
-.mmm.
-.mtm.
-== _dpant x=32 y=24
-mmmmm
-mtttm
-.mtm.
-..t..
-
-== _dtail x=0 y=8
-.oo.......
-.oPo......
-..oPo.....
-..oPpo....
-...oPpo...
-...oPpo...
-....oPpo..
-....oPpo..
-.....oPpo.
-......oPpo
-.......oo.
-== _dtailU x=2 y=10
-...oooo...
-..oPPPpo..
-.oPpooopo.
-.oPo..oPo.
-..oo.oPpo.
-....oPppo.
-...oPppo..
-...oooo...
-== _dsittail x=2
-.ooooooo..
-oPPPPPPPo.
-oppppppqqo
-.ooooooooo
-== _dwag x=0
-oo........
-oPo.......
-oPpo......
-.oPpooooo.
-..oPPPPPPo
-...ppppqqo
-..oooooooo
-
-# ---- a saddle of darker fur (a beagle's): a mask, recolouring only the fur it covers
-== _saddle x=11 y=18
-..############..
-.##############.
-################
-################
-.##############.
-..############..
-== _saddleL x=10 y=25
-...###########..
-.##############.
-################
-################
-.##############.
-== _saddleS x=10 y=21
-..########
-.#########
-##########
-##########
-#########.
-########..
-#######...
-
-# ---- walking and running: the cat's legs and body, the dog's head and tail
-== dwalk0 x=0
-@_Lback~ 10 0
-@_Lfwd~ 21 0
-@_Lfwd 5 0
-@_Lback 25 0
-@_dtail 0 0
-@_body 0 0
-@_saddle% 0 0
-@_dhead 0 0
-== dwalk1 x=0
-@_Lliftb~ 10 0
-@_Lmid~ 22 0
-@_Lmid 6 0
-@_Lliftb 25 0
-@_dtail 0 -1
-@_body 0 -1
-@_saddle% 0 -1
-@_dhead 0 -1
-== dwalk2 x=0
-@_Lswing~ 10 0
-@_Lback~ 21 0
-@_Lback 5 0
-@_Lswing 25 0
-@_dtail 1 0
-@_body 0 0
-@_saddle% 0 0
-@_dhead 0 0
-== dwalk3 x=0
-@_Lfwd~ 10 0
-@_Lback~ 21 0
-@_Lback 5 0
-@_Lfwd 25 0
-@_dtail 0 0
-@_body 0 0
-@_saddle% 0 0
-@_dhead 0 0
-== dwalk4 x=0
-@_Lmid~ 11 0
-@_Lliftb~ 21 0
-@_Lliftb 5 0
-@_Lmid 26 0
-@_dtail 0 -1
-@_body 0 -1
-@_saddle% 0 -1
-@_dhead 0 -1
-== dwalk5 x=0
-@_Lback~ 10 0
-@_Lswing~ 21 0
-@_Lswing 5 0
-@_Lback 25 0
-@_dtail 1 0
-@_body 0 0
-@_saddle% 0 0
-@_dhead 0 0
-== drun0 x=0
-@_Rback~ 8 -1
-@_Rfwd~ 23 -1
-@_Rback 3 -1
-@_Rfwd 27 -1
-@_tailrun 0 -1
-@_body 0 -1
-@_saddle% 0 -1
-@_dhead 0 -1
-@_dpant 0 -1
-== drun1 x=0
-@_Rtuck~ 10 -1
-@_Rfwd~ 23 -1
-@_Rback 3 -1
-@_Lfwd 25 0
-@_tailrun 0 -1
-@_body 0 -1
-@_saddle% 0 -1
-@_dhead 0 -1
-@_dpant 0 -1
-== drun2 x=0
-@_Rtuck~ 11 0
-@_Lmid~ 22 0
-@_Rtuck 6 0
-@_Lback 25 0
-@_tailrun 0 0
-@_body 0 0
-@_saddle% 0 0
-@_dhead 0 1
-@_dpant 0 1
-== drun3 x=0
-@_Lfwd~ 11 0
-@_Lback~ 20 0
-@_Lfwd 8 0
-@_Lback 23 0
-@_tailrun 1 0
-@_body 0 0
-@_saddle% 0 0
-@_dhead 0 1
-@_dpant 0 1
-== drun4 x=0
-@_Lmid~ 11 0
-@_Rtuck~ 23 -1
-@_Lback 5 0
-@_Rtuck 27 -1
-@_tailrun 1 -1
-@_body 0 -1
-@_saddle% 0 -1
-@_dhead 0 -1
-@_dpant 0 -1
-== drun5 x=0
-@_Lback~ 9 -2
-@_Rtuck~ 23 -2
-@_Rback 4 -2
-@_Rfwd 27 -2
-@_tailrun 0 -2
-@_body 0 -2
-@_saddle% 0 -2
-@_dhead 0 -2
-@_dpant 0 -2
-
-# ---- sitting, and everything done sitting
-== _dsitbody x=10
-......ooooooooo........
-....oolllllllllloo.....
-...olllllllllllllfo....
-..olllfffffffffffdo....
-..olfffffffiwwwwwvdo...
-.olffffffffiwwwwwvdo...
-.olfffffffffiwwwwvdo...
-.olffffffffffiwwwvdo...
-olfffffffffffidlffdo...
-olffffffffffidlffdo....
-olffffffffffidlffdo....
-offfffffffffidlffdo....
-offfffffffffidlffdo....
-offfffffffddidlffdo....
-offffffddddiidlffdo....
-odddddddaaaiaalffo.....
-.dddddddaaaiaaaaAo.....
-.oooooooooooooooooo....
-== dsit x=0
-@_dsittail 0 0
-@_dsitbody 0 0
-@_saddleS% 0 0
-@_dhead -12 0
-== dsit0 x=0
-@dsit 0 0
-== dblink0 x=0
-@dsit 0 0
-@_deyehalf -12 0
-== dblink1 x=0
-@dsit 0 0
-@_deyeshut -12 0
-== dblink2 x=0
-@dsit 0 0
-@_deyehalf -12 0
-== dflick0 x=0
-@dsit 0 0
-== dflick1 x=0
-@_dwag 1 0
-@_dsitbody 0 0
-@_saddleS% 0 0
-@_dhead -12 0
-== dflick2 x=0
-@dsit 0 0
-== dflick3 x=0
-@_dwag 1 0
-@_dsitbody 0 0
-@_saddleS% 0 0
-@_dhead -12 0
-== dhappy0 x=0
-@_dwag 1 0
-@_dsitbody 0 0
-@_saddleS% 0 0
-@_dhead -12 0
-@_deyeshut -12 0
-@_dpant -12 0
-== dhappy1 x=0
-@_dsittail 0 0
-@_dsitbody 0 -1
-@_saddleS% 0 -1
-@_dhead -12 -1
-@_deyeshut -12 -1
-@_dpant -12 -1
-== dlook0 x=0
-@dsit 0 0
-@_dhead -12 -1
-@_deyewide -12 -1
-== dyawn0 x=0
-@dsit 0 0
-@_deyehalf -12 0
-@_dmouth -12 0
-== dyawn1 x=0
-@dsit 0 0
-@_deyeshut -12 0
-@_dpant -12 0
-== dyawn2 x=0
-@dsit 0 0
-@_deyeshut -12 0
-@_dpant -12 0
-@_dmouth -12 2
-== dyawn3 x=0
-@dsit 0 0
-@_deyehalf -12 0
-@_dmouth -12 0
-
-# a scratch behind the ear: the near hind leg up, kicking
-== _scratch1 x=8 y=17
-....oooo.
-...oaaaao
-...oaaaao
-....olffo
-...olffo.
-...olffo.
-..olffo..
-..olfffo.
-.olffffo.
-.olffffo.
-olffffo..
-== _scratch2 x=8 y=19
-...oooo..
-..oaaaao.
-..oaaaao.
-...olffo.
-...olffo.
-..olffo..
-..olfffo.
-.olffffo.
-.olffffo.
-olffffo..
-== dwash0 x=0
-@dsit 0 0
-@_scratch1 0 0
-@_deyehalf -12 0
-== dwash1 x=0
-@dsit 0 0
-@_scratch2 0 0
-@_deyeshut -12 0
-@_dmouth -12 0
-== dwash2 x=0
-@dsit 0 0
-@_scratch1 0 0
-@_deyeshut -12 0
-@_dmouth -12 0
-== dwash3 x=0
-@dsit 0 0
-@_scratch2 0 0
-@_deyeshut -12 0
-@_dmouth -12 0
-
-# ---- lying: a sphinx, paws out in front; asleep curled round
-== dloaf0 x=0
-@_dsittail -1 0
-@_loafbody 0 0
-@_saddleL% 0 0
-@_paws 1 0
-@_dhead -1 8
-@_deyehalf -1 8
-== dlick0 x=0
-@_dsittail -1 0
-@_loafbody 0 0
-@_saddleL% 0 0
-@_paws 1 0
-@_dhead 1 11
-@_deyeshut 1 11
-== dlick1 x=35 y=36
-@_dsittail -1 0
-@_loafbody 0 0
-@_saddleL% 0 0
-@_paws 1 0
-@_dhead 1 11
-@_deyeshut 1 11
-tt
-== dlick2 x=0
-@_dsittail -1 0
-@_loafbody 0 0
-@_saddleL% 0 0
-@_paws 1 0
-@_dhead 2 11
-@_deyeshut 2 11
-== dlick3 x=36 y=36
-@_dsittail -1 0
-@_loafbody 0 0
-@_saddleL% 0 0
-@_paws 1 0
-@_dhead 2 11
-@_deyeshut 2 11
-tt
-== dsleep0 x=0
-@_dsittail -1 0
-@_loafbody 0 0
-@_saddleL% 0 0
-@_paws 1 0
-@_dhead 0 11
-@_deyeshut 0 11
-== dsleep1 x=0
-@_dsittail -1 0
-@_loafbody 0 -1
-@_loafbody 0 0
-@_saddleL% 0 0
-@_paws 1 0
-@_dhead 0 11
-@_deyeshut 0 11
-
-# ---- stretching, eating, jumping
-== dstretch0 x=0
-@_Lmid~ 11 -3
-@_Lmid~ 11 0
-@_Lmid 6 -3
-@_Lmid 6 0
-@_paws 0 0
-@_dtail 2 -4
-@_bowbody 0 0
-@_dhead 2 9
-@_deyeshut 2 9
-== dstretch1 x=0
-@_Lmid~ 11 -4
-@_Lmid~ 11 0
-@_Lmid 6 -4
-@_Lmid 6 0
-@_paws 1 0
-@_dtail 2 -5
-@_bowbody 0 -1
-@_dhead 3 10
-@_deyeshut 3 10
-@_dpant 3 10
-== dstretch2 x=0
-@_Lmid~ 22 0
-@_Lback~ 11 0
-@_Lmid 26 0
-@_Rback 0 0
-@_dtail 0 0
-@_body 0 0
-@_saddle% 0 0
-@_dhead 0 0
-@_deyehalf 0 0
-== deat0 x=0
-@_Lbent~ 12 0
-@_Lbent~ 24 0
-@_Lbentb 6 0
-@_Lbent 27 0
-@_dtail 0 5
-@_crouchbody 0 0
-@_saddle% 0 5
-@_dhead 4 9
-@_deyehalf 4 9
-== deat1 x=0
-@_Lbent~ 12 0
-@_Lbent~ 24 0
-@_Lbentb 6 0
-@_Lbent 27 0
-@_dtail 0 5
-@_crouchbody 0 0
-@_saddle% 0 5
-@_dhead 4 10
-@_deyeshut 4 10
-== dcrouch0 x=0
-@_Lbent~ 12 0
-@_Lbent~ 24 0
-@_Lbentb 6 0
-@_Lbent 27 0
-@_tailrun 1 5
-@_crouchbody 0 0
-@_saddle% 0 5
-@_dhead 0 4
-== dleap0 x=0
-@_Rback~ 8 -8
-@_Rfwd~ 23 -8
-@_Rback 3 -8
-@_Rfwd 27 -8
-@_tailrun 0 -8
-@_body 0 -8
-@_saddle% 0 -8
-@_dhead 0 -9
-@_deyewide 0 -9
-== dland0 x=0
-@_Rtuck~ 11 -2
-@_Lfwd~ 22 0
-@_Rtuck 6 -2
-@_Lfwd 26 0
-@_tailrun 0 -2
-@_body 0 -2
-@_saddle% 0 -2
-@_dhead 0 -1
+== dupU x=6 y=9
+.......u......u.......
+.......e......e.......
+.......w......w.......
 `;
