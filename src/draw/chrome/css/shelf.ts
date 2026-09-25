@@ -149,7 +149,10 @@ export const SHELF_CHROME = `/* ---- a book taken down ---- */
   text-align: center;
 }
 
-/* ---- the pet ---- */
+/* ---- the pet ----
+   It stands beside the zoomed room, in the room's parent, so its pixels are whole screen pixels
+   (app/shelf/pet.ts); the parent is where it is placed from. */
+.shelves { position: relative; }
 .shelf-pet {
   position: absolute;
   z-index: 5;

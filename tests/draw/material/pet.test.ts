@@ -3,6 +3,7 @@ import {
   COATS,
   colourOf,
   PET_FRAMES,
+  PET_GROUND,
   PET_H,
   PET_W,
   POSES,
@@ -28,6 +29,43 @@ describe('the pets, drawn', () => {
       }
     }
     expect([...bad].slice(0, 10)).toEqual([]);
+  });
+
+  it('has a drawing for every frame, standing on the ground unless it is in the air', () => {
+    const bad: string[] = [];
+    for (const coat of [
+      COATS.find((c) => c.id === 'ginger'),
+      COATS.find((c) => c.id === 'husky'),
+    ]) {
+      if (!coat) continue;
+      for (const pose of POSES) {
+        for (let n = 0; n < PET_FRAMES[pose].count; n++) {
+          const g = petFrame(coat.species, coat, pose, n);
+          const solid = g.flat().filter((k) => k !== '.').length;
+          // A frame name the drawings lack comes back empty, not as an error: count the pixels.
+          if (solid < 250) bad.push(`${coat.id} ${pose}${n}: only ${solid} pixels`);
+          const lowest = g.findLastIndex((row) => row.some((k) => k !== '.'));
+          const airborne = pose === 'leap' || pose === 'run' || pose === 'happy';
+          if (lowest > PET_GROUND || (!airborne && lowest !== PET_GROUND))
+            bad.push(`${coat.id} ${pose}${n}: stands on row ${lowest}`);
+        }
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('draws the walk and the run in six frames, each different', () => {
+    for (const pose of ['walk', 'run'] as const) {
+      const coat = COATS[0];
+      if (!coat) continue;
+      const frames = Array.from({ length: PET_FRAMES[pose].count }, (_, n) =>
+        petFrame('cat', coat, pose, n)
+          .map((r) => r.join(''))
+          .join('\n'),
+      );
+      expect(frames.length).toBe(6);
+      expect(new Set(frames).size).toBe(6);
+    }
   });
 
   it('has both a cat and a dog, in several coats each', () => {

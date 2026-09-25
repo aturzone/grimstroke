@@ -11,6 +11,13 @@
  * frame is a background-position. When nothing is moving across the shelf it does not run a
  * frame loop at all -- it wakes when the next frame is due -- and it stops when the page is
  * hidden or the bookcase is out of view. Under reduced motion it is asleep.
+ *
+ * WHOLE PIXELS. The bookcase is zoomed to fit the window (--case-scale, 0.56 to 1), and a pet
+ * drawn inside it had its art pixels land on 1.1 or 1.7 screen pixels -- uneven, soft, some
+ * pixels wider than others, which is most of why the old one looked wrong. So the pet is not in
+ * the zoomed room: it stands in the room's un-zoomed parent, placed from room coordinates, at a
+ * whole number of device pixels per art pixel chosen from the zoom (two at full size), and its
+ * position is rounded to device pixels. Every art pixel is then a crisp, equal square.
  */
 
 import {
@@ -28,7 +35,7 @@ import {
 } from '~/draw/material/pet/art.ts';
 import type { Pet } from '~/draw/material/profile/model.ts';
 
-/** Room pixels per sprite pixel. */
+/** Screen pixels per art pixel at full size; the zoom scales it, rounded to whole pixels. */
 const PX = 2;
 
 interface Ledge {
@@ -97,6 +104,10 @@ export class ShelfPet {
   private faceBowl = 0;
   private drawn = '';
   private seen: IntersectionObserver | undefined;
+  /** The room's zoom, CSS pixels per art pixel, and where the room's corner is in the layer. */
+  private zoom = 1;
+  private px = PX;
+  private origin = { left: 0, top: 0 };
 
   constructor() {
     // Listening, never catching: a press or a stroke over the pet still reaches what is under it.
@@ -143,12 +154,9 @@ export class ShelfPet {
     const el = document.createElement('div');
     el.className = 'shelf-pet';
     el.setAttribute('aria-hidden', 'true');
-    el.style.width = `${PET_W * PX}px`;
-    el.style.height = `${PET_H * PX}px`;
     el.style.backgroundImage = `url(${sheet(this.config.species, this.coat)})`;
-    const cols = Math.max(...POSES.map((p) => PET_FRAMES[p].count));
-    el.style.backgroundSize = `${cols * PET_W * PX}px ${POSES.length * PET_H * PX}px`;
-    room.append(el);
+    // Beside the room, not in it: the room is zoomed, and the pet must not be.
+    (room.parentElement ?? room).append(el);
     this.el = el;
     this.room = room;
     this.measure();
@@ -177,10 +185,51 @@ export class ShelfPet {
     this.wake();
   }
 
+  /** The window or the bookcase changed size: the pet's scale and its shelves with it. */
+  refit(): void {
+    if (!this.el) return;
+    this.measure();
+    this.drawn = '';
+    this.paint(performance.now());
+  }
+
+  /** How wide the pet is, in the room's own pixels. */
+  private get span(): number {
+    return (PET_W * this.px) / this.zoom;
+  }
+
+  /**
+   * The scale: whole device pixels per art pixel, as near the room's zoom as whole numbers go --
+   * two at full size, one on a phone -- and where the room's corner is in the pet's layer.
+   */
+  private fitScale(): void {
+    const room = this.room;
+    const el = this.el;
+    if (!room || !el) return;
+    this.zoom = Number(room.style.getPropertyValue('--case-scale')) || 1;
+    const dpr = window.devicePixelRatio || 1;
+    // Rounded a little up: a pet a size too big beside the books reads better than one too small.
+    const device = Math.max(1, Math.round(PX * this.zoom * dpr + 0.25));
+    this.px = device / dpr;
+    const cols = Math.max(...POSES.map((p) => PET_FRAMES[p].count));
+    el.style.width = `${PET_W * this.px}px`;
+    el.style.height = `${PET_H * this.px}px`;
+    el.style.backgroundSize = `${cols * PET_W * this.px}px ${POSES.length * PET_H * this.px}px`;
+    const layer = el.parentElement;
+    if (!layer) return;
+    const r = room.getBoundingClientRect();
+    const l = layer.getBoundingClientRect();
+    this.origin = {
+      left: r.left - l.left + layer.scrollLeft - layer.clientLeft,
+      top: r.top - l.top + layer.scrollTop - layer.clientTop,
+    };
+  }
+
   private measure(): void {
     const room = this.room;
     if (!room) return;
-    const scale = Number(room.style.getPropertyValue('--case-scale')) || 1;
+    this.fitScale();
+    const scale = this.zoom;
     const box = room.getBoundingClientRect();
     this.ledges = [...room.querySelectorAll<HTMLElement>('[data-shelf="use"] .case-plank')].map(
       (plank) => {
@@ -199,7 +248,7 @@ export class ShelfPet {
         return {
           y: (r.top - box.top) / scale - 6,
           left: (r.left - box.left) / scale + 8,
-          right: (r.right - box.left) / scale - PET_W * PX - 8,
+          right: (r.right - box.left) / scale - this.span - 8,
           beds,
         };
       },
@@ -216,9 +265,12 @@ export class ShelfPet {
   }
 
   private bed(): void {
+    // Measured now, not when the room arrived: a redrawn room slides its books from where they
+    // were, and a bed measured mid-slide put the pet asleep in mid-air off the side of the case.
+    this.measure();
     const bed = this.ledge?.beds[0];
     if (!bed) return;
-    this.at.x = Math.round(bed.x + bed.w / 2 - (PET_W * PX) / 2);
+    this.at.x = Math.round(bed.x + bed.w / 2 - this.span / 2);
     this.at.y = bed.top + 2;
   }
 
@@ -333,7 +385,7 @@ export class ShelfPet {
 
   private step(now: number, dt: number): void {
     if (this.watching !== undefined && this.act?.kind !== 'jump') {
-      this.facing = this.watching >= this.at.x + (PET_W * PX) / 2 ? 1 : -1;
+      this.facing = this.watching >= this.at.x + this.span / 2 ? 1 : -1;
       this.set('look');
       return;
     }
@@ -398,13 +450,16 @@ export class ShelfPet {
       ? Math.min(spec.count - 1, Math.floor(elapsed))
       : Math.floor(elapsed) % spec.count;
     const row = POSES.indexOf(this.pose);
-    const x = Math.round(this.at.x);
-    const y = Math.round(this.at.y - PET_GROUND * PX);
-    const next = `${n}:${row}:${x}:${y}:${this.facing}`;
+    // Room coordinates to the layer's, rounded to device pixels so no art pixel is split.
+    const dpr = window.devicePixelRatio || 1;
+    const snap = (v: number): number => Math.round(v * dpr) / dpr;
+    const x = snap(this.origin.left + this.at.x * this.zoom);
+    const y = snap(this.origin.top + this.at.y * this.zoom - PET_GROUND * this.px);
+    const next = `${n}:${row}:${x}:${y}:${this.facing}:${this.px}`;
     // Nothing is written to the page unless something about the picture changed.
     if (next === this.drawn) return;
     this.drawn = next;
-    el.style.backgroundPosition = `${-n * PET_W * PX}px ${-row * PET_H * PX}px`;
+    el.style.backgroundPosition = `${-n * PET_W * this.px}px ${-row * PET_H * this.px}px`;
     el.style.transform = `translate(${x}px, ${y}px) scaleX(${this.facing})`;
   }
 
@@ -504,14 +559,14 @@ export class ShelfPet {
     let best = Number.POSITIVE_INFINITY;
     this.ledges.forEach((l, i) => {
       const d = l.y - y;
-      if (d > -40 && d < best && x > l.left - 40 && x < l.right + PET_W * PX + 40) {
+      if (d > -40 && d < best && x > l.left - 40 && x < l.right + this.span + 40) {
         best = d;
         ledge = i;
       }
     });
     const target = this.ledges[ledge];
     if (!target) return false;
-    const bx = Math.min(target.right + PET_W * PX - 30, Math.max(target.left, x - 18));
+    const bx = Math.min(target.right + this.span - 30, Math.max(target.left, x - 18));
     this.bowl?.remove();
     const bowl = document.createElement('div');
     bowl.className = 'shelf-bowl';
@@ -521,8 +576,8 @@ export class ShelfPet {
     this.bowl = bowl;
     this.food = { x: bx, ledge };
     // Walk to the bowl, from the side it is on, and eat; across shelves, jump first.
-    const stand = Math.round(bx - PET_W * PX * 0.72);
-    const standRight = Math.round(bx - PET_W * PX * 0.1);
+    const stand = Math.round(bx - this.span * 0.72);
+    const standRight = Math.round(bx - this.span * 0.1);
     const side = this.at.x < bx ? stand : standRight;
     const plan: Act[] = [];
     if (ledge !== this.at.ledge)
