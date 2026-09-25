@@ -33,7 +33,7 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
 .ss-shell {
   overflow: hidden;
   border: 1px solid var(--ss-line);
-  border-radius: 28px;
+  border-radius: calc(28px * var(--round, 1));
   background: var(--ss-bg);
   box-shadow: 0 1px 2px rgba(20, 20, 18, 0.06), 0 24px 60px -24px rgba(20, 20, 18, 0.45);
   outline: 4px solid transparent;
@@ -69,7 +69,7 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   height: 34px;
   padding: 0 10px 0 14px;
   border: 0;
-  border-radius: 999px;
+  border-radius: calc(999px * var(--round, 1));
   background: var(--ss-fg);
   color: var(--ss-bg);
   font: inherit;
@@ -90,7 +90,7 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   overflow: hidden;
   padding: 0 12px;
   border: 1px solid var(--ss-line);
-  border-radius: 999px;
+  border-radius: calc(999px * var(--round, 1));
   background: var(--ss-bg);
   color: var(--ss-fg);
   font: inherit;
@@ -114,7 +114,7 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   translate: -50% 0;
   overflow: hidden;
   border: 1px solid var(--ss-line);
-  border-radius: 20px;
+  border-radius: calc(20px * var(--round, 1));
   background: var(--ss-bg);
   box-shadow: 0 24px 60px -20px rgba(20, 20, 18, 0.45);
 }
@@ -125,7 +125,7 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   height: 34px;
   padding: 0 12px;
   border: 0;
-  border-radius: 12px;
+  border-radius: calc(12px * var(--round, 1) + var(--round-up, 0px) * 0.5);
   background: var(--ss-tile);
   color: var(--ss-fg);
   font: inherit;
@@ -133,9 +133,9 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   outline: none;
 }
 .ss-palette-list { max-height: min(420px, 56vh); margin: 0; padding: 0 8px 8px; overflow-y: auto; overscroll-behavior: contain; list-style: none; }
-.ss-option { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 8px; border-radius: 14px; color: var(--ss-fg); cursor: pointer; }
+.ss-option { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 8px; border-radius: calc(14px * var(--round, 1) + var(--round-up, 0px) * 0.5); color: var(--ss-fg); cursor: pointer; }
 .ss-option.is-on, .ss-option:hover { background: var(--ss-tile); }
-.ss-option-tile { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border: 1px solid var(--ss-line); border-radius: 9px; background: var(--ss-bg); }
+.ss-option-tile { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border: 1px solid var(--ss-line); border-radius: calc(9px * var(--round, 1) + var(--round-up, 0px) * 0.5); background: var(--ss-bg); }
 .ss-option b { width: 96px; flex: none; font-size: 14px; font-weight: 500; }
 .ss-option-example { min-width: 0; overflow: hidden; color: var(--ss-soft); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .ss-empty { padding: 14px 8px; color: var(--ss-soft); font-size: 13px; }

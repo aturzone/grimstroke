@@ -39,6 +39,7 @@ import { exportPages, exportPdf } from '~/host/export.ts';
 import { capabilities } from '~/host/serve/capabilities.ts';
 import { type Ask, header, readBody, readRaw, send } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
+import { type Look, lookOf, saveLook, withLook } from '~/host/serve/look.ts';
 import { ArchiveError, pack, readArchive, unpack } from '~/host/store/archive.ts';
 import {
   columns,
@@ -263,6 +264,16 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
       { op: 'add', item: { id, at, size: [body.width ?? 360], z: topZ(spec) + 1, block } },
     ]);
     send(res, 200, { id, card: intent, summary: summarize(block, new Date()), reply });
+    return true;
+  }
+
+  // The workspace's look: how round every corner is, everywhere.
+  if (path === '/api/look') {
+    const look =
+      req.method === 'POST'
+        ? await saveLook(store, (await readBody(req)) as Partial<Look>)
+        : await lookOf(store);
+    send(res, 200, { look, corners: { min: 0, max: 3, designed: 1 } });
     return true;
   }
 
@@ -774,7 +785,7 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     live.allow(page.assets);
     let bytes: Buffer;
     try {
-      bytes = await exportPdf(page);
+      bytes = await exportPdf({ ...page, html: withLook(page.html, await lookOf(store)) });
     } catch (error) {
       send(res, 503, {
         error:
@@ -826,7 +837,9 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     const rendered = renderBoard(subject);
     const out = join(tmpdir(), `grimstroke-${id}-${Date.now()}.png`);
     try {
-      await exportPages([{ page: rendered, out }]);
+      await exportPages([
+        { page: { ...rendered, html: withLook(rendered.html, await lookOf(store)) }, out },
+      ]);
     } catch (error) {
       // Playwright is an optional peer, and the person who is about to be
       // told this is looking at a board in a browser -- so the message says

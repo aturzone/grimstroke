@@ -28,7 +28,8 @@ export const TOKENS = `/* ---- the chrome's tokens ----
   --gs-on-hot: var(--chip-text);
   --gs-shadow: 3px 4px 0 rgba(0, 0, 0, 0.3);
   --gs-shadow-up: 5px 7px 0 rgba(0, 0, 0, 0.3);
-  --gs-radius: 3px;
+  /* Every corner in the chrome is this times the workspace's --round (see head.ts). */
+  --gs-radius: calc(3px * var(--round, 1) + var(--round-up, 0px));
   --gs-s1: 4px;
   --gs-s2: 8px;
   --gs-s3: 12px;
@@ -161,7 +162,7 @@ export const KIT = `/* ---- the parts ---- */
   font-size: var(--gs-t1);
   letter-spacing: 0.03em;
   white-space: nowrap;
-  border-radius: 2px;
+  border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px));
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, 3px);
@@ -184,7 +185,7 @@ export const KIT = `/* ---- the parts ---- */
   padding: 0 4px;
   border: 1px solid var(--gs-faint);
   border-block-end-width: 2px;
-  border-radius: 3px;
+  border-radius: calc(3px * var(--round, 1) + var(--round-up, 0px));
   background: var(--gs-paper);
   color: var(--gs-soft);
   font-family: var(--ui-font);
@@ -258,7 +259,7 @@ export const KIT = `/* ---- the parts ---- */
   min-height: 34px;
   padding: 0 8px;
   border: 0;
-  border-radius: 2px;
+  border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px));
   background: transparent;
   color: inherit;
   font: inherit;

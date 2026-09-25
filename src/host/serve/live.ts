@@ -128,6 +128,7 @@ export class Live {
       ...((leaf.template ?? book.template) ? { template: leaf.template ?? book.template } : {}),
       ...(leaf.tracker ? { tracker: leaf.tracker } : {}),
       ...(book.grain !== undefined ? { grain: book.grain } : {}),
+      ...(book.corners !== undefined ? { corners: book.corners } : {}),
       ...(book.fonts ? { fonts: book.fonts } : {}),
       ...(book.digits ? { digits: book.digits } : {}),
       ...(book.uppercaseLabels !== undefined ? { uppercaseLabels: book.uppercaseLabels } : {}),

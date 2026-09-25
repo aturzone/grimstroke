@@ -598,6 +598,19 @@ export class BookApp {
       spec.template ?? 'none',
       (value) => apply({ template: value === 'none' ? null : value }),
     );
+    row(
+      'corners in this notebook',
+      [
+        ['workspace', 'as the workspace'],
+        ['0', 'square'],
+        ['0.5', 'crisp'],
+        ['1', 'as designed'],
+        ['1.8', 'soft'],
+        ['3', 'round'],
+      ],
+      spec.corners === undefined ? 'workspace' : String(spec.corners),
+      (value) => apply({ corners: value === 'workspace' ? null : Number(value) }),
+    );
     const note = document.createElement('p');
     note.className = 'gs-pagesetup-note';
     note.textContent = 'A page can have its own template: open it, and choose in its settings.';

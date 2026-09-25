@@ -42,7 +42,7 @@ export const BOOKCASE = `/* ---- the bookcase ---- */
   margin-inline: -44px;
   background:
     linear-gradient(to bottom, var(--wood-light) 0 3px, var(--wood) 3px 22px, var(--wood-dark) 22px);
-  border-radius: 3px 3px 0 0;
+  border-radius: calc(3px * var(--round, 1) + var(--round-up, 0px)) calc(3px * var(--round, 1) + var(--round-up, 0px)) 0 0;
   box-shadow: 0 6px 10px rgba(0, 0, 0, 0.35);
   position: relative;
   z-index: 3;
@@ -113,7 +113,7 @@ export const BOOKCASE = `/* ---- the bookcase ---- */
   padding: 2px 14px 1px;
   background: linear-gradient(#e6c27a, #b88a3e);
   color: #3a2410;
-  border-radius: 2px;
+  border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px));
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.25);
   font-family: var(--mono-font);
   font-size: 11px;
@@ -160,7 +160,7 @@ export const BOOKCASE = `/* ---- the bookcase ---- */
   align-items: center;
   height: 100%;
   overflow: hidden;
-  border-radius: 3px 3px 1px 1px;
+  border-radius: calc(3px * var(--round, 1) + var(--round-up, 0px)) calc(3px * var(--round, 1) + var(--round-up, 0px)) calc(1px * var(--round, 1) + var(--round-up, 0px)) calc(1px * var(--round, 1) + var(--round-up, 0px));
   background:
     linear-gradient(to right, rgba(0, 0, 0, 0.38), rgba(255, 255, 255, 0.14) 28%, rgba(255, 255, 255, 0) 56%, rgba(0, 0, 0, 0.3)),
     var(--cover);
@@ -209,7 +209,7 @@ export const BOOKCASE = `/* ---- the bookcase ---- */
   height: 22px;
   margin-block-start: 8px;
   background: #f4efe2;
-  border-radius: 1px;
+  border-radius: calc(1px * var(--round, 1) + var(--round-up, 0px));
   box-shadow: inset 0 -5px 0 color-mix(in oklab, var(--cover) 40%, #f4efe2);
 }
 
@@ -221,7 +221,7 @@ export const BOOKCASE = `/* ---- the bookcase ---- */
 
 /* Lying down: the spine seen along the shelf, its title across. */
 .spine[data-flat] { width: var(--h); height: var(--w); rotate: 0deg; }
-.spine[data-flat] .spine-face { flex-direction: row; border-radius: 1px 3px 3px 1px; }
+.spine[data-flat] .spine-face { flex-direction: row; border-radius: calc(1px * var(--round, 1) + var(--round-up, 0px)) calc(3px * var(--round, 1) + var(--round-up, 0px)) calc(3px * var(--round, 1) + var(--round-up, 0px)) calc(1px * var(--round, 1) + var(--round-up, 0px)); }
 .spine[data-flat] .spine-face {
   background:
     linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(255, 255, 255, 0.14) 30%, rgba(255, 255, 255, 0) 56%, rgba(0, 0, 0, 0.38)),
@@ -252,7 +252,7 @@ export const BOOKCASE = `/* ---- the bookcase ---- */
   height: 18px;
   translate: -50% 0;
   rotate: calc(var(--lean, 0deg) * -1);
-  border-radius: 50%;
+  border-radius: calc(50% * min(1, var(--round, 1)));
   background: var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%2314110e' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 72% no-repeat;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
@@ -265,8 +265,8 @@ body[data-selecting] .spine:not([data-selected]) .spine-face { filter: brightnes
   bottom: 4px;
   pointer-events: none;
 }
-.case-drop-in { width: 4px; height: 230px; margin-inline-start: -2px; background: var(--paper); border-radius: 2px; box-shadow: 0 0 12px var(--paper); }
-.case-drop-flat { height: 34px; border: 2px dashed var(--paper); border-radius: 3px; background: rgba(255, 255, 255, 0.08); }
+.case-drop-in { width: 4px; height: 230px; margin-inline-start: -2px; background: var(--paper); border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px)); box-shadow: 0 0 12px var(--paper); }
+.case-drop-flat { height: 34px; border: 2px dashed var(--paper); border-radius: calc(3px * var(--round, 1) + var(--round-up, 0px)); background: rgba(255, 255, 255, 0.08); }
 .case-shelf[data-over] .case-plank-top { background: color-mix(in oklab, var(--wood-light) 70%, var(--paper)); }
 .spine.is-carried { visibility: hidden; }
 .shelf-carry {

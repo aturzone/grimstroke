@@ -81,6 +81,21 @@ The reply says what happened: `placed` (items whose only change was position, wi
 `x-grimstroke-client` header naming your tab, and your own patches are not echoed back to you
 on the event stream.
 
+## The look: how round everything is
+
+| | |
+|---|---|
+| `GET /api/look` | the workspace's look: `{ look: { corners }, corners: { min, max, designed } }` |
+| `POST /api/look` `{ corners }` | how round every corner in the workspace is: `0` square, `1` as designed, up to `3` |
+
+Every box follows it -- the bars, menus and dialogs, cards and panels, pictures, code, quotes,
+pages and covers, the shape cards, the bookcase's buttons -- and so does every export. Below 1
+the rounded things straighten; above 1 even the things drawn square round too. A notebook or a
+board keeps its own with `corners` in a `book` or `board` op (`null` goes back to the
+workspace's). Torn paper, die-cut stickers and pixel art keep their own edges. People have the
+same on the profile page (a slider with named stops), in a notebook's page setup and in a
+board's menu.
+
 ## Shapes: a line of text that becomes a card
 
 On a board or a page, **/** opens one box: type a plan, a list, a colour or a sum and it becomes a

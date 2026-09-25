@@ -52,7 +52,7 @@ export const REMOTE = `/* ---- repository cards ---- */
   margin-block-start: 2px;
   padding: 0;
   border: 2px solid #1b1a17;
-  border-radius: 3px 2px 4px 2px;
+  border-radius: calc(3px * var(--round, 1) + var(--round-up, 0px)) calc(2px * var(--round, 1) + var(--round-up, 0px)) calc(4px * var(--round, 1) + var(--round-up, 0px)) calc(2px * var(--round, 1) + var(--round-up, 0px));
   background: #fff;
   cursor: pointer;
 }
@@ -65,7 +65,7 @@ export const REMOTE = `/* ---- repository cards ---- */
   right: 10px;
   padding: 1px 8px;
   border: 2px solid currentColor;
-  border-radius: 3px;
+  border-radius: calc(3px * var(--round, 1) + var(--round-up, 0px));
   font-family: var(--marker-font);
   font-size: 15px;
   letter-spacing: 0.06em;
@@ -101,7 +101,7 @@ export const REMOTE = `/* ---- repository cards ---- */
   height: 22px;
   margin-inline-end: -5px;
   border: 1.5px solid #fff;
-  border-radius: 50%;
+  border-radius: calc(50% * min(1, var(--round, 1)));
   background: #1f3fd0;
   color: #fff;
   font-size: 9px;

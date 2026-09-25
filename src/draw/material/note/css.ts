@@ -260,7 +260,7 @@ export const NOTE = `/* The sticky note.
   place-items: center;
   color: var(--cn-ink);
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: calc(3px * var(--round, 1) + var(--round-up, 0px));
   opacity: .78;
 }
 .note .act svg { width: 15px; height: 15px; display: block; }
@@ -328,7 +328,7 @@ export const NOTE = `/* The sticky note.
   height: .95em;
   margin: 0;
   border: 1.6px solid var(--cn-ink);
-  border-radius: 2px;
+  border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px));
   background: transparent;
   translate: 0 .12em;
   cursor: pointer;

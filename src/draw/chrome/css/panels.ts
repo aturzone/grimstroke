@@ -39,7 +39,7 @@ export const PANELS = `/* ---- search ---- */
   gap: 2px 12px;
   align-items: baseline;
   padding: 9px 10px;
-  border-radius: 2px;
+  border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px));
   color: inherit;
   text-decoration: none;
 }
@@ -51,7 +51,7 @@ export const PANELS = `/* ---- search ---- */
   justify-self: start;
   padding: 2px 6px;
   border: 1.5px solid var(--gs-line);
-  border-radius: 2px;
+  border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px));
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -62,7 +62,7 @@ export const PANELS = `/* ---- search ---- */
 .gs-hit-text { color: var(--gs-soft); font-size: var(--gs-t1); line-height: 1.45; overflow-wrap: anywhere; }
 /* A highlighter, whatever the palette: the hot ink was blue on the default one, and dark
    words on mid blue is the one highlight that is harder to read than no highlight. */
-.gs-hit mark { background: #ffe066; color: #14110e; padding: 0 1px; border-radius: 1px; }
+.gs-hit mark { background: #ffe066; color: #14110e; padding: 0 1px; border-radius: calc(1px * var(--round, 1) + var(--round-up, 0px)); }
 .gs-search-none { padding: 22px 16px; color: var(--gs-soft); text-align: center; }
 .gs-search-none b { font-family: var(--hand-font); font-size: var(--gs-t5); color: var(--gs-ink); display: block; margin-block-end: 4px; }
 
@@ -110,7 +110,7 @@ export const PANELS = `/* ---- search ---- */
 .gs-selbar:not([data-grouped]) [data-gs='ungroup'] { display: none; }
 .gs-scope {
   padding: 3px 8px;
-  border-radius: 2px;
+  border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px));
   background: var(--gs-ink);
   color: var(--gs-paper);
   font-size: var(--gs-t1);

@@ -16,6 +16,7 @@ import { renderSpread } from '~/draw/doc/book/render.ts';
 import { renderShelf } from '~/draw/doc/shelf/render.ts';
 import { type Ask, html } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
+import { lookOf, withLook } from '~/host/serve/look.ts';
 
 const APP = ['/app.js'];
 
@@ -26,7 +27,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
     const spec = await live.board(url.searchParams.get('board') ?? ask.board);
     const rendered = renderBoard(spec, { live: { chrome: chrome(spec), scripts: APP } });
     live.allow(rendered.assets);
-    html(res, rendered.html);
+    html(res, withLook(rendered.html, await lookOf(live.store)));
     return true;
   }
 
@@ -39,7 +40,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
     const spec = await live.board(`book:${book}:${url.searchParams.get('leaf') ?? '1'}`);
     const rendered = renderBoard(spec, { live: { chrome: chrome(spec), scripts: APP } });
     live.allow(rendered.assets);
-    html(res, rendered.html);
+    html(res, withLook(rendered.html, await lookOf(live.store)));
     return true;
   }
 
@@ -55,7 +56,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
       live: { chrome: bookChrome(spec), scripts: APP },
     });
     live.allow(rendered.assets);
-    html(res, rendered.html);
+    html(res, withLook(rendered.html, await lookOf(live.store)));
     return true;
   }
 
@@ -64,7 +65,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
     const spec = await live.book(url.searchParams.get('book') ?? 'notebook');
     const rendered = renderPrint(spec, { scripts: APP });
     live.allow(rendered.assets);
-    html(res, rendered.html);
+    html(res, withLook(rendered.html, await lookOf(live.store)));
     return true;
   }
 
@@ -80,7 +81,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
       live: { scripts: APP },
     });
     live.allow(rendered.assets);
-    html(res, rendered.html);
+    html(res, withLook(rendered.html, await lookOf(live.store)));
     return true;
   }
 
@@ -94,7 +95,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
       live: { chrome: shelfChrome(all.length, pet), scripts: APP },
     });
     live.allow(rendered.assets);
-    html(res, rendered.html);
+    html(res, withLook(rendered.html, await lookOf(live.store)));
     return true;
   }
 

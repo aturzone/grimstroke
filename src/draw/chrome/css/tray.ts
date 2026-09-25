@@ -39,7 +39,7 @@ export const TRAY = `/* ---- the tray ---- */
   height: 22px;
   padding: 0;
   border: 2px solid var(--gs-line);
-  border-radius: 50%;
+  border-radius: calc(50% * min(1, var(--round, 1)));
   background: var(--swatch);
   cursor: pointer;
   transition: transform var(--gs-fast) var(--gs-ease);
@@ -71,7 +71,7 @@ export const TRAY = `/* ---- the tray ---- */
   aspect-ratio: 1;
   padding: 0;
   border: 1.5px solid var(--gs-line);
-  border-radius: 2px;
+  border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px));
   background: var(--sw-paper);
   cursor: pointer;
   overflow: hidden;

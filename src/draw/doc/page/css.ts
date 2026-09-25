@@ -63,7 +63,7 @@ export const PAGE_LAYOUT = `/* .mount carries the hard shadow as a real sibling 
   background: var(--chip-bg, var(--accent));
   color: var(--chip-fg, var(--chip-text));
   border: var(--keyline) solid var(--edge);
-  border-radius: 3px;
+  border-radius: calc(3px * var(--round, 1) + var(--round-up, 0px));
   white-space: nowrap;
 }
 

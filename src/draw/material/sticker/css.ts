@@ -18,7 +18,7 @@ export const STICKER = `/* ---- stickers ---- */
   display: block;
   padding: 0.18em 0.4em 0.1em;
   border: 0.12em solid var(--mark);
-  border-radius: 0.14em;
+  border-radius: calc(0.14em * var(--round, 1));
   outline: 0.05em solid var(--mark);
   outline-offset: -0.28em;
   background: #fff;

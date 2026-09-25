@@ -127,6 +127,8 @@ export interface BookSpec {
   template?: PageTemplate;
   /** How big the pages are. A5 when it is not said. */
   pageSize?: PageSize;
+  /** How round its corners are, over the workspace's: 0 square, 1 as designed, up to 3. */
+  corners?: number;
   /**
    * The repository this notebook is about, if it is connected to one. Which one, never the key
    * to it: a notebook is a document that travels, and the key stays on this machine.

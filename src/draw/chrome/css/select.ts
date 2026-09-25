@@ -203,7 +203,7 @@ export const HANDLES = `/* ---- the frame and its grips ----
   width: 16px;
   height: 16px;
   margin: 0 0 0 -8px;
-  border-radius: 50%;
+  border-radius: calc(50% * min(1, var(--round, 1)));
   cursor: grab;
 }
 .gs-grip-turn::after {

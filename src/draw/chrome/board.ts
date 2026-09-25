@@ -211,6 +211,24 @@ export function chrome(spec: BoardSpec): string {
       ? ''
       : heading('palette') +
         `<div class="gs-paper-swatches" role="group" aria-label="palette">${palettes}</div>`) +
+    (sheet
+      ? ''
+      : heading('corners on this board') +
+        `<div class="gs-chip-row" role="group" aria-label="corners">${(
+          [
+            ['workspace', 'as the workspace'],
+            ['0', 'square'],
+            ['1', 'as designed'],
+            ['1.8', 'soft'],
+            ['3', 'round'],
+          ] as const
+        )
+          .map(
+            ([value, label]) =>
+              `<button type="button" class="gs-btn gs-chip-btn" data-gs="corners-choice" data-gs-value="${value}" ` +
+              `aria-pressed="${value === (spec.corners === undefined ? 'workspace' : String(spec.corners))}">${label}</button>`,
+          )
+          .join('')}</div>`) +
     heading(sheet ? 'this page is' : 'paper') +
     `<div class="gs-chip-row" role="group" aria-label="paper">${papers}</div>` +
     (sheet

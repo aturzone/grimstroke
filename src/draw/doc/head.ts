@@ -24,6 +24,15 @@ export interface HeadOptions {
   imageMaxHeight?: number | undefined;
   /** Extra `--name: value` pairs, for whatever the substrate needs. */
   extra?: Record<string, string>;
+  /** This document's own corners (0 square to 3), over the workspace's. */
+  round?: number | undefined;
+}
+
+/** A corners value as a document may carry it, clamped to what the look can draw. */
+export function cornersOf(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? Math.min(3, Math.max(0, value))
+    : undefined;
 }
 
 /** The `@font-face` rules, registering each file as an asset as it goes. */
@@ -78,6 +87,13 @@ export function styleVars(
     '--ui-font': uiFontFamily(fonts, direction),
     '--hand-font': fontFamily('hand', fonts, direction),
     '--marker-font': fontFamily('marker', fonts, direction),
+    // Corners: the document's own, or the workspace's (--gs-round, written by the server), or as
+    // designed. --round-up is 0 up to 1, then grows, rounding what is drawn square.
+    '--round':
+      cornersOf(options.round) !== undefined
+        ? String(cornersOf(options.round))
+        : 'var(--gs-round, 1)',
+    '--round-up': 'calc(max(0, var(--round) - 1) * 12px)',
     '--body-size': '15px',
     '--body-leading': '1.5',
     '--title-size': '22px',

@@ -92,6 +92,7 @@ export function renderPrint(spec: BookSpec, options: { scripts?: string[] } = {}
     paper: 'blank',
     grain: spec.grain,
     fonts: spec.fonts,
+    round: spec.corners,
     extra: {
       '--leaf-width': `${w}px`,
       '--leaf-height': `${h}px`,

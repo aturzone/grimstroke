@@ -179,6 +179,7 @@ export function renderProfilePage(
     '</section>',
     `<section class="pf-card-stage" aria-label="the card"><div data-gs="card">${renderProfile(profile, { flat: true })}</div></section>`,
     petSection(profile.pet ?? DEFAULT_PET),
+    cornersSection(),
     '</aside>',
     '</main>',
     `<script type="application/json" data-gs="profile-data">${JSON.stringify(profile).replace(/</g, '\\u003c')}</script>`,
@@ -205,6 +206,39 @@ export function renderProfilePage(
  * Your pet: which animal, which coat, its name, and whether it lives on the bookcase. The coats
  * are drawn into their buttons by the app, from the same sprites the bookcase uses.
  */
+/**
+ * How round every corner in the workspace is: one slider, named stops, and a strip of the things
+ * it changes, drawn live. The value itself is the workspace's (GET/POST /api/look), not the
+ * profile's; the app reads it on arrival.
+ */
+function cornersSection(): string {
+  const stops: Array<[string, number]> = [
+    ['square', 0],
+    ['crisp', 0.5],
+    ['as designed', 1],
+    ['soft', 1.8],
+    ['round', 3],
+  ];
+  return (
+    '<section class="pf-corners gs-card" aria-label="corners">' +
+    heading('corners') +
+    '<div class="pf-corners-row"><input type="range" min="0" max="300" step="5" value="100" ' +
+    'data-gs="corners" aria-label="how round the corners are" class="pf-corners-range">' +
+    '<output data-gs="corners-value" class="pf-corners-value">100%</output></div>' +
+    `<div class="gs-chip-row" role="group" aria-label="corner stops">${stops
+      .map(
+        ([label, v]) =>
+          `<button type="button" class="gs-btn gs-chip-btn" data-gs="corners-stop" data-gs-value="${v}">${label}</button>`,
+      )
+      .join('')}</div>` +
+    '<div class="pf-corners-sample" aria-hidden="true"><span class="gs-btn">button</span>' +
+    '<span class="gs-card pf-corners-card">card</span><span class="pf-corners-pill">tag</span></div>' +
+    '<p class="pf-note">Every box in grimstroke follows this: the bars and menus, cards, pictures, code, pages and covers. ' +
+    'A notebook or a board can keep its own. Torn paper, die-cut stickers and pixel art keep their edges.</p>' +
+    '</section>'
+  );
+}
+
 function petSection(pet: Pet): string {
   const species = (['cat', 'dog'] as const)
     .map(

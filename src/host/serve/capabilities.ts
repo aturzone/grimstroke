@@ -78,6 +78,10 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
     'GET /api/profile': 'the profile',
     'POST /api/profile': 'change the profile',
     'POST /api/profile/place': 'put the profile card on a board or a page',
+    'GET /api/look':
+      'the workspace look: how round every corner is (0 square, 1 as designed, 3 very round)',
+    'POST /api/look':
+      'change it { corners }; a notebook or board can override with its own corners',
     'GET /api/pet': 'the pet, and every animal and coat',
     'POST /api/pet': 'change the pet { species?, coat?, name?, on? }',
     'GET /api/archive': 'a backup of everything, as one file',
@@ -151,6 +155,12 @@ export function capabilities(): Record<string, unknown> {
         coats: COATS.map((c) => ({ id: c.id, label: c.label, species: c.species })),
       },
       profile: { accents: ACCENTS, photoPapers: PHOTO_PAPERS },
+      corners: {
+        min: 0,
+        max: 3,
+        designed: 1,
+        where: ['POST /api/look', 'board op { corners }', 'book op { corners }'],
+      },
       providers: PROVIDERS,
     },
     // What is kept only in a browser, and so is not on the API: nothing an agent needs.

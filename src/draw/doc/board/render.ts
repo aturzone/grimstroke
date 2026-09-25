@@ -119,6 +119,7 @@ export function renderBoard(spec: BoardSpec, options: BoardRenderOptions = {}): 
     paper: spec.paper ?? 'squared',
     grain: spec.grain,
     fonts: spec.fonts,
+    round: spec.corners,
     extra: { '--board-width': `${width}px`, '--board-height': `${height}px` },
   });
 

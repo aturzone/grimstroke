@@ -143,4 +143,12 @@ body.on-profile {
 .pf-coat canvas { width: 96px; height: 80px; image-rendering: pixelated; }
 .pf-coat[aria-pressed='true'] { border-color: var(--gs-ink); box-shadow: 2px 2px 0 var(--gs-line); color: var(--gs-ink); }
 .pf-pet .pf-field, .pf-pet .pf-note { padding-inline: 12px; }
+
+/* ---- the corners slider ---- */
+.pf-corners-row { display: flex; align-items: center; gap: 12px; }
+.pf-corners-range { flex: 1; accent-color: var(--gs-hot); }
+.pf-corners-value { min-width: 48px; font-family: var(--ui-font); font-variant-numeric: tabular-nums; text-align: end; }
+.pf-corners-sample { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.pf-corners-card { padding: 10px 16px; }
+.pf-corners-pill { padding: 4px 12px; border: 1.5px solid var(--gs-line); border-radius: calc(999px * var(--round, 1)); font-family: var(--ui-font); font-size: var(--gs-t1); }
 `;

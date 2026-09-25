@@ -188,6 +188,7 @@ export function renderSpread(spec: BookSpec, options: BookRenderOptions = {}): R
     paper: 'blank',
     grain: spec.grain,
     fonts: spec.fonts,
+    round: spec.corners,
     extra: {
       '--leaf-width': `${leafSize(spec)[0]}px`,
       '--leaf-height': `${leafSize(spec)[1]}px`,

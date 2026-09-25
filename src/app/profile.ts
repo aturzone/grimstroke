@@ -125,6 +125,7 @@ class ProfileEditor {
     this.bindPlaces();
     this.bindHelpers();
     this.bindPet();
+    void this.bindCorners();
     this.redraw();
 
     document.addEventListener('keydown', (event) => {
@@ -406,6 +407,45 @@ class ProfileEditor {
         c.fillRect(x, y, 1, 1);
       }
     }
+  }
+
+  /** The workspace's corners: shown live as the slider moves, saved when it settles. */
+  private async bindCorners(): Promise<void> {
+    const range = document.querySelector<HTMLInputElement>('[data-gs="corners"]');
+    const out = document.querySelector<HTMLOutputElement>('[data-gs="corners-value"]');
+    if (!range) return;
+    try {
+      const { look } = (await (await fetch('/api/look')).json()) as { look: { corners: number } };
+      range.value = String(Math.round(look.corners * 100));
+    } catch {
+      // Unreadable: the slider stays at as designed.
+    }
+    let wait = 0;
+    const show = (save: boolean): void => {
+      const corners = Number(range.value) / 100;
+      document.documentElement.style.setProperty('--gs-round', String(corners));
+      if (out) out.value = `${range.value}%`;
+      for (const b of document.querySelectorAll<HTMLElement>('[data-gs="corners-stop"]')) {
+        b.setAttribute('aria-pressed', String(Number(b.dataset.gsValue) === corners));
+      }
+      if (!save) return;
+      window.clearTimeout(wait);
+      wait = window.setTimeout(() => {
+        void fetch('/api/look', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ corners }),
+        });
+      }, 250);
+    };
+    range.addEventListener('input', () => show(true));
+    for (const b of document.querySelectorAll<HTMLElement>('[data-gs="corners-stop"]')) {
+      b.addEventListener('click', () => {
+        range.value = String(Math.round(Number(b.dataset.gsValue) * 100));
+        show(true);
+      });
+    }
+    show(false);
   }
 
   private bindPet(): void {

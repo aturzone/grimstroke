@@ -543,6 +543,14 @@ export class BoardApp implements BoardContext {
         toast(data.moved ? `moved ${data.moved} apart` : 'nothing on this page overlaps');
       });
     }
+    for (const chip of document.querySelectorAll<HTMLElement>('[data-gs="corners-choice"]')) {
+      chip.addEventListener('click', () => {
+        const v = chip.dataset.gsValue;
+        reloadWith({
+          corners: v === 'workspace' ? null : Number(v),
+        } as unknown as Partial<BoardSpec>);
+      });
+    }
     for (const chip of document.querySelectorAll<HTMLElement>('[data-gs="paper-choice"]')) {
       chip.addEventListener('click', () =>
         reloadWith({ paper: (chip.dataset.gsPaper ?? 'squared') as BoardSpec['paper'] & string }),

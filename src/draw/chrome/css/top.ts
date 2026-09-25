@@ -93,7 +93,7 @@ export const TOP = `/* ---- the top ----
   gap: 6px;
   flex: none;
   padding: 3px 7px;
-  border-radius: 2px;
+  border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px));
   color: var(--gs-soft);
   font-size: var(--gs-t1);
   letter-spacing: 0.04em;

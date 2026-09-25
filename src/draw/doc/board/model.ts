@@ -74,6 +74,8 @@ export interface BoardSpec {
   direction?: Direction;
   /** The ruling printed on the surface. */
   paper?: PaperKind;
+  /** How round its corners are, over the workspace's: 0 square, 1 as designed, up to 3. */
+  corners?: number;
   /** On a page of a notebook: the layout printed on it (see look/template.ts). */
   template?: PageTemplate;
   /** On a tracker page: its columns. */

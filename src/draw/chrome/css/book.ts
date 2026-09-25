@@ -28,7 +28,7 @@ export const TURNER = `/* ---- the turner ---- */
   height: 30px;
   padding: 0 6px;
   border: 1.5px solid var(--gs-faint);
-  border-radius: 2px;
+  border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px));
   background: var(--paper);
   color: var(--ink);
   font: inherit;
@@ -86,7 +86,7 @@ body.on-book.live { padding-block: 76px 84px; }
   touch-action: none;
 }
 .gs-cover-stage .cover {
-  border-radius: 2px 6px 6px 2px;
+  border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px)) calc(6px * var(--round, 1) + var(--round-up, 0px)) calc(6px * var(--round, 1) + var(--round-up, 0px)) calc(2px * var(--round, 1) + var(--round-up, 0px));
   box-shadow: -3px 0 0 color-mix(in oklab, var(--cover, var(--accent)) 70%, #000),
     14px 18px 0 rgba(0, 0, 0, 0.32);
 }
@@ -108,7 +108,7 @@ body.on-book.live { padding-block: 76px 84px; }
 .gs-sgrip-ne { left: 100%; top: 0; cursor: nesw-resize; }
 .gs-sgrip-se { left: 100%; top: 100%; cursor: nwse-resize; }
 .gs-sgrip-sw { left: 0; top: 100%; cursor: nesw-resize; }
-.gs-sgrip-turn { left: 50%; top: -30px; width: 16px; height: 16px; margin: -8px; border-radius: 50%; cursor: grab; }
+.gs-sgrip-turn { left: 50%; top: -30px; width: 16px; height: 16px; margin: -8px; border-radius: calc(50% * min(1, var(--round, 1))); cursor: grab; }
 .gs-sgrip-turn::after {
   content: '';
   position: absolute;
@@ -165,7 +165,7 @@ body.on-book.live { padding-block: 76px 84px; }
   height: 26px;
   padding: 0;
   border: 1.5px solid var(--gs-line);
-  border-radius: 2px;
+  border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px));
   background: var(--sw);
   cursor: pointer;
 }
@@ -175,7 +175,7 @@ body.on-book.live { padding-block: 76px 84px; }
   display: block;
   padding: 7px 9px;
   border: 1.5px solid var(--gs-faint);
-  border-radius: 2px;
+  border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px));
   background: var(--gs-paper);
   color: var(--gs-ink);
   font: inherit;

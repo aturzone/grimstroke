@@ -21,7 +21,7 @@ export const SHAPE = `/* ---- shape cards ---- */
   min-width: 260px;
   padding: 14px 18px 16px;
   border: 1px solid var(--sc-line);
-  border-radius: 20px;
+  border-radius: calc(20px * var(--round, 1));
   background: var(--sc-bg);
   color: var(--sc-fg);
   /* The system's own sans for Latin, Estedad for Persian (the system faces rarely carry it). */
@@ -34,11 +34,11 @@ export const SHAPE = `/* ---- shape cards ---- */
 .sc *, .sc *::before, .sc *::after { box-sizing: border-box; }
 .sc.is-closed { opacity: 0.62; }
 .sc-head { display: flex; align-items: center; gap: 12px; min-height: 40px; margin-block-end: 12px; color: var(--sc-soft); }
-.sc-tile { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: 12px; background: var(--sc-tile); color: var(--sc-fg); }
+.sc-tile { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: calc(12px * var(--round, 1) + var(--round-up, 0px) * 0.5); background: var(--sc-tile); color: var(--sc-fg); }
 .sc-icon { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .sc-mini { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .sc-label { font-size: 14px; font-weight: 500; }
-.sc-badge { display: inline-flex; align-items: center; gap: 4px; margin-inline-start: auto; padding: 2px 8px; border: 1px solid var(--sc-line); border-radius: 999px; font-size: 12px; }
+.sc-badge { display: inline-flex; align-items: center; gap: 4px; margin-inline-start: auto; padding: 2px 8px; border: 1px solid var(--sc-line); border-radius: calc(999px * var(--round, 1)); font-size: 12px; }
 .sc-caution { border-color: color-mix(in srgb, var(--sc-caution) 30%, transparent); background: color-mix(in srgb, var(--sc-caution) 8%, transparent); color: var(--sc-caution); }
 .sc-body { display: flex; flex-direction: column; gap: 10px; }
 .sc-title { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.35; letter-spacing: -0.01em; overflow-wrap: anywhere; }
@@ -48,9 +48,9 @@ export const SHAPE = `/* ---- shape cards ---- */
 .sc-head-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .sc-line { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--sc-soft); }
 .sc-line a { color: inherit; }
-.sc-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 999px; background: var(--sc-tile); font-size: 13px; font-weight: 500; }
-.sc-missing { display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border: 1px dashed var(--sc-line); border-radius: 999px; color: var(--sc-faint); font-size: 13px; }
-.sc-avatar { display: inline-grid; place-items: center; width: 26px; height: 26px; flex: none; border: 2px solid var(--sc-bg); border-radius: 50%; background: var(--sc-tile); color: var(--sc-soft); font-size: 11px; font-weight: 700; }
+.sc-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: calc(999px * var(--round, 1)); background: var(--sc-tile); font-size: 13px; font-weight: 500; }
+.sc-missing { display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border: 1px dashed var(--sc-line); border-radius: calc(999px * var(--round, 1)); color: var(--sc-faint); font-size: 13px; }
+.sc-avatar { display: inline-grid; place-items: center; width: 26px; height: 26px; flex: none; border: 2px solid var(--sc-bg); border-radius: calc(50% * min(1, var(--round, 1))); background: var(--sc-tile); color: var(--sc-soft); font-size: 11px; font-weight: 700; }
 .sc-people .sc-avatar + .sc-avatar { margin-inline-start: -10px; }
 .sc-avatar-big { width: 48px; height: 48px; font-size: 16px; }
 .sc-hero { margin: 0; font-size: 30px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
@@ -66,13 +66,13 @@ export const SHAPE = `/* ---- shape cards ---- */
 .sc-act { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .sc-act:disabled { cursor: default; }
 .sc-act:focus-visible { outline: 2px solid var(--sc-brand); outline-offset: 2px; }
-.sc-btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--sc-fg); color: var(--sc-bg); font-size: 13px; font-weight: 500; }
+.sc-btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: calc(999px * var(--round, 1)); background: var(--sc-fg); color: var(--sc-bg); font-size: 13px; font-weight: 500; }
 .sc-btn.is-on { background: var(--sc-good); }
 .sc-icon-btn { width: 32px; padding: 0; justify-content: center; background: var(--sc-tile); color: var(--sc-fg); }
 .sc-btn:disabled { opacity: 0.38; }
-.sc-pill { height: 28px; padding: 0 10px; border: 1px solid var(--sc-line); border-radius: 999px; background: none; font-size: 13px; }
+.sc-pill { height: 28px; padding: 0 10px; border: 1px solid var(--sc-line); border-radius: calc(999px * var(--round, 1)); background: none; font-size: 13px; }
 .sc-pill.is-on { border-color: var(--sc-brand); background: var(--sc-brand-soft); color: var(--sc-brand); }
-.sc-check { position: relative; width: 20px; height: 20px; flex: none; padding: 0; border: 1.5px solid var(--sc-faint); border-radius: 6px; background: none; }
+.sc-check { position: relative; width: 20px; height: 20px; flex: none; padding: 0; border: 1.5px solid var(--sc-faint); border-radius: calc(6px * var(--round, 1) + var(--round-up, 0px)); background: none; }
 .sc-check.is-on { border-color: var(--sc-fg); background: var(--sc-fg); }
 .sc-check.is-on::after { content: ''; position: absolute; inset: 3px 5px 5px; border: solid var(--sc-bg); border-width: 0 2px 2px 0; transform: rotate(45deg) translate(1px, -1px); }
 
@@ -94,10 +94,10 @@ export const SHAPE = `/* ---- shape cards ---- */
 .sc-side { display: flex; flex-direction: column; gap: 10px; }
 
 .sc-week { display: flex; gap: 6px; flex-wrap: wrap; }
-.sc-day { width: 34px; height: 34px; border: 1px solid var(--sc-line); border-radius: 50%; background: none; color: var(--sc-soft); font-size: 13px; font-weight: 500; }
+.sc-day { width: 34px; height: 34px; border: 1px solid var(--sc-line); border-radius: calc(50% * min(1, var(--round, 1))); background: none; color: var(--sc-soft); font-size: 13px; font-weight: 500; }
 .sc-day.is-on { border-color: var(--sc-fg); background: var(--sc-fg); color: var(--sc-bg); }
 
-.sc-swatch { display: flex; align-items: flex-end; height: 96px; padding: 12px; border-radius: 14px; font-weight: 700; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06); }
+.sc-swatch { display: flex; align-items: flex-end; height: 96px; padding: 12px; border-radius: calc(14px * var(--round, 1) + var(--round-up, 0px) * 0.5); font-weight: 700; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06); }
 .sc-codes { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; font-size: 13px; font-variant-numeric: tabular-nums; }
 .sc-codes dt { color: var(--sc-soft); }
 .sc-codes dd { margin: 0; direction: ltr; text-align: start; }
@@ -110,7 +110,7 @@ export const SHAPE = `/* ---- shape cards ---- */
 .sc-vote { display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 6px 0; border: 0; background: none; text-align: start; }
 .sc-poll-label { display: flex; justify-content: space-between; width: 100%; }
 .sc-poll-label span:last-child { color: var(--sc-soft); font-size: 13px; font-variant-numeric: tabular-nums; }
-.sc-bar { display: block; width: 100%; height: 4px; overflow: hidden; border-radius: 999px; background: var(--sc-tile); }
+.sc-bar { display: block; width: 100%; height: 4px; overflow: hidden; border-radius: calc(999px * var(--round, 1)); background: var(--sc-tile); }
 .sc-bar span { display: block; height: 100%; border-radius: inherit; background: var(--sc-brand); }
 .sc-bar-big { height: 8px; }
 

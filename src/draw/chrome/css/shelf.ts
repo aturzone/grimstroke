@@ -142,7 +142,7 @@ export const SHELF_CHROME = `/* ---- a book taken down ---- */
   min-width: 24px;
   height: 24px;
   padding: 0 6px;
-  border-radius: 12px;
+  border-radius: calc(12px * var(--round, 1) + var(--round-up, 0px) * 0.5);
   background: var(--gs-hot);
   color: var(--gs-on-hot);
   font: 700 13px/24px var(--ui-font);
@@ -206,7 +206,7 @@ body[data-feeding] .spine { cursor: copy; }
 .gs-decorate-head h2 { margin: 0; font-family: var(--hand-font); font-size: 22px; }
 .gs-decorate-section { padding: 6px 0; border-block-end: 1px dashed var(--gs-faint); }
 .gs-decorate-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
-.gs-decorate-swatch { width: 34px; height: 34px; border: 1.5px solid var(--gs-line); border-radius: 50%; cursor: pointer; }
+.gs-decorate-swatch { width: 34px; height: 34px; border: 1.5px solid var(--gs-line); border-radius: calc(50% * min(1, var(--round, 1))); cursor: pointer; }
 .gs-decorate-swatch[aria-pressed='true'] { outline: 2.5px solid var(--gs-ink); outline-offset: 2px; }
 .gs-wood-oak { background: #7a5230; } .gs-wood-walnut { background: #5a3a24; } .gs-wood-pine { background: #c79a5e; }
 .gs-wood-cherry { background: #8a3b26; } .gs-wood-ebony { background: #2c2622; } .gs-wood-white { background: #e8e3da; }
