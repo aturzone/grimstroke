@@ -163,7 +163,7 @@ export const SHELF_CHROME = `/* ---- a book taken down ---- */
   pointer-events: none;
   transform-origin: 50% 50%;
   will-change: transform;
-  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.3));
+  /* No drop shadow: the art carries its own contact shadow, and the two stacked read as a smear. */
 }
 /* The food bowl: a little blue bowl, full, then empty. */
 .shelf-bowl {
