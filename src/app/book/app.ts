@@ -173,8 +173,15 @@ export class BookApp {
       return;
     }
     this.flipping = true;
-    const front = direction === 1 ? this.leaf + 1 : this.leaf - 2;
-    const back = direction === 1 ? this.leaf + 2 : this.leaf - 1;
+    /*
+     * The leaf that lifts. Forward, it is the right-hand page: its front is the page there now
+     * and its back the one it lands as. Back, it is the left-hand page: it starts face-down on
+     * the left showing the page there now (its back), and lands on the right as the page before
+     * it (its front). Back used to lift L-2 over L-1 -- a page from the spread being turned TO --
+     * so the page in the air was never the one that had been lifted.
+     */
+    const front = direction === 1 ? this.leaf + 1 : this.leaf - 1;
+    const back = direction === 1 ? this.leaf + 2 : this.leaf;
     const [frontHtml, backHtml] = await Promise.all([this.leafHtml(front), this.leafHtml(back)]);
 
     const flipper = document.createElement('div');
@@ -238,8 +245,10 @@ export class BookApp {
       { opacity: first ? 0 : 1, offset: 0.5 },
       { opacity: first ? 0 : 1 },
     ];
-    flipper.querySelector('.face-front')?.animate(halves(true), timing);
-    flipper.querySelector('.face-back')?.animate(halves(false), timing);
+    // The face seen first is the one facing up at the start: the front going forward, the back
+    // coming back (the leaf starts turned over on the left).
+    flipper.querySelector('.face-front')?.animate(halves(direction === 1), timing);
+    flipper.querySelector('.face-back')?.animate(halves(direction !== 1), timing);
     await swing.finished.catch(() => undefined);
     // Landed: the spread is the one turned to, and the copy goes in the same frame.
     await this.paint(next);
