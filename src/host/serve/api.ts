@@ -33,6 +33,7 @@ import {
 import { renderProfile } from '~/draw/material/profile/render.ts';
 import { PACKS } from '~/draw/material/sticker/packs.ts';
 import { classify } from '~/draw/shape/classify.ts';
+import { FIELDS, readFields } from '~/draw/shape/fields.ts';
 import { INTENTS, isIntent, SHAPE_INTENTS } from '~/draw/shape/intents.ts';
 import { renderShape, type ShapeBlock, type ShapeState, summarize } from '~/draw/shape/render.ts';
 import { exportPages, exportPdf } from '~/host/export.ts';
@@ -187,6 +188,15 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
         fa: INTENTS[k].fa,
         example: INTENTS[k].example,
         exampleFa: INTENTS[k].exampleFa,
+        // What can be set by hand, in state.fields: key, type, and for a select its choices.
+        fields: FIELDS[k].map((f) => ({
+          key: f.key,
+          label: f.label,
+          type: f.type,
+          ...(f.options && f.options.length <= 12 ? { options: f.options.map(([v]) => v) } : {}),
+          ...(f.min !== undefined ? { min: f.min } : {}),
+          ...(f.max !== undefined ? { max: f.max } : {}),
+        })),
       })),
     });
     return true;
@@ -252,12 +262,16 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     }
     const spec = await live.board(address);
     const id = `card-${Date.now().toString(36)}`;
+    // Fields set by an agent are held to the kind's schema, as the editor's are.
+    const fields = readFields(intent, (body.state as { fields?: unknown } | undefined)?.fields);
+    const { fields: _sent, ...rest } = (body.state ?? {}) as ShapeState;
+    const state: ShapeState = { ...rest, ...(fields ? { fields } : {}) };
     const block: ShapeBlock = {
       kind: 'shape',
       intent,
       text,
       made: new Date().toISOString(),
-      ...(body.state ? { state: body.state } : {}),
+      ...(Object.keys(state).length ? { state } : {}),
     };
     const at: [number, number] = body.at ?? [LEAF_MARGIN[0], LEAF_MARGIN[1]];
     const reply = await applyBoard(live, address, [
