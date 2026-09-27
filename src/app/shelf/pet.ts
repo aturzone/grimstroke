@@ -20,6 +20,7 @@
  * position is rounded to device pixels. Every art pixel is then a crisp, equal square.
  */
 
+import { play } from '~/app/feel.ts';
 import {
   COATS,
   type Coat,
@@ -89,6 +90,8 @@ export class ShelfPet {
   private ledges: Ledge[] = [];
   private at = { x: 80, y: 0, ledge: 0 };
   private facing = 1;
+  /** When it last purred, so stroking is one purr a breath. */
+  private purred = 0;
   private pose: PetPose = 'sit';
   private since = 0;
   private queue: Act[] = [];
@@ -350,6 +353,7 @@ export class ShelfPet {
     if (act.kind === 'hold') {
       act.until = now + act.ms;
       if (act.pose === 'eat' && this.faceBowl) this.facing = this.faceBowl;
+      if (act.pose === 'eat') play('crunch');
       if (act.pose === 'sleep' || act.pose === 'loaf') this.bed();
       else if (this.ledge) this.at.y = this.ledge.y;
       this.set(act.pose);
@@ -413,6 +417,11 @@ export class ShelfPet {
     }
     if (now < this.petting.until) {
       this.set('happy');
+      // A cat purrs for as long as it is stroked: one purr a breath, not one per pointer move.
+      if (this.config.species === 'cat' && now - this.purred > 850) {
+        this.purred = now;
+        play('purr');
+      }
       return;
     }
     if (!this.act) {
