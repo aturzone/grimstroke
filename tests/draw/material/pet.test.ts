@@ -111,3 +111,84 @@ describe('the pets, drawn', () => {
     ).toMatchObject({ coat: 'tuxedo', on: false });
   });
 });
+
+describe('the poses that used to break', () => {
+  const coat = (id: string) => COATS.find((c) => c.id === id) as (typeof COATS)[number];
+  const filled = (g: string[][]): Array<[number, number]> =>
+    g.flatMap((row, y) =>
+      row.flatMap((k, x) => (k !== '.' && k !== 'g' ? [[x, y] as [number, number]] : [])),
+    );
+  /** One connected silhouette: a lowered head that floats free of the body is the old fault. */
+  const pieces = (g: string[][]): number => {
+    const cells = new Set(filled(g).map(([x, y]) => `${x},${y}`));
+    let count = 0;
+    for (const start of [...cells]) {
+      if (!cells.has(start)) continue;
+      count++;
+      const stack = [start];
+      cells.delete(start);
+      while (stack.length) {
+        const [x, y] = (stack.pop() as string).split(',').map(Number) as [number, number];
+        for (const [dx, dy] of [
+          [1, 0],
+          [-1, 0],
+          [0, 1],
+          [0, -1],
+        ]) {
+          const k = `${x + (dx as number)},${y + (dy as number)}`;
+          if (cells.has(k)) {
+            cells.delete(k);
+            stack.push(k);
+          }
+        }
+      }
+    }
+    return count;
+  };
+
+  it("moves the dog's feet as it walks, in diagonal pairs", () => {
+    // Where the paws are: every paw pixel, near and far, in the rows the legs stand in.
+    const paws = (n: number) =>
+      petFrame('dog', coat('golden'), 'walk', n)
+        .flatMap((row, y) =>
+          row.map((k, x) => (y >= 20 && (k === 'a' || k === 'A') ? `${x},${y}` : '')),
+        )
+        .filter(Boolean)
+        .join(' ');
+    // The two contact frames put different feet down in different places.
+    expect(paws(0)).not.toBe(paws(2));
+    // A contact frame dips the body a pixel below a passing frame.
+    // The back, over the middle of the body: the tail moves on its own and is not counted.
+    const top = (n: number) =>
+      filled(petFrame('dog', coat('golden'), 'walk', n))
+        .filter(([x]) => x >= 9 && x <= 15)
+        .reduce((m, [, y]) => Math.min(m, y), 99);
+    expect(top(1)).toBeLessThan(top(0));
+  });
+
+  it('eats and stretches as one body, cat and dog, in every coat', () => {
+    const bad: string[] = [];
+    for (const c of COATS) {
+      for (const pose of ['eat', 'stretch'] as const) {
+        for (let n = 0; n < PET_FRAMES[pose].count; n++) {
+          const p = pieces(petFrame(c.species, c, pose, n));
+          if (p !== 1) bad.push(`${c.id} ${pose}${n}: ${p} pieces`);
+        }
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('sleeps curled low, breathing', () => {
+    const g0 = petFrame('cat', coat('ginger'), 'sleep', 0);
+    const g1 = petFrame('cat', coat('ginger'), 'sleep', 1);
+    // The body only: the z's of sleep are drawn over it.
+    const body = (g: string[][]) => filled(g).filter(([x, y]) => y > 10 && g[y]?.[x] !== 'z');
+    const height = (g: string[][]) => {
+      const ys = body(g).map(([, y]) => y);
+      return Math.max(...ys) - Math.min(...ys) + 1;
+    };
+    expect(height(g0)).toBeLessThanOrEqual(13);
+    expect(JSON.stringify(body(g0))).not.toBe(JSON.stringify(body(g1)));
+  });
+});
