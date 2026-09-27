@@ -289,7 +289,7 @@ describe('the profile, over HTTP', () => {
     expect(page).toContain('data-gs="portrait-ink"');
     const old = await ask('/face?id=rio', { redirect: 'manual' });
     expect(old.status).toBe(302);
-    expect(old.headers.get('location')).toBe('/profile');
+    expect(old.headers.get('location')).toBe('/settings');
   });
 });
 

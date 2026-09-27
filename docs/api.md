@@ -81,20 +81,34 @@ The reply says what happened: `placed` (items whose only change was position, wi
 `x-grimstroke-client` header naming your tab, and your own patches are not echoed back to you
 on the event stream.
 
-## The look: how round everything is
+## The look: corners and faces, section by section
 
 | | |
 |---|---|
-| `GET /api/look` | the workspace's look: `{ look: { corners }, corners: { min, max, designed } }` |
-| `POST /api/look` `{ corners }` | how round every corner in the workspace is: `0` square, `1` as designed, up to `3` |
+| `GET /api/look` | each section's look -- `board`, `notebook`, `settings` -- as `{ corners, ui?, text? }`, and the faces there are to choose from |
+| `POST /api/look` | `{ corners }` sets every section's corners at once; `{ board: { corners: 0 } }` one section; `{ notebook: { ui: 'Estedad', text: 'system serif' } }` its faces (`null` goes back to as designed) |
 
-Every box follows it -- the bars, menus and dialogs, cards and panels, pictures, code, quotes,
-pages and covers, the shape cards, the bookcase's buttons -- and so does every export. Below 1
-the rounded things straighten; above 1 even the things drawn square round too. A notebook or a
-board keeps its own with `corners` in a `book` or `board` op (`null` goes back to the
-workspace's). Torn paper, die-cut stickers and pixel art keep their own edges. People have the
-same on the profile page (a slider with named stops), in a notebook's page setup and in a
-board's menu.
+`corners` is 0 (square) to 3 (very round); 1 is as designed. Below 1 the rounded things straighten;
+above 1 even the things drawn square round too, and the bars grow their padding to keep what is
+written in them clear of the bend. `ui` is the face of a section's buttons and menus; `text` the
+face its words are set in wherever a document does not name its own (`fonts` on a board or a
+notebook). The faces: `JetBrains Mono`, `Estedad`, `Caveat`, `Caveat Brush`, `system sans`,
+`system serif`.
+
+The sections: **board** is the board and everything on it; **notebook** is a notebook's spread, its
+pages, its print view and the controls around the bookcase; **settings** is the settings page.
+The bookcase itself and the books themselves -- covers, pages, spines -- are objects with their own
+look (the bookcase's decorate panel, a notebook's cover and page setup) and are never rounded or
+re-set by this. A notebook or a board keeps its own corners with `corners` in a `book` or `board`
+op. Torn paper, die-cut stickers and pixel art keep their edges. People have all of this in
+**Settings → look and fonts**, and the per-document choice in a notebook's page setup and a board's
+menu.
+
+## Settings
+
+`/settings` (and the old `/profile`) is one page with a section for each kind of setting: profile,
+pet, look and fonts, connections (the repository keys this computer keeps, and which notebooks are
+connected), workspace (backup, restore, the trash), about. `#<section>` in the address opens it.
 
 ## Shapes: a line of text that becomes a card
 

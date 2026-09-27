@@ -37,8 +37,15 @@ afterAll(async () => {
 });
 
 describe('the workspace look', () => {
-  it('rounds every corner everywhere, and a notebook can keep its own', async () => {
-    expect((await json<{ look: { corners: number } }>('/api/look')).look.corners).toBe(1);
+  type LookReply = {
+    look: Record<
+      'board' | 'notebook' | 'settings',
+      { corners: number; ui?: string; text?: string }
+    >;
+  };
+
+  it('rounds every section at once, and each section on its own', async () => {
+    expect((await json<LookReply>('/api/look')).look.board.corners).toBe(1);
     await json('/api/look', { corners: 2.5 });
     for (const path of [
       '/',
@@ -51,9 +58,19 @@ describe('the workspace look', () => {
       expect(await page(path), path).toContain('--gs-round:2.5');
     }
     // Out of range is held to the range.
-    expect(
-      (await json<{ look: { corners: number } }>('/api/look', { corners: 9 })).look.corners,
-    ).toBe(3);
+    expect((await json<LookReply>('/api/look', { corners: 9 })).look.notebook.corners).toBe(3);
+    // One section changes, the others keep theirs.
+    await json('/api/look', { corners: 1 });
+    await json('/api/look', { board: { corners: 0 } });
+    expect(await page('/')).toContain('--gs-round:0');
+    expect(await page(`/book?id=${book}`)).not.toContain('gs-look');
+    expect(await page('/profile')).not.toContain('gs-look');
+    await json('/api/look', { settings: { corners: 2 } });
+    expect(await page('/profile')).toContain('--gs-round:2');
+    expect(await page('/shelf')).not.toContain('gs-look');
+  });
+
+  it('a notebook or a board keeps its own corners over its section', async () => {
     await json('/api/patch', {
       kind: 'book',
       id: book,
@@ -66,8 +83,22 @@ describe('the workspace look', () => {
       ops: [{ op: 'board', patch: { corners: 1.8 } }],
     });
     expect(await page('/')).toContain('--round:1.8;');
-    await json('/api/look', { corners: 1 });
-    expect(await page('/shelf')).not.toContain('gs-look');
+  });
+
+  it('sets each section in its own faces, leaving a document that names its own', async () => {
+    await json('/api/look', { notebook: { ui: 'Estedad', text: 'system serif' } });
+    const html = await page(`/book?id=${book}`);
+    expect(html).toContain('--ui-font:Estedad');
+    expect(html).toContain('--body-font:Georgia');
+    expect(await page('/')).not.toContain('--body-font:Georgia');
+    await json('/api/patch', {
+      kind: 'book',
+      id: book,
+      ops: [{ op: 'book', patch: { fonts: { body: 'Caveat' } } }],
+    });
+    expect(await page(`/book?id=${book}`)).not.toContain('--body-font:Georgia');
+    await json('/api/look', { notebook: { ui: null, text: null }, corners: 1 });
+    expect((await json<LookReply>('/api/look')).look.notebook.ui).toBeUndefined();
   });
 });
 
@@ -145,5 +176,6 @@ describe('each setting shows', () => {
       expect(all, route).toContain(route);
     }
     expect(c.vocabulary.corners).toMatchObject({ min: 0, max: 3, designed: 1 });
+    expect(c.vocabulary.look).toMatchObject({ sections: ['board', 'notebook', 'settings'] });
   });
 });

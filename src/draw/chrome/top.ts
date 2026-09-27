@@ -20,11 +20,11 @@ const PLACES: ReadonlyArray<{
   place: Place;
   href: string;
   text: string;
-  icon: 'board' | 'book' | 'profile';
+  icon: 'board' | 'book' | 'settings';
 }> = [
   { place: 'board', href: '/', text: 'board', icon: 'board' },
   { place: 'shelf', href: '/shelf', text: 'notebooks', icon: 'book' },
-  { place: 'profile', href: '/profile', text: 'profile', icon: 'profile' },
+  { place: 'profile', href: '/settings', text: 'settings', icon: 'settings' },
 ];
 
 export interface TopOptions {

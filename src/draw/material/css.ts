@@ -158,8 +158,10 @@ svg.tape {
 
 
 /* Rounding. Every corner is its designed radius times --round (0 square, 1 as designed); above 1,
-   --round-up lifts even the things drawn square -- pictures, code, quotes, pages -- so the whole
-   workspace softens together. Torn paper, die-cut stickers and pixel art keep their own edges. */
-.plate, .plate img, pre.block, blockquote.block, .rc, .leaf, .cover { border-radius: var(--round-up, 0px); }
+   --round-up lifts even the things drawn square -- pictures, code, quotes -- so the whole surface
+   softens together. The bookcase and the books themselves (covers, pages, spines) are objects
+   with their own look and are never rounded by it; nor are torn paper, die-cut stickers or pixel
+   art. */
+.plate, .plate img, pre.block, blockquote.block, .rc { border-radius: var(--round-up, 0px); }
 .plate { overflow: clip; }
 `;

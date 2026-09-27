@@ -2,6 +2,7 @@
   "name": "grimstroke",
   "version": "0.0.1",
   "description": "A notebook for agents: pages an agent writes, draws and annotates on, exported as images.",
+  "author": "Atur Dana",
   "license": "MPL-2.0",
   "type": "module",
   "engines": {

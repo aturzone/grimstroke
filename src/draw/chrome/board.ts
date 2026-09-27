@@ -106,7 +106,7 @@ export function stickerSheet(): string {
   return (
     '<details class="gs-sheet" data-gs="sticker-sheet">' +
     `<summary class="gs-btn gs-btn-icon" aria-label="stickers">${icon('sticker')}` +
-    '<span class="gs-tip" role="presentation">stickers</span></summary>' +
+    '<span class="gs-tip" role="presentation">stickers: put one on the page</span></summary>' +
     `<div class="gs-sheet-card gs-card" role="menu" aria-label="the sticker sheet">${packs}</div></details>`
   );
 }
@@ -193,7 +193,8 @@ export function chrome(spec: BoardSpec): string {
 
   const exportMenu =
     '<details class="gs-menu" data-gs="export-menu">' +
-    `<summary class="gs-btn" aria-label="export">${icon('export')}<span class="gs-btn-text">export</span></summary>` +
+    `<summary class="gs-btn" aria-label="export">${icon('export')}<span class="gs-btn-text">export</span>` +
+    '<span class="gs-tip" role="presentation">export: a picture, a PDF, or a backup</span></summary>' +
     '<div class="gs-menu-card" role="menu">' +
     '<p class="gs-menu-head" data-gs="export-scope">the whole board</p>' +
     item({ gs: 'pdf', text: 'PDF, for printing', icon: 'export' }) +

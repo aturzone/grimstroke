@@ -17,7 +17,7 @@ export const TRAY = `/* ---- the tray ---- */
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 5px;
+  padding: 5px calc(5px + var(--round-up, 0px) * 0.6);
   user-select: none;
 }
 :root[dir='rtl'] .gs-tray { transform: translateX(50%); }
@@ -59,7 +59,7 @@ export const TRAY = `/* ---- the tray ---- */
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 5px;
+  padding: 5px calc(5px + var(--round-up, 0px) * 0.6);
   user-select: none;
 }
 .gs-level { min-width: 60px; font-variant-numeric: tabular-nums; }
@@ -105,7 +105,7 @@ export const TRAY = `/* ---- the tray ---- */
     inset-block-end: 8px;
     transform: none;
     gap: 0;
-    padding: 4px;
+    padding: 4px calc(4px + var(--round-up, 0px) * 0.4);
   }
   :root[dir='rtl'] .gs-tray { transform: none; }
   .gs-tray .gs-sep { display: none; }

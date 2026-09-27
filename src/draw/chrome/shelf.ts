@@ -26,8 +26,8 @@ export function shelfChrome(count: number, pet?: Pet): string {
         feed +
         button({
           gs: 'shelf-decorate',
-          label: 'make the bookcase your own',
-          icon: 'sticker',
+          label: 'make the bookcase your own: wood, back, objects, stickers',
+          icon: 'brush',
           text: 'decorate',
         }) +
         button({ gs: 'shelf-select', label: 'choose several', icon: 'check', text: 'choose' }) +
@@ -44,7 +44,7 @@ export function shelfChrome(count: number, pet?: Pet): string {
         (pet && pet.on !== false
           ? item({ gs: 'pet-feed', text: `feed ${petName}`, icon: 'plus' })
           : '') +
-        item({ gs: 'shelf-decorate', text: 'decorate the bookcase', icon: 'sticker' }) +
+        item({ gs: 'shelf-decorate', text: 'decorate the bookcase', icon: 'brush' }) +
         item({ gs: 'shelf-select', text: 'choose several', icon: 'check' }) +
         item({ gs: 'book-new', text: 'a new notebook', icon: 'plus' }),
     }),

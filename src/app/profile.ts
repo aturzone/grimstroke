@@ -133,7 +133,9 @@ class ProfileEditor {
     this.bindPlaces();
     this.bindHelpers();
     this.bindPet();
-    void this.bindCorners();
+    this.bindTabs();
+    void this.bindLook();
+    this.bindWorkspace();
     this.redraw();
 
     document.addEventListener('keydown', (event) => {
@@ -420,43 +422,222 @@ class ProfileEditor {
     }
   }
 
-  /** The workspace's corners: shown live as the slider moves, saved when it settles. */
-  private async bindCorners(): Promise<void> {
-    const range = document.querySelector<HTMLInputElement>('[data-gs="corners"]');
-    const out = document.querySelector<HTMLOutputElement>('[data-gs="corners-value"]');
-    if (!range) return;
-    try {
-      const { look } = (await (await fetch('/api/look')).json()) as { look: { corners: number } };
-      range.value = String(Math.round(look.corners * 100));
-    } catch {
-      // Unreadable: the slider stays at as designed.
-    }
-    let wait = 0;
-    const show = (save: boolean): void => {
-      const corners = Number(range.value) / 100;
-      document.documentElement.style.setProperty('--gs-round', String(corners));
-      if (out) out.value = `${range.value}%`;
-      for (const b of document.querySelectorAll<HTMLElement>('[data-gs="corners-stop"]')) {
-        b.setAttribute('aria-pressed', String(Number(b.dataset.gsValue) === corners));
+  // ---------------------------------------------------------------- the settings sections
+
+  /** One section at a time, chosen from the list and kept in the address. */
+  private bindTabs(): void {
+    const show = (): void => {
+      const want = location.hash.replace('#', '') || 'profile';
+      const panels = [...document.querySelectorAll<HTMLElement>('[data-st]')];
+      const id = panels.some((p) => p.dataset.st === want) ? want : 'profile';
+      for (const panel of panels) panel.hidden = panel.dataset.st !== id;
+      for (const tab of document.querySelectorAll<HTMLElement>('[data-st-tab]')) {
+        if (tab.dataset.stTab === id) tab.setAttribute('aria-current', 'page');
+        else tab.removeAttribute('aria-current');
       }
-      if (!save) return;
-      window.clearTimeout(wait);
-      wait = window.setTimeout(() => {
-        void fetch('/api/look', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ corners }),
-        });
-      }, 250);
+      if (id === 'connections') void this.fillConnections();
+      if (id === 'workspace') void this.fillTrash();
     };
-    range.addEventListener('input', () => show(true));
-    for (const b of document.querySelectorAll<HTMLElement>('[data-gs="corners-stop"]')) {
-      b.addEventListener('click', () => {
-        range.value = String(Math.round(Number(b.dataset.gsValue) * 100));
-        show(true);
+    window.addEventListener('hashchange', show);
+    show();
+  }
+
+  /**
+   * Each section's look: corners on a slider with named stops, faces from a list. Each section's
+   * own card shows its corners as they change; saved when the hand settles.
+   */
+  private async bindLook(): Promise<void> {
+    type SectionLook = { corners: number; ui?: string; text?: string };
+    let look: Record<string, SectionLook> = {};
+    try {
+      look = ((await (await fetch('/api/look')).json()) as { look: Record<string, SectionLook> })
+        .look;
+    } catch {
+      // Unreadable: every control stays at as designed.
+    }
+    const save = (patch: Record<string, unknown>): void => {
+      void fetch('/api/look', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
+    };
+    const waits = new Map<string, number>();
+    for (const range of document.querySelectorAll<HTMLInputElement>('input[data-gs="corners"]')) {
+      const section = range.dataset.section ?? 'settings';
+      const card = range.closest<HTMLElement>('[data-look]');
+      const out = document.querySelector<HTMLOutputElement>(
+        `output[data-gs="corners-value"][data-section="${section}"]`,
+      );
+      range.value = String(Math.round((look[section]?.corners ?? 1) * 100));
+      const show = (persist: boolean): void => {
+        const corners = Number(range.value) / 100;
+        card?.style.setProperty('--round', String(corners));
+        if (section === 'settings')
+          document.documentElement.style.setProperty('--gs-round', String(corners));
+        if (out) out.value = `${range.value}%`;
+        for (const b of document.querySelectorAll<HTMLElement>(
+          `[data-gs="corners-stop"][data-section="${section}"]`,
+        )) {
+          b.setAttribute('aria-pressed', String(Number(b.dataset.gsValue) === corners));
+        }
+        if (!persist) return;
+        window.clearTimeout(waits.get(section));
+        waits.set(
+          section,
+          window.setTimeout(() => save({ [section]: { corners } }), 250),
+        );
+      };
+      range.addEventListener('input', () => show(true));
+      for (const b of document.querySelectorAll<HTMLElement>(
+        `[data-gs="corners-stop"][data-section="${section}"]`,
+      )) {
+        b.addEventListener('click', () => {
+          range.value = String(Math.round(Number(b.dataset.gsValue) * 100));
+          show(true);
+        });
+      }
+      show(false);
+    }
+    for (const select of document.querySelectorAll<HTMLSelectElement>(
+      'select[data-gs="look-face"]',
+    )) {
+      const section = select.dataset.section ?? 'settings';
+      const field = (select.dataset.field ?? 'ui') as 'ui' | 'text';
+      select.value = look[section]?.[field] ?? '';
+      select.addEventListener('change', () => {
+        save({ [section]: { [field]: select.value || null } });
+        toast(select.value ? `${section}: ${select.value}` : `${section}: as designed`);
       });
     }
-    show(false);
+  }
+
+  /** The keys this computer keeps, whose they are, and the notebooks connected. */
+  private async fillConnections(): Promise<void> {
+    const list = document.querySelector<HTMLElement>('[data-gs="keys"]');
+    const connected = document.querySelector<HTMLElement>('[data-gs="connected"]');
+    const li = (text: string, className = ''): HTMLLIElement => {
+      const node = document.createElement('li');
+      if (className) node.className = className;
+      node.textContent = text;
+      return node;
+    };
+    try {
+      const { keys } = (await (await fetch('/api/remote/keys')).json()) as {
+        keys: Array<{ host: string; provider: string; user?: string; gh?: boolean }>;
+      };
+      list?.replaceChildren(
+        ...(keys.length
+          ? keys.map((k) => {
+              const row = li(
+                `${k.provider} · ${k.host}${k.user ? ` · ${k.user}` : ''}${k.gh ? ' (GitHub CLI)' : ''}`,
+                'st-row',
+              );
+              if (!k.gh) {
+                const forget = document.createElement('button');
+                forget.type = 'button';
+                forget.className = 'gs-btn gs-chip-btn';
+                forget.textContent = 'forget this key';
+                forget.addEventListener('click', async () => {
+                  await fetch(`/api/remote/keys?host=${encodeURIComponent(k.host)}`, {
+                    method: 'DELETE',
+                  });
+                  toast(`forgot the key for ${k.host}`);
+                  void this.fillConnections();
+                });
+                row.append(forget);
+              }
+              return row;
+            })
+          : [
+              li(
+                'No keys yet. Connect a notebook, and it will ask for one, step by step.',
+                'pf-note',
+              ),
+            ]),
+      );
+      const { books } = (await (await fetch('/api/books')).json()) as {
+        books: Array<{ id: string; title: string; remote?: { repo: string; host: string } }>;
+      };
+      const on = books.filter((b) => b.remote);
+      connected?.replaceChildren(
+        ...(on.length
+          ? on.map((b) => {
+              const row = li('', 'st-row');
+              const a = document.createElement('a');
+              a.href = `/book?id=${encodeURIComponent(b.id)}`;
+              a.textContent = b.title;
+              row.append(a, document.createTextNode(` → ${b.remote?.repo} on ${b.remote?.host}`));
+              return row;
+            })
+          : [li('No notebook is connected to a repository.', 'pf-note')]),
+      );
+    } catch {
+      list?.replaceChildren(li('The workspace did not answer.', 'pf-note'));
+    }
+  }
+
+  /** What is in the trash, each with a way back. */
+  private async fillTrash(): Promise<void> {
+    const list = document.querySelector<HTMLElement>('[data-gs="trash"]');
+    if (!list) return;
+    const { trash } = (await (await fetch('/api/trash')).json()) as {
+      trash: Array<{ name: string; title: string; at: string }>;
+    };
+    list.replaceChildren(
+      ...(trash.length
+        ? trash.map((t) => {
+            const row = document.createElement('li');
+            row.className = 'st-row';
+            row.textContent = `${t.title} · ${new Date(t.at).toLocaleDateString()}`;
+            const back = document.createElement('button');
+            back.type = 'button';
+            back.className = 'gs-btn gs-chip-btn';
+            back.textContent = 'bring it back';
+            back.addEventListener('click', async () => {
+              await fetch('/api/trash/restore', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ name: t.name }),
+              });
+              toast(`${t.title} is back on the bookcase`);
+              void this.fillTrash();
+            });
+            row.append(back);
+            return row;
+          })
+        : [
+            Object.assign(document.createElement('li'), {
+              className: 'pf-note',
+              textContent: 'The trash is empty.',
+            }),
+          ]),
+    );
+  }
+
+  private bindWorkspace(): void {
+    const input = document.querySelector<HTMLInputElement>('[data-gs="st-restore-file"]');
+    document
+      .querySelector('[data-gs="st-restore"]')
+      ?.addEventListener('click', () => input?.click());
+    input?.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const res = await fetch('/api/archive', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: await file.text(),
+      });
+      if (!res.ok) {
+        toast(
+          `That file could not be read: ${((await res.json()) as { error?: string }).error ?? res.status}`,
+          'error',
+        );
+        return;
+      }
+      toast('restored');
+      window.setTimeout(() => window.location.reload(), 600);
+    });
   }
 
   private bindPet(): void {

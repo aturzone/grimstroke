@@ -39,7 +39,7 @@ import { exportPages, exportPdf } from '~/host/export.ts';
 import { capabilities } from '~/host/serve/capabilities.ts';
 import { type Ask, header, readBody, readRaw, send } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
-import { type Look, lookOf, saveLook, withLook } from '~/host/serve/look.ts';
+import { FONT_CHOICES, lookOf, SECTIONS, saveLook, withLook } from '~/host/serve/look.ts';
 import { ArchiveError, pack, readArchive, unpack } from '~/host/store/archive.ts';
 import {
   columns,
@@ -271,9 +271,14 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
   if (path === '/api/look') {
     const look =
       req.method === 'POST'
-        ? await saveLook(store, (await readBody(req)) as Partial<Look>)
+        ? await saveLook(store, (await readBody(req)) as Record<string, unknown>)
         : await lookOf(store);
-    send(res, 200, { look, corners: { min: 0, max: 3, designed: 1 } });
+    send(res, 200, {
+      look,
+      sections: SECTIONS,
+      corners: { min: 0, max: 3, designed: 1 },
+      fonts: Object.keys(FONT_CHOICES),
+    });
     return true;
   }
 
@@ -785,7 +790,10 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     live.allow(page.assets);
     let bytes: Buffer;
     try {
-      bytes = await exportPdf({ ...page, html: withLook(page.html, await lookOf(store)) });
+      bytes = await exportPdf({
+        ...page,
+        html: withLook(page.html, await lookOf(store), 'notebook', Boolean(spec.fonts)),
+      });
     } catch (error) {
       send(res, 503, {
         error:
@@ -838,7 +846,18 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     const out = join(tmpdir(), `grimstroke-${id}-${Date.now()}.png`);
     try {
       await exportPages([
-        { page: { ...rendered, html: withLook(rendered.html, await lookOf(store)) }, out },
+        {
+          page: {
+            ...rendered,
+            html: withLook(
+              rendered.html,
+              await lookOf(store),
+              id.startsWith('book:') ? 'notebook' : 'board',
+              Boolean(spec.fonts),
+            ),
+          },
+          out,
+        },
       ]);
     } catch (error) {
       // Playwright is an optional peer, and the person who is about to be

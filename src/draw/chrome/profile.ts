@@ -11,7 +11,7 @@
  */
 
 import { detailRow } from '~/draw/chrome/detail.ts';
-import { icon } from '~/draw/chrome/icons.ts';
+import { type IconName, icon } from '~/draw/chrome/icons.ts';
 import { button, heading, kbd } from '~/draw/chrome/parts.ts';
 import { helpDialog, searchDialog, topBar } from '~/draw/chrome/top.ts';
 import { renderHead } from '~/draw/doc/head.ts';
@@ -116,7 +116,15 @@ export function renderProfilePage(
     head,
     '<body class="on-profile">',
     halftoneDefs(),
-    topBar({ place: 'profile', title: profile.name || 'me', saved: true, actions }),
+    topBar({ place: 'profile', title: 'settings', saved: true, actions }),
+    // ---- the settings: one section at a time, chosen from the list (and the address's #).
+    '<div class="st-layout">',
+    `<nav class="st-nav gs-card" aria-label="settings">${SETTINGS_TABS.map(
+      ([id, label, ic]) =>
+        `<a class="st-tab" href="#${id}" data-st-tab="${id}">${icon(ic)}<span>${label}</span></a>`,
+    ).join('')}</nav>`,
+    '<div class="st-panels">',
+    '<section class="st-panel" data-st="profile" aria-label="profile">',
     '<main class="pf-page">',
 
     // ---- the easel
@@ -178,10 +186,16 @@ export function renderProfilePage(
     `<div class="pf-accent-row"><span class="pf-label">card colour</span><div class="pf-accents">${accents}</div></div>`,
     '</section>',
     `<section class="pf-card-stage" aria-label="the card"><div data-gs="card">${renderProfile(profile, { flat: true })}</div></section>`,
-    petSection(profile.pet ?? DEFAULT_PET),
-    cornersSection(),
     '</aside>',
     '</main>',
+    '</section>',
+    `<section class="st-panel" data-st="pet" aria-label="your pet" hidden>${petSection(profile.pet ?? DEFAULT_PET)}</section>`,
+    `<section class="st-panel" data-st="look" aria-label="the look" hidden>${lookSection()}</section>`,
+    `<section class="st-panel" data-st="connections" aria-label="connections" hidden>${connectionsSection()}</section>`,
+    `<section class="st-panel" data-st="workspace" aria-label="the workspace" hidden>${workspaceSection()}</section>`,
+    `<section class="st-panel" data-st="about" aria-label="about" hidden>${aboutSection()}</section>`,
+    '</div>',
+    '</div>',
     `<script type="application/json" data-gs="profile-data">${JSON.stringify(profile).replace(/</g, '\\u003c')}</script>`,
     searchDialog(),
     helpDialog(),
@@ -206,12 +220,44 @@ export function renderProfilePage(
  * Your pet: which animal, which coat, its name, and whether it lives on the bookcase. The coats
  * are drawn into their buttons by the app, from the same sprites the bookcase uses.
  */
+const SETTINGS_TABS: ReadonlyArray<readonly [string, string, IconName]> = [
+  ['profile', 'profile', 'profile'],
+  ['pet', 'pet', 'sticker'],
+  ['look', 'look and fonts', 'brush'],
+  ['connections', 'connections', 'branch'],
+  ['workspace', 'workspace', 'archive'],
+  ['about', 'about', 'help'],
+];
+
+const LOOK_SECTIONS: ReadonlyArray<readonly [string, string, string]> = [
+  [
+    'board',
+    'the board',
+    'the board and everything on it: notes, cards, pictures, the bars around it',
+  ],
+  [
+    'notebook',
+    'notebooks',
+    'a notebook’s spread, its pages and their bars, the print view, the controls around the bookcase',
+  ],
+  ['settings', 'settings', 'this page'],
+];
+
+const FACES = [
+  'JetBrains Mono',
+  'Estedad',
+  'Caveat',
+  'Caveat Brush',
+  'system sans',
+  'system serif',
+];
+
 /**
- * How round every corner in the workspace is: one slider, named stops, and a strip of the things
- * it changes, drawn live. The value itself is the workspace's (GET/POST /api/look), not the
- * profile's; the app reads it on arrival.
+ * The look, section by section: how round its corners are and which faces it is set in. The
+ * bookcase and the books themselves have their own look (the bookcase's decorate panel, a
+ * notebook's cover and page setup) and are not changed from here.
  */
-function cornersSection(): string {
+function lookSection(): string {
   const stops: Array<[string, number]> = [
     ['square', 0],
     ['crisp', 0.5],
@@ -219,22 +265,85 @@ function cornersSection(): string {
     ['soft', 1.8],
     ['round', 3],
   ];
+  const faceSelect = (section: string, field: 'ui' | 'text', label: string): string =>
+    `<label class="st-field"><span>${label}</span><select class="gs-field" data-gs="look-face" data-section="${section}" data-field="${field}">` +
+    '<option value="">as designed</option>' +
+    FACES.map(
+      (f) =>
+        `<option value="${escapeHtml(f)}" style="font-family:'${escapeHtml(f)}'">${escapeHtml(f)}</option>`,
+    ).join('') +
+    '</select></label>';
   return (
-    '<section class="pf-corners gs-card" aria-label="corners">' +
-    heading('corners') +
-    '<div class="pf-corners-row"><input type="range" min="0" max="300" step="5" value="100" ' +
-    'data-gs="corners" aria-label="how round the corners are" class="pf-corners-range">' +
-    '<output data-gs="corners-value" class="pf-corners-value">100%</output></div>' +
-    `<div class="gs-chip-row" role="group" aria-label="corner stops">${stops
-      .map(
-        ([label, v]) =>
-          `<button type="button" class="gs-btn gs-chip-btn" data-gs="corners-stop" data-gs-value="${v}">${label}</button>`,
-      )
-      .join('')}</div>` +
-    '<div class="pf-corners-sample" aria-hidden="true"><span class="gs-btn">button</span>' +
+    LOOK_SECTIONS.map(
+      ([id, title, what]) =>
+        `<section class="st-card gs-card" data-look="${id}" aria-label="${title}">` +
+        heading(title) +
+        `<p class="pf-note">${what}.</p>` +
+        '<div class="pf-corners-row"><span class="st-sub">corners</span>' +
+        `<input type="range" min="0" max="300" step="5" value="100" data-gs="corners" data-section="${id}" ` +
+        `aria-label="how round the corners of ${title} are" class="pf-corners-range">` +
+        `<output data-gs="corners-value" data-section="${id}" class="pf-corners-value">100%</output></div>` +
+        `<div class="gs-chip-row" role="group" aria-label="corner stops">${stops
+          .map(
+            ([label, v]) =>
+              `<button type="button" class="gs-btn gs-chip-btn" data-gs="corners-stop" data-section="${id}" data-gs-value="${v}">${label}</button>`,
+          )
+          .join('')}</div>` +
+        `<div class="st-faces">${faceSelect(id, 'ui', 'buttons and menus')}${id === 'settings' ? '' : faceSelect(id, 'text', 'text, where a document names none')}</div>` +
+        '</section>',
+    ).join('') +
+    '<section class="st-card gs-card st-sample" aria-hidden="true">' +
+    heading('how it looks') +
+    '<div class="pf-corners-sample"><span class="gs-btn">button</span>' +
     '<span class="gs-card pf-corners-card">card</span><span class="pf-corners-pill">tag</span></div>' +
-    '<p class="pf-note">Every box in grimstroke follows this: the bars and menus, cards, pictures, code, pages and covers. ' +
-    'A notebook or a board can keep its own. Torn paper, die-cut stickers and pixel art keep their edges.</p>' +
+    '<p class="pf-note">A notebook or a board can keep its own corners: a notebook in its page setup, a board in its menu. ' +
+    'The bookcase and the books have their own look: the bookcase’s decorate panel, and a notebook’s cover. Torn paper, die-cut stickers and pixel art keep their edges.</p>' +
+    '</section>'
+  );
+}
+
+/** The keys this computer keeps for repository services: which, whose, and a way to forget one. */
+function connectionsSection(): string {
+  return (
+    '<section class="st-card gs-card" aria-label="repository services">' +
+    heading('repository services') +
+    '<p class="pf-note">The keys grimstroke keeps on this computer for GitHub, GitLab and Gitea -- never in a notebook, never sent anywhere else. ' +
+    'Connect a notebook from the notebook itself: open it, and press “connect” on its bar.</p>' +
+    '<ul class="st-list" data-gs="keys"><li class="pf-note">reading…</li></ul>' +
+    '</section>' +
+    '<section class="st-card gs-card" aria-label="connected notebooks">' +
+    heading('connected notebooks') +
+    '<ul class="st-list" data-gs="connected"><li class="pf-note">reading…</li></ul>' +
+    '</section>'
+  );
+}
+
+/** A backup of everything, a restore, and the trash. */
+function workspaceSection(): string {
+  return (
+    '<section class="st-card gs-card" aria-label="backup">' +
+    heading('backup') +
+    '<p class="pf-note">Everything -- boards, notebooks, pictures, the profile, the bookcase -- in one file.</p>' +
+    '<div class="gs-chip-row"><a class="gs-btn" href="/api/archive" data-gs="st-backup" download>download a backup</a>' +
+    '<button type="button" class="gs-btn" data-gs="st-restore">restore from a backup</button>' +
+    '<input type="file" accept=".grimstroke,application/json" hidden data-gs="st-restore-file"></div>' +
+    '</section>' +
+    '<section class="st-card gs-card" aria-label="trash">' +
+    heading('trash') +
+    '<p class="pf-note">Notebooks thrown away stay here for thirty days.</p>' +
+    '<ul class="st-list" data-gs="trash"><li class="pf-note">reading…</li></ul>' +
+    '</section>'
+  );
+}
+
+function aboutSection(): string {
+  return (
+    '<section class="st-card gs-card" aria-label="about grimstroke">' +
+    heading('grimstroke') +
+    '<p>A notebook for agents, and for the people working with them: boards, notebooks, cards typed into being, all drawn on this computer.</p>' +
+    '<p class="pf-note">Made by Atur Dana. Open source, under the Mozilla Public License 2.0.</p>' +
+    '<div class="gs-chip-row"><a class="gs-btn" href="https://github.com/aturzone/grimstroke" target="_blank" rel="noopener">source code</a>' +
+    '<button type="button" class="gs-btn" data-gs="help-open">keyboard shortcuts</button></div>' +
     '</section>'
   );
 }

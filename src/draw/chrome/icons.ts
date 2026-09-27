@@ -16,6 +16,12 @@ export const ICONS = {
   pan:
     'M12 3 V21 M3 12 H21 M12 3 L9.6 5.6 M12 3 L14.4 5.6 M12 21 L9.6 18.4 M12 21 L14.4 18.4 ' +
     'M3 12 L5.6 9.6 M3 12 L5.6 14.4 M21 12 L18.4 9.6 M21 12 L18.4 14.4',
+  // A cog: the settings, where everything that can be made your own is.
+  settings:
+    'M12 15.2 A3.2 3.2 0 1 0 12 8.8 A3.2 3.2 0 1 0 12 15.2 M12 3.5 V6.2 M12 17.8 V20.5 M3.5 12 H6.2 M17.8 12 H20.5 ' +
+    'M6 6 L7.9 7.9 M16.1 16.1 L18 18 M6 18 L7.9 16.1 M16.1 7.9 L18 6',
+  // A brush: making the bookcase your own.
+  brush: 'M14.5 4.5 L19.5 9.5 L11 18 L6 13 Z M6 13 C4 14 3.5 17 3.5 20.5 C7 20.5 10 20 11 18',
   sticky: 'M4 4 H20 V14.5 L14.5 20 H4 Z M20 14.5 H14.5 V20',
   // A line of text becoming a card: the slash that opens the bar, inside a card.
   shape:

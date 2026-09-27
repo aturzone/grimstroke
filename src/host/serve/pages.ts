@@ -16,7 +16,7 @@ import { renderSpread } from '~/draw/doc/book/render.ts';
 import { renderShelf } from '~/draw/doc/shelf/render.ts';
 import { type Ask, html } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
-import { lookOf, withLook } from '~/host/serve/look.ts';
+import { lookOf, sectionOf, withLook } from '~/host/serve/look.ts';
 
 const APP = ['/app.js'];
 
@@ -27,7 +27,10 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
     const spec = await live.board(url.searchParams.get('board') ?? ask.board);
     const rendered = renderBoard(spec, { live: { chrome: chrome(spec), scripts: APP } });
     live.allow(rendered.assets);
-    html(res, withLook(rendered.html, await lookOf(live.store)));
+    html(
+      res,
+      withLook(rendered.html, await lookOf(live.store), sectionOf(path), Boolean(spec.fonts)),
+    );
     return true;
   }
 
@@ -40,7 +43,10 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
     const spec = await live.board(`book:${book}:${url.searchParams.get('leaf') ?? '1'}`);
     const rendered = renderBoard(spec, { live: { chrome: chrome(spec), scripts: APP } });
     live.allow(rendered.assets);
-    html(res, withLook(rendered.html, await lookOf(live.store)));
+    html(
+      res,
+      withLook(rendered.html, await lookOf(live.store), sectionOf(path), Boolean(spec.fonts)),
+    );
     return true;
   }
 
@@ -56,7 +62,10 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
       live: { chrome: bookChrome(spec), scripts: APP },
     });
     live.allow(rendered.assets);
-    html(res, withLook(rendered.html, await lookOf(live.store)));
+    html(
+      res,
+      withLook(rendered.html, await lookOf(live.store), sectionOf(path), Boolean(spec.fonts)),
+    );
     return true;
   }
 
@@ -65,23 +74,27 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
     const spec = await live.book(url.searchParams.get('book') ?? 'notebook');
     const rendered = renderPrint(spec, { scripts: APP });
     live.allow(rendered.assets);
-    html(res, withLook(rendered.html, await lookOf(live.store)));
+    html(
+      res,
+      withLook(rendered.html, await lookOf(live.store), sectionOf(path), Boolean(spec.fonts)),
+    );
     return true;
   }
 
   // The studio of characters became the profile. An old link still arrives somewhere.
   if (path === '/face') {
-    res.writeHead(302, { location: '/profile' });
+    res.writeHead(302, { location: '/settings' });
     res.end();
     return true;
   }
 
-  if (path === '/profile') {
+  // The settings: the profile is one of its sections, and the old address still arrives there.
+  if (path === '/profile' || path === '/settings') {
     const rendered = renderProfilePage(await live.store.readProfile(), {
       live: { scripts: APP },
     });
     live.allow(rendered.assets);
-    html(res, withLook(rendered.html, await lookOf(live.store)));
+    html(res, withLook(rendered.html, await lookOf(live.store), sectionOf(path), false));
     return true;
   }
 
@@ -95,7 +108,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
       live: { chrome: shelfChrome(all.length, pet), scripts: APP },
     });
     live.allow(rendered.assets);
-    html(res, withLook(rendered.html, await lookOf(live.store)));
+    html(res, withLook(rendered.html, await lookOf(live.store), sectionOf(path), false));
     return true;
   }
 

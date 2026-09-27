@@ -151,4 +151,33 @@ body.on-profile {
 .pf-corners-sample { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 .pf-corners-card { padding: 10px 16px; }
 .pf-corners-pill { padding: 4px 12px; border: 1.5px solid var(--gs-line); border-radius: calc(999px * var(--round, 1)); font-family: var(--ui-font); font-size: var(--gs-t1); }
+
+/* ---- the settings ---- */
+.st-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; align-items: start; padding: 84px 24px 40px; max-width: 1400px; margin: 0 auto; }
+.st-nav { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 2px; padding: 6px; }
+.st-tab { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 12px; border-radius: var(--gs-radius); color: var(--gs-soft); font-family: var(--ui-font); font-size: var(--gs-t2); text-decoration: none; }
+.st-tab .gs-icon { width: 18px; height: 18px; flex: none; }
+.st-tab:hover { background: var(--gs-wash); color: var(--gs-ink); }
+.st-tab[aria-current='page'] { background: var(--gs-ink); color: var(--gs-paper); }
+.st-panels { min-width: 0; }
+.st-panel { display: grid; gap: 16px; max-width: 760px; }
+.st-panel[hidden] { display: none; }
+/* The portrait's undo, redo and 'put on board' belong to the profile section only. */
+:root:has(.st-panel[data-st='profile'][hidden]) :is([data-gs='undo'], [data-gs='redo'], [data-gs='profile-place']) { display: none; }
+.st-panel[data-st='profile'] { max-width: none; }
+.st-panel[data-st='profile'] .pf-page { padding: 0; }
+.st-card { display: grid; gap: 10px; padding: 16px 18px; }
+.st-sub { min-width: 64px; font-family: var(--ui-font); font-size: var(--gs-t1); color: var(--gs-soft); }
+.st-faces { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.st-field { display: grid; gap: 4px; font-family: var(--ui-font); font-size: var(--gs-t1); color: var(--gs-soft); }
+.st-field .gs-field { margin: 0; height: 36px; }
+.st-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.st-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; min-height: 40px; padding: 4px 0; border-block-end: 1px dashed var(--gs-faint); font-family: var(--ui-font); font-size: var(--gs-t2); }
+.st-row a { color: inherit; }
+@media (max-width: 760px) {
+  .st-layout { grid-template-columns: 1fr; padding: 64px 10px 24px; gap: 12px; }
+  .st-nav { position: static; flex-direction: row; overflow-x: auto; scrollbar-width: none; }
+  .st-tab { flex: none; }
+  .st-tab span { white-space: nowrap; }
+}
 `;

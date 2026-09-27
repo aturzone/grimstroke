@@ -378,7 +378,7 @@ export const COVER = `/* ---- the cover ---- */
   clip-path: polygon(50% 0%, 61.8% 35.4%, 98% 35.4%, 68.6% 57.3%, 79.4% 91.2%, 50% 70%,
     20.6% 91.2%, 31.4% 57.3%, 2% 35.4%, 38.2% 35.4%);
 }
-.shape-band { aspect-ratio: 5 / 1; border-radius: calc(2px * var(--round, 1) + var(--round-up, 0px)); }
+.shape-band { aspect-ratio: 5 / 1; border-radius: 2px; }
 .shape-tape {
   aspect-ratio: 4 / 1;
   background: color-mix(in oklab, var(--sticker, #f7f4ea) 40%, #fffdf6);
@@ -748,7 +748,7 @@ body.on-print { display: block; overflow: auto; }
 .print-save {
   padding: 8px 14px;
   border: 1.5px solid var(--ink);
-  border-radius: calc(4px * var(--round, 1) + var(--round-up, 0px));
+  border-radius: 4px;
   background: var(--accent);
   color: var(--paper);
   font: inherit;

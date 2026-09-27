@@ -36,7 +36,8 @@ export const TOP = `/* ---- the top ----
   min-width: 0;
   max-width: 100%;
   height: 46px;
-  padding: 0 14px 0 7px;
+  /* A rounder card needs more room at its ends (--round-up is 0 until corners pass 1). */
+  padding: 0 calc(14px + var(--round-up, 0px) * 0.7) 0 calc(7px + var(--round-up, 0px) * 0.7);
 }
 .gs-brand {
   display: flex;
@@ -112,7 +113,7 @@ export const TOP = `/* ---- the top ----
 .gs-saved[data-state='offline'] { background: var(--gs-ink); color: var(--gs-paper); font-weight: 700; }
 .gs-saved[data-state='offline']::before { background: var(--gs-hot); opacity: 1; }
 
-.gs-places { justify-self: center; display: flex; gap: 2px; padding: 5px; }
+.gs-places { justify-self: center; display: flex; gap: 2px; padding: 5px calc(5px + var(--round-up, 0px) * 0.6); }
 /* A surface's own actions fold into the menu when there is no room for them on the bar. */
 .gs-narrow-only { display: none; }
 .gs-place {
@@ -135,7 +136,7 @@ export const TOP = `/* ---- the top ----
   display: flex;
   align-items: center;
   gap: 3px;
-  padding: 5px;
+  padding: 5px calc(5px + var(--round-up, 0px) * 0.6);
 }
 .gs-acts-own { display: flex; align-items: center; gap: 3px; }
 .gs-search-open {
@@ -157,7 +158,7 @@ export const TOP = `/* ---- the top ----
   .gs-acts-own:has(> .gs-btn:nth-of-type(4)) > .gs-btn:not(.gs-btn-primary) .gs-btn-text { display: none; }
   .gs-acts-own:has(> .gs-btn:nth-of-type(4)) > .gs-btn:not(.gs-btn-primary) { padding-inline: 8px; }
 }
-@media (max-width: 1240px) {
+@media (max-width: 1366px) {
   /* The places give up their words, all but the one you are in, before anything overlaps: a
      right-to-left notebook's longer name met them at 1024px. */
   .gs-place:not([aria-current]) > span { display: none; }
@@ -194,7 +195,7 @@ export const TOP = `/* ---- the top ----
 }
 @media (max-width: 520px) {
   .gs-top { inset-block-start: 8px; inset-inline: 8px; gap: 6px; }
-  .gs-mast { height: 44px; padding-inline-end: 10px; gap: 6px; }
+  .gs-mast { height: 44px; padding-inline-end: calc(10px + var(--round-up, 0px) * 0.7); gap: 6px; }
   .gs-name { font-size: 19px; padding-inline-start: 8px; }
   .gs-saved { font-size: 0; gap: 0; padding: 3px; }
   .gs-saved[data-state='offline'] { font-size: var(--gs-t1); gap: 6px; padding: 3px 7px; }

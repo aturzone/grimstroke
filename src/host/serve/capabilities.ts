@@ -20,6 +20,7 @@ import { ACCENTS, PAPERS as PHOTO_PAPERS } from '~/draw/material/profile/model.t
 import { MARKS } from '~/draw/material/sticker/marks.ts';
 import { PACKS } from '~/draw/material/sticker/packs.ts';
 import { SHAPE_INTENTS } from '~/draw/shape/intents.ts';
+import { FONT_CHOICES, SECTIONS } from '~/host/serve/look.ts';
 
 /** One line per route: `METHOD path` and what it does. */
 export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
@@ -160,6 +161,11 @@ export function capabilities(): Record<string, unknown> {
         max: 3,
         designed: 1,
         where: ['POST /api/look', 'board op { corners }', 'book op { corners }'],
+      },
+      look: {
+        sections: SECTIONS,
+        fonts: Object.keys(FONT_CHOICES),
+        fields: ['corners', 'ui', 'text'],
       },
       providers: PROVIDERS,
     },

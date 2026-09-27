@@ -17,7 +17,7 @@ export const TURNER = `/* ---- the turner ---- */
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 5px;
+  padding: 5px calc(5px + var(--round-up, 0px) * 0.6);
   user-select: none;
 }
 :root[dir='rtl'] .gs-turner { transform: translateX(50%); }

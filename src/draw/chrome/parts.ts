@@ -42,9 +42,10 @@ export function kbd(keys: string): string {
 export function button(o: ButtonOptions): string {
   const classes = ['gs-btn', o.text ? '' : 'gs-btn-icon', o.tone ?? ''].filter(Boolean).join(' ');
   const pressed = o.pressed === undefined ? '' : ` aria-pressed="${o.pressed}"`;
-  const tip = o.text
-    ? ''
-    : `<span class="gs-tip" role="presentation">${escapeHtml(o.label)}${o.key ? ` ${kbd(o.key)}` : ''}</span>`;
+  // Every button says what it is for when the pointer rests on it: an icon alone never explains
+  // itself, and a word on the bar ("decorate") says less than the label ("make the bookcase your
+  // own") -- and the word is the first thing a narrow screen takes away.
+  const tip = `<span class="gs-tip" role="presentation">${escapeHtml(o.label)}${o.key ? ` ${kbd(o.key)}` : ''}</span>`;
   return (
     `<button type="button" class="${classes}" data-gs="${o.gs}" aria-label="${escapeHtml(o.label)}"` +
     `${pressed}${o.attrs ? ` ${o.attrs}` : ''}>` +
@@ -114,7 +115,7 @@ export function menu(o: MenuOptions): string {
     `<summary class="gs-btn${o.text ? '' : ' gs-btn-icon'}" aria-label="${escapeHtml(o.label)}">` +
     (o.icon ? icon(o.icon) : '') +
     (o.text ? `<span class="gs-btn-text">${escapeHtml(o.text)}</span>` : '') +
-    (o.text ? '' : `<span class="gs-tip" role="presentation">${escapeHtml(o.label)}</span>`) +
+    `<span class="gs-tip" role="presentation">${escapeHtml(o.label)}</span>` +
     '</summary>' +
     `<div class="gs-menu-card" role="menu">${o.body}</div>` +
     '</details>'
