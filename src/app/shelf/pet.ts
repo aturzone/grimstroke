@@ -159,6 +159,10 @@ export class ShelfPet {
     (room.parentElement ?? room).append(el);
     this.el = el;
     this.room = room;
+    // A new element has been placed nowhere yet. The last one's key was kept, so a pet whose
+    // frame and place had not changed was never painted: it sat at the layer's corner, off the
+    // bookcase and out of sight, until it next moved -- for a sleeping pet, many seconds.
+    this.drawn = '';
     this.measure();
     // One watcher for whether the bookcase is in view; the last room's is let go.
     this.seen?.disconnect();
@@ -167,13 +171,7 @@ export class ShelfPet {
       this.wake();
     });
     this.seen.observe(room);
-    const home = this.ledges[Math.min(this.at.ledge, this.ledges.length - 1)] ?? this.ledges[0];
-    if (!home) return;
-    this.at = {
-      x: Math.min(Math.max(this.at.x, home.left), home.right),
-      y: home.y,
-      ledge: this.ledges.indexOf(home),
-    };
+    if (!this.settle()) return;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
       this.set('sleep');
       this.bed();
@@ -189,8 +187,30 @@ export class ShelfPet {
   refit(): void {
     if (!this.el) return;
     this.measure();
+    // The shelves are other lengths now, or fewer: stand it back on one. A walk or a jump in
+    // flight was aimed at the old ones, so it is dropped and the next routine chosen afresh.
+    if (this.act?.kind === 'go' || this.act?.kind === 'jump') this.act = undefined;
+    const sleeping = this.pose === 'sleep' || this.pose === 'loaf';
+    this.settle();
+    if (sleeping) this.bed();
     this.drawn = '';
     this.paint(performance.now());
+  }
+
+  /**
+   * Put the pet back on a shelf that exists, within its ends. False when there is no shelf at all.
+   * Called whenever the shelves are measured anew: a pet left at an old position stood off the end
+   * of a shelf that had got shorter, or on one that was no longer there -- out of sight.
+   */
+  private settle(): boolean {
+    const home = this.ledges[Math.min(this.at.ledge, this.ledges.length - 1)] ?? this.ledges[0];
+    if (!home) return false;
+    this.at = {
+      x: Math.min(Math.max(this.at.x, home.left), Math.max(home.left, home.right)),
+      y: home.y,
+      ledge: this.ledges.indexOf(home),
+    };
+    return true;
   }
 
   /** How wide the pet is, in the room's own pixels. */
@@ -268,7 +288,9 @@ export class ShelfPet {
     // Measured now, not when the room arrived: a redrawn room slides its books from where they
     // were, and a bed measured mid-slide put the pet asleep in mid-air off the side of the case.
     this.measure();
-    const bed = this.ledge?.beds[0];
+    // The top of the pile: flat books stack on a narrow bookcase, and the first one found was the
+    // bottom of the stack -- the pet slept sunk halfway into the book lying on it.
+    const bed = [...(this.ledge?.beds ?? [])].sort((a, b) => a.top - b.top)[0];
     if (!bed) return;
     this.at.x = Math.round(bed.x + bed.w / 2 - this.span / 2);
     this.at.y = bed.top + 2;
