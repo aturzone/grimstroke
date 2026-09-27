@@ -13,6 +13,7 @@
  * screen. One position, one owner, and the paper still lags.
  */
 
+import { play } from '~/app/feel.ts';
 import { leverFrom, TUNING as POSE, poseFromVelocity, smoothing } from '~/app/motion/pose.ts';
 import { type Animatable, type Spring, snap, spring, step } from '~/app/motion/spring.ts';
 import { smooth as smoothPath } from '~/draw/look/hand.ts';
@@ -432,6 +433,7 @@ export class LiveNote implements Animatable {
     this.vy = 0;
     this.lz.t = 1;
     this.item.classList.add('is-dragging');
+    play('lift');
     this.promote(true);
     /*
      * Picking a note up chooses it.
@@ -480,6 +482,7 @@ export class LiveNote implements Animatable {
     this.pointerId = null;
     this.lz.t = 0;
     this.item.classList.remove('is-dragging');
+    play('drop');
     const target = e.currentTarget as HTMLElement;
     target.removeEventListener('pointermove', this.onMove);
     target.removeEventListener('pointerup', this.onRelease);

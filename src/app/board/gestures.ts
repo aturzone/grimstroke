@@ -12,6 +12,7 @@ import type { Editor } from '~/app/board/edit.ts';
 import { Preview, pathOf } from '~/app/board/ink.ts';
 import { DRAWING, isFill, PLACING, type Tool, weightOf } from '~/app/board/tools.ts';
 import type { Point } from '~/app/board/view.ts';
+import { land, play } from '~/app/feel.ts';
 import type { BoardItem, InkTool } from '~/draw/doc/board/model.ts';
 import { topZ } from '~/draw/doc/board/patch.ts';
 
@@ -201,6 +202,7 @@ export class Gestures {
         .map((id) => ({ id, from: (items.get(id)?.at ?? [0, 0]) as [number, number] }))
         .filter((entry) => entry.from !== undefined);
       this.mode = 'move';
+      play('lift', 0.7);
       return;
     }
 
@@ -280,9 +282,19 @@ export class Gestures {
           (entry) => entry.to && (entry.to[0] !== entry.from[0] || entry.to[1] !== entry.from[1]),
         )
         .map((entry) => ({ op: 'move' as const, id: entry.id, at: entry.to as [number, number] }));
-      if (ops.length > 0) this.ctx.session.run(ops, '');
+      if (ops.length > 0) {
+        this.ctx.session.run(ops, '');
+        play('drop', 0.8);
+        for (const op of ops) {
+          const el = this.ctx.element(op.id);
+          if (el) land(el);
+        }
+      }
     }
-    if (this.mode === 'draw' && this.stroke.length > 1) this.commitStroke();
+    if (this.mode === 'draw' && this.stroke.length > 1) {
+      this.commitStroke();
+      play('pen', 0.8);
+    }
     if (this.mode === 'draw') {
       this.preview?.remove();
       this.preview = undefined;

@@ -292,6 +292,19 @@ function lookSection(): string {
         `<div class="st-faces">${faceSelect(id, 'ui', 'buttons and menus')}${id === 'settings' ? '' : faceSelect(id, 'text', 'text, where a document names none')}</div>` +
         '</section>',
     ).join('') +
+    '<section class="st-card gs-card" data-feel aria-label="sound and motion">' +
+    heading('sound and motion') +
+    '<p class="pf-note">Small sounds when a hand does something -- paper lifted and set down, a page turned, a card placed, a timer done -- and things that arrive, settle and leave.</p>' +
+    '<label class="st-check"><input type="checkbox" data-gs="feel-sound" checked> sounds</label>' +
+    '<div class="pf-corners-row"><span class="st-sub">volume</span>' +
+    '<input type="range" min="0" max="100" step="5" value="50" data-gs="feel-volume" aria-label="how loud" class="pf-corners-range">' +
+    '<output data-gs="feel-volume-value" class="pf-corners-value">50%</output></div>' +
+    '<label class="st-field"><span>motion</span><select class="gs-field" data-gs="feel-motion">' +
+    '<option value="full">things arrive, settle and leave</option>' +
+    '<option value="calm">calm: fades only</option>' +
+    '<option value="none">nothing moves</option></select></label>' +
+    '<div class="gs-chip-row"><button type="button" class="gs-btn" data-gs="feel-try">hear it</button></div>' +
+    '</section>' +
     '<section class="st-card gs-card st-sample" aria-hidden="true">' +
     heading('how it looks') +
     '<div class="pf-corners-sample"><span class="gs-btn">button</span>' +

@@ -21,6 +21,7 @@ import { CoverEditor } from '~/app/book/cover.ts';
 import { RepoSetup } from '~/app/book/repo.ts';
 import { toast } from '~/app/chrome.ts';
 import { go, must, onClick, typing } from '~/app/dom.ts';
+import { play } from '~/app/feel.ts';
 import { letterOf } from '~/app/keys.ts';
 import { Session } from '~/app/net.ts';
 import type { BookSpec, Leaf } from '~/draw/doc/book/model.ts';
@@ -231,6 +232,7 @@ export class BookApp {
     const turn = (deg: number): string => `perspective(2600px) rotateY(${deg}deg)`;
     const timing = { duration: FLIP_MS, fill: 'forwards' as const };
     flipper.dataset.turning = '1';
+    play('turn');
     const swing = flipper.animate(
       [
         { transform: turn(from), easing: 'cubic-bezier(0.45, 0.05, 0.7, 0.6)' },

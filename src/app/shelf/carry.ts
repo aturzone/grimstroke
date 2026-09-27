@@ -7,6 +7,7 @@
  * look at (or chosen, when choosing).
  */
 
+import { play } from '~/app/feel.ts';
 import type { ShelfApp } from '~/app/shelf/index.ts';
 
 /** Moved further than this, a press becomes a carry. */
@@ -94,6 +95,7 @@ export class Carry {
       carry.remove();
       for (const s of document.querySelectorAll('.is-carried')) s.classList.remove('is-carried');
       if (!target || ev.type === 'pointercancel') return;
+      play('drop');
       void this.app.drop(ids, target.to, target.row, target.x, { id, rect });
     };
     document.addEventListener('pointermove', move);
@@ -121,6 +123,7 @@ export class Carry {
     }
     document.body.append(carry);
     for (const id of ids) this.app.spine(id)?.classList.add('is-carried');
+    play('lift');
     return carry;
   }
 

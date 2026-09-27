@@ -31,6 +31,7 @@ import { DRAWING, type Tool } from '~/app/board/tools.ts';
 import { type Point, View } from '~/app/board/view.ts';
 import { toast } from '~/app/chrome.ts';
 import { must, onClick, typing } from '~/app/dom.ts';
+import { appear, play, vanish } from '~/app/feel.ts';
 import { letterOf } from '~/app/keys.ts';
 import { type PatchReply, Session } from '~/app/net.ts';
 import type { BoardItem, BoardSpec } from '~/draw/doc/board/model.ts';
@@ -333,10 +334,17 @@ export class BoardApp implements BoardContext {
   // ---------------------------------------------------------------- updates
 
   private absorb(reply: PatchReply): void {
+    // What leaves lifts off and fades; what arrives drops in and settles (app/feel.ts).
+    if (reply.removed.length) play('whoosh', Math.min(1, 0.5 + reply.removed.length * 0.1));
     for (const id of reply.removed) {
-      this.element(id)?.remove();
+      const gone = this.element(id);
+      if (gone) {
+        gone.removeAttribute('data-gs-id');
+        vanish(gone, () => gone.remove());
+      }
       this.selection.drop(id);
     }
+    let arrived = 0;
     // Moved or reordered, nothing more: the element already on screen is the right one, it
     // only has to be put where the model now says. Never under a hand, which knows better.
     for (const place of reply.placed ?? []) {
@@ -379,8 +387,14 @@ export class BoardApp implements BoardContext {
         existing.replaceWith(fresh);
       } else {
         this.board.append(fresh);
+        // A stroke just drawn is already where the hand left it; anything else arrives.
+        if (!fresh.matches('svg, .stroke')) {
+          appear(fresh, Math.min(arrived, 8) * 30);
+          arrived++;
+        }
       }
     }
+    if (arrived) play('pop', arrived > 1 ? 0.8 : 1);
     // Anything that just arrived is paper too.
     this.notes.adopt();
     if (this.editNext && this.element(this.editNext)) {

@@ -372,4 +372,21 @@ export const KIT = `/* ---- the parts ---- */
   .gs-btn, .gs-tip, .gs-toast { transition: none; }
   .gs-menu-card, .gs-dialog[open], .gs-toast { animation: none; }
 }
+
+/* ---- things arriving ----
+   Menus, dialogs and toasts come in rather than appear: a short rise from where they grow out of.
+   Transform and opacity only. Off for reduced motion, and when Settings says nothing moves. */
+.gs-menu[open] > .gs-menu-card, .gs-sheet[open] > .gs-sheet-card { animation: gs-rise 170ms cubic-bezier(0.2, 1.2, 0.35, 1); transform-origin: top; }
+dialog.gs-dialog[open] { animation: gs-dialog-in 220ms cubic-bezier(0.2, 1.1, 0.35, 1); }
+dialog.gs-dialog[open]::backdrop { animation: gs-fade 200ms ease-out; }
+.gs-toasts > .gs-toast { animation: gs-toast-in 260ms cubic-bezier(0.2, 1.2, 0.35, 1); }
+@keyframes gs-rise { from { opacity: 0; transform: translateY(-4px) scale(0.97); } }
+@keyframes gs-dialog-in { from { opacity: 0; transform: translateY(10px) scale(0.97); } }
+@keyframes gs-toast-in { from { opacity: 0; transform: translateY(12px) scale(0.96); } }
+@keyframes gs-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .gs-menu[open] > .gs-menu-card, .gs-sheet[open] > .gs-sheet-card, dialog.gs-dialog[open], dialog.gs-dialog[open]::backdrop, .gs-toasts > .gs-toast { animation: none; }
+}
+:root[data-motion='none'] *, :root[data-motion='none'] *::before, :root[data-motion='none'] *::after { animation: none !important; transition: none !important; }
+:root[data-motion='calm'] .gs-menu[open] > .gs-menu-card, :root[data-motion='calm'] .gs-toasts > .gs-toast { animation-name: gs-fade; }
 `;

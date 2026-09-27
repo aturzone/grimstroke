@@ -13,6 +13,14 @@
 import { mapPath } from '~/app/board/handles.ts';
 import { pathOf } from '~/app/board/ink.ts';
 import { confirmCard, toast } from '~/app/chrome.ts';
+import { play, type SoundName, setFeel } from '~/app/feel.ts';
+
+interface FeelSetting {
+  sound: boolean;
+  volume: number;
+  motion: 'full' | 'calm' | 'none';
+}
+
 import { go, must, onClick, typing } from '~/app/dom.ts';
 import { letterOf } from '~/app/keys.ts';
 import { detailRow } from '~/draw/chrome/detail.ts';
@@ -499,6 +507,7 @@ class ProfileEditor {
       }
       show(false);
     }
+    this.bindFeel(look as unknown as { feel?: FeelSetting });
     for (const select of document.querySelectorAll<HTMLSelectElement>(
       'select[data-gs="look-face"]',
     )) {
@@ -510,6 +519,49 @@ class ProfileEditor {
         toast(select.value ? `${section}: ${select.value}` : `${section}: as designed`);
       });
     }
+  }
+
+  /** Sound on or off, how loud, how much moves: live in this tab at once, saved for every page. */
+  private bindFeel(look: { feel?: FeelSetting }): void {
+    const feel: FeelSetting = look.feel ?? { sound: true, volume: 0.5, motion: 'full' };
+    const sound = document.querySelector<HTMLInputElement>('[data-gs="feel-sound"]');
+    const volume = document.querySelector<HTMLInputElement>('[data-gs="feel-volume"]');
+    const out = document.querySelector<HTMLOutputElement>('[data-gs="feel-volume-value"]');
+    const motion = document.querySelector<HTMLSelectElement>('[data-gs="feel-motion"]');
+    if (!sound || !volume || !motion) return;
+    sound.checked = feel.sound;
+    volume.value = String(Math.round(feel.volume * 100));
+    if (out) out.value = `${volume.value}%`;
+    motion.value = feel.motion;
+    let wait = 0;
+    const save = (): void => {
+      const next: FeelSetting = {
+        sound: sound.checked,
+        volume: Number(volume.value) / 100,
+        motion: motion.value as FeelSetting['motion'],
+      };
+      setFeel(next);
+      document.documentElement.dataset.motion = next.motion;
+      if (out) out.value = `${volume.value}%`;
+      window.clearTimeout(wait);
+      wait = window.setTimeout(() => {
+        void fetch('/api/look', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ feel: next }),
+        });
+      }, 250);
+    };
+    sound.addEventListener('change', save);
+    volume.addEventListener('input', save);
+    volume.addEventListener('change', () => play('tick'));
+    motion.addEventListener('change', save);
+    document.querySelector('[data-gs="feel-try"]')?.addEventListener('click', () => {
+      const tune: SoundName[] = ['lift', 'drop', 'pop', 'turn', 'tick', 'chime'];
+      for (const [i, name] of tune.entries()) {
+        window.setTimeout(() => play(name), i * 420);
+      }
+    });
   }
 
   /** The keys this computer keeps, whose they are, and the notebooks connected. */

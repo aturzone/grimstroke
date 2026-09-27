@@ -36,13 +36,44 @@ export interface SectionLook {
   text?: string;
 }
 
-export type Look = Record<Section, SectionLook>;
+/** How working feels, everywhere: sounds when a hand does something, and how much things move. */
+export interface Feel {
+  sound: boolean;
+  /** 0 to 1. */
+  volume: number;
+  /** full: things arrive, settle and leave; calm: fades only; none: nothing moves. */
+  motion: 'full' | 'calm' | 'none';
+}
+
+export const DEFAULT_FEEL: Readonly<Feel> = Object.freeze({
+  sound: true,
+  volume: 0.5,
+  motion: 'full',
+});
+
+export type Look = Record<Section, SectionLook> & { feel: Feel };
 
 export const DEFAULT_LOOK: Readonly<Look> = Object.freeze({
   board: { corners: 1 },
   notebook: { corners: 1 },
   settings: { corners: 1 },
+  feel: DEFAULT_FEEL,
 });
+
+function readFeel(raw: unknown, fallback: Feel = DEFAULT_FEEL): Feel {
+  const f = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  return {
+    sound: typeof f.sound === 'boolean' ? f.sound : fallback.sound,
+    volume:
+      typeof f.volume === 'number' && Number.isFinite(f.volume)
+        ? Math.min(1, Math.max(0, Math.round(f.volume * 100) / 100))
+        : fallback.volume,
+    motion:
+      f.motion === 'full' || f.motion === 'calm' || f.motion === 'none'
+        ? f.motion
+        : fallback.motion,
+  };
+}
 
 function corners(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value)
@@ -77,6 +108,7 @@ export function readLook(raw: unknown): Look {
     const base: SectionLook = { corners: all ?? 1 };
     out[s] = readSection(from[s], base);
   }
+  out.feel = readFeel(from.feel);
   return out;
 }
 
@@ -99,6 +131,7 @@ export async function saveLook(store: Store, patch: Record<string, unknown>): Pr
     for (const k of ['ui', 'text']) if (p[k] === null) delete merged[k];
     next[s] = readSection(merged, { corners: current[s].corners });
   }
+  next.feel = readFeel(patch.feel, current.feel);
   await store.writeSettings({ ...settings, look: next });
   return next;
 }
@@ -116,11 +149,14 @@ export function sectionOf(path: string): Section {
  */
 export function withLook(html: string, look: Look, section: Section, ownFonts = false): string {
   const l = look[section];
+  // How it feels travels with every page, for the app to read before it makes a sound.
+  const meta = `<meta name="gs-feel" content="${JSON.stringify(look.feel).replace(/"/g, '&quot;')}">`;
   const vars: string[] = [];
   if (l.corners !== 1) vars.push(`--gs-round:${l.corners}`);
   if (l.ui) vars.push(`--ui-font:${FONT_CHOICES[l.ui]}`);
   if (l.text && !ownFonts) vars.push(`--body-font:${FONT_CHOICES[l.text]}`);
-  if (!vars.length) return html;
-  const style = `<style id="gs-look">:root{${vars.join(';')}}</style>`;
-  return html.includes('</head>') ? html.replace('</head>', `${style}</head>`) : style + html;
+  const style = vars.length ? `<style id="gs-look">:root{${vars.join(';')}}</style>` : '';
+  return html.includes('</head>')
+    ? html.replace('</head>', `${meta}${style}</head>`)
+    : meta + style + html;
 }
