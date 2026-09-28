@@ -93,7 +93,7 @@ export async function call<T>(
 }
 
 /** The service's own explanation, whichever shape it came in. */
-function messageOf(status: number, body: unknown, fallback: string): string {
+export function messageOf(status: number, body: unknown, fallback: string): string {
   const b = body as { message?: unknown; error?: unknown; errors?: unknown } | undefined;
   const said =
     typeof b?.message === 'string'
@@ -113,7 +113,9 @@ function messageOf(status: number, body: unknown, fallback: string): string {
         : status === 404
           ? ' -- not there, or the token cannot see it'
           : '';
-  return `${status} ${said}${hint}`;
+  // GitLab says "404 Not found" itself: the status is not said twice.
+  const told = said.trimStart().startsWith(String(status)) ? said.trim() : `${status} ${said}`;
+  return `${told}${hint}`;
 }
 
 /** The next page's URL from a Link header, GitHub and GitLab style. */
