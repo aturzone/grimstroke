@@ -30,7 +30,10 @@ export type SoundName =
   | 'crunch'
   | 'open'
   | 'close'
-  | 'pen';
+  | 'pen'
+  | 'paper'
+  | 'stick'
+  | 'book';
 
 interface Feel {
   sound: boolean;
@@ -252,6 +255,21 @@ export function play(name: SoundName, strength = 1): void {
       break;
     case 'pen':
       rustle(ctx, t, { dur: 0.08, from: 5200, to: 4200, gain: 0.08 * g, q: 3 });
+      break;
+    case 'paper':
+      // A sticky note peeled off the pad and pressed down.
+      rustle(ctx, t, { dur: 0.09, from: 2600, to: 4200, gain: 0.22 * g, q: 1.4 });
+      rustle(ctx, t + 0.08, { dur: 0.07, from: 1200, to: 500, gain: 0.25 * g, type: 'lowpass' });
+      break;
+    case 'stick':
+      // A sticker: the tack of it coming off the sheet, and the press.
+      rustle(ctx, t, { dur: 0.05, from: 6000, to: 3000, gain: 0.16 * g, q: 4 });
+      tone(ctx, t + 0.05, { freq: 300, to: 180, dur: 0.06, gain: 0.18 * g, type: 'triangle' });
+      break;
+    case 'book':
+      // A notebook opened: the cover's soft thump, and pages settling.
+      tone(ctx, t, { freq: 110, to: 60, dur: 0.18, gain: 0.3 * g });
+      rustle(ctx, t + 0.04, { dur: 0.3, from: 900, to: 2600, gain: 0.22 * g, q: 0.6 });
       break;
   }
 }

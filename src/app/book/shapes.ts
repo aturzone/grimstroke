@@ -25,6 +25,8 @@ export interface BookShapeSource {
   leafInView(): string | undefined;
   /** False while the notebook is shut. */
   isOpen(): boolean;
+  /** Turn to a page (from one), if it is not in view. */
+  turnTo?(page: number): void;
 }
 
 function shapeOn(spec: BookSpec, leafId: string, id: string): ShapeBlock | undefined {
@@ -113,8 +115,11 @@ export function bookShapes(book: BookShapeSource): ShapeIsland {
       const place = room(220);
       if (!place) return;
       const { leaf, at } = place;
-      if (place.leaf !== book.leafInView())
+      // A card that goes on another page is followed there, not just announced.
+      if (place.leaf !== book.leafInView()) {
         toast(`this page is full: the card went on page ${place.page}`);
+        window.setTimeout(() => book.turnTo?.(place.page), 250);
+      }
       const [w] = leafSize(book.session.spec);
       const size = Math.min(width, w - 80);
       const cardId = `card-${Date.now().toString(36)}`;

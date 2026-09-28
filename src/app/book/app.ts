@@ -98,6 +98,13 @@ export class BookApp {
         return leaves[Math.max(0, Math.min(index, leaves.length - 1))]?.id;
       },
       isOpen: () => !this.book.querySelector('[data-gs="closed"]'),
+      turnTo: (page) => {
+        const index = page - 1;
+        const shown = this.single
+          ? [this.leaf + (this.side === 'recto' ? 1 : 0)]
+          : [this.leaf, this.leaf + 1];
+        if (!shown.includes(index)) void this.goto(index);
+      },
     }).bind();
   }
 
@@ -178,6 +185,7 @@ export class BookApp {
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.book.removeAttribute('data-closed');
     this.book.toggleAttribute('data-opening', true);
+    play('book');
     this.book.toggleAttribute('data-lifting', true);
     // One frame with the spread laid out beneath, then the swing.
     requestAnimationFrame(() => shut.classList.add('is-opening'));

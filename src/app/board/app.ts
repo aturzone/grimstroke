@@ -31,7 +31,7 @@ import { DRAWING, type Tool } from '~/app/board/tools.ts';
 import { type Point, View } from '~/app/board/view.ts';
 import { toast } from '~/app/chrome.ts';
 import { must, onClick, typing } from '~/app/dom.ts';
-import { appear, play, slideFrom, vanish } from '~/app/feel.ts';
+import { appear, play, type SoundName, slideFrom, vanish } from '~/app/feel.ts';
 import { letterOf } from '~/app/keys.ts';
 import { type PatchReply, Session } from '~/app/net.ts';
 import type { BoardItem, BoardSpec } from '~/draw/doc/board/model.ts';
@@ -333,6 +333,17 @@ export class BoardApp implements BoardContext {
 
   // ---------------------------------------------------------------- updates
 
+  /** What the last thing to arrive sounds like: a note is paper, a sticker sticks, a picture lands. */
+  private lastArrival: Element | undefined;
+  private arrivalSound(): SoundName {
+    const el = this.lastArrival;
+    if (!el) return 'pop';
+    if (el.querySelector('.note, .sheet')) return 'paper';
+    if (el.querySelector('.dcut, .sticker')) return 'stick';
+    if (el.querySelector('.plate, img')) return 'drop';
+    return 'pop';
+  }
+
   private absorb(reply: PatchReply): void {
     // What leaves lifts off and fades; what arrives drops in and settles (app/feel.ts).
     if (reply.removed.length) play('whoosh', Math.min(1, 0.5 + reply.removed.length * 0.1));
@@ -396,11 +407,12 @@ export class BoardApp implements BoardContext {
         // A stroke just drawn is already where the hand left it; anything else arrives.
         if (!fresh.matches('svg, .stroke')) {
           appear(fresh, Math.min(arrived, 8) * 30);
+          this.lastArrival = fresh;
           arrived++;
         }
       }
     }
-    if (arrived) play('pop', arrived > 1 ? 0.8 : 1);
+    if (arrived) play(this.arrivalSound(), arrived > 1 ? 0.8 : 1);
     // Anything that just arrived is paper too.
     this.notes.adopt();
     if (this.editNext && this.element(this.editNext)) {
@@ -494,8 +506,14 @@ export class BoardApp implements BoardContext {
   // ---------------------------------------------------------------- chrome
 
   private bindBar(): void {
-    onClick('undo', () => this.session.undo());
-    onClick('redo', () => this.session.redo());
+    onClick('undo', () => {
+      play('tap');
+      this.session.undo();
+    });
+    onClick('redo', () => {
+      play('tap');
+      this.session.redo();
+    });
     onClick('zoom-in', () => {
       this.view.zoomBy(1.25);
       this.showZoom();
@@ -696,6 +714,7 @@ export class BoardApp implements BoardContext {
 
       if ((event.metaKey || event.ctrlKey) && letterOf(event) === 'z') {
         event.preventDefault();
+        play('tap');
         if (event.shiftKey) this.session.redo();
         else this.session.undo();
         return;

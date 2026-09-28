@@ -14,6 +14,7 @@
 import type { BoardContext } from '~/app/board/context.ts';
 import { confirmCard, toast } from '~/app/chrome.ts';
 import { typing } from '~/app/dom.ts';
+import { play } from '~/app/feel.ts';
 import { letterOf } from '~/app/keys.ts';
 import type { BoardItem } from '~/draw/doc/board/model.ts';
 import { type Provider, type RemoteLink, refFromUrl } from '~/draw/doc/remote/model.ts';
@@ -215,6 +216,7 @@ export class RemoteCards {
     const number = this.issueNumber(id);
     if (!(await this.allowed(closed ? `Reopen #${number}` : `Close #${number}`))) return;
     if (await this.act(id, { action: closed ? 'reopen' : 'close' })) {
+      play(closed ? 'untick' : 'tick');
       toast(closed ? `#${number} reopened` : `#${number} closed`);
     }
   }
