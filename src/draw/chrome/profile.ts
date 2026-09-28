@@ -314,7 +314,7 @@ function lookSection(): string {
     '<div class="st-quiet"><label class="st-check"><input type="checkbox" data-gs="feel-quiet"> quiet hours</label>' +
     `<label class="st-field"><span>from</span><select class="gs-field" data-gs="feel-quiet-from">${hourOptions()}</select></label>` +
     `<label class="st-field"><span>until</span><select class="gs-field" data-gs="feel-quiet-to">${hourOptions()}</select></label></div>` +
-    '<div class="gs-chip-row"><button type="button" class="gs-btn" data-gs="feel-try">hear it</button></div>' +
+    '<div class="gs-chip-row"><button type="button" class="gs-btn gs-chip-btn" data-gs="feel-try">hear it</button></div>' +
     '</section>' +
     '<section class="st-card gs-card st-sample" aria-hidden="true">' +
     heading('how it looks') +
