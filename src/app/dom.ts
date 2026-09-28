@@ -71,7 +71,20 @@ export function smoothLinks(): void {
     go(url.href, a);
   });
   // Back from the history cache: the page comes back as it was left, faded. Undo that.
-  window.addEventListener('pageshow', () =>
-    document.documentElement.removeAttribute('data-gs-leaving'),
-  );
+  window.addEventListener('pageshow', () => {
+    document.documentElement.removeAttribute('data-gs-leaving');
+    unloading = false;
+  });
+  // A request still out when the page is left is cut off, and its failure is not news: every
+  // surface would otherwise report "NetworkError" on the way out. Only then -- a failure while
+  // the page is in use still surfaces. (pagehide, not beforeunload, which costs the history cache.)
+  window.addEventListener('pagehide', () => {
+    unloading = true;
+  });
+  window.addEventListener('unhandledrejection', (event) => {
+    const leaving = unloading || document.documentElement.hasAttribute('data-gs-leaving');
+    if (leaving && event.reason instanceof TypeError) event.preventDefault();
+  });
 }
+
+let unloading = false;
