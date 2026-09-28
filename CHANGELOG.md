@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.4.0 — 2026-09-28
+
+The day, and a notebook that follows your theme.
+
+### The day
+- **`/today`**: a morning page gathered from every card on every board and notebook page -- what
+  is running, what is on today and when, the habits due, what slipped past, the open lists, this
+  week. Tick a list, mark a reminder done or keep a habit with a tap; type a plan with `/` right
+  there. Every row takes you to its card. On a phone, the first opening of the day lands on it.
+- Yesterday stays on the page as a record: what was kept and what was not.
+- Reminders reach you: allowed once from the day page, a system notification when a reminder is
+  due and five minutes before an event, while a grimstroke tab is open (quiet hours kept).
+- `GET /api/today` gives the same day to an agent; `POST /api/today/act` and `/api/today/add`
+  change it as the page does. The plan for what comes next is `docs/daily.md`.
+
+### The look
+- The `/` box and its cards take their paper, ink and accent from the theme; the accent is held
+  dark enough to read on every palette.
+
+### The phone
+- Settings shows every section as tiles; the easel stays under half the screen; a phone on its
+  side keeps the bars small.
+
+### The pets
+- An animation pass: anatomy side-on, eight-frame walks, a gallop, crouch-leap-land, and poses in
+  between every state so nothing jumps. Legs join the body at hip and shoulder in every frame (a
+  test holds each frame to it), the walk no longer lifts the body off its legs, and the husky and
+  shiba have real faces instead of triangles.
+
 ## 0.3.0 — 2026-09-28
 
 The redesign's first pass (docs/redesign.md): everything that changes, moves, and says what just
