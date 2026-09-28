@@ -171,9 +171,13 @@ export const KIT = `/* ---- the parts ---- */
 }
 :root[dir='rtl'] .gs-tip { transform: translate(50%, 3px); }
 .gs-tip .gs-kbd { background: transparent; color: inherit; border-color: color-mix(in oklab, var(--gs-paper) 45%, transparent); }
-.gs-btn:hover > .gs-tip { opacity: 1; transform: translate(-50%, 0); transition-delay: 380ms; }
+/* Only where there is a pointer to hover with: a finger's tap leaves :hover stuck, and the
+   tip stayed up over the page after every press on a phone. */
+@media (hover: hover) {
+  .gs-btn:hover > .gs-tip { opacity: 1; transform: translate(-50%, 0); transition-delay: 380ms; }
+  :root[dir='rtl'] .gs-btn:hover > .gs-tip { transform: translate(50%, 0); }
+}
 .gs-btn:focus-visible > .gs-tip { opacity: 1; transform: translate(-50%, 0); transition-delay: 0ms; }
-:root[dir='rtl'] .gs-btn:hover > .gs-tip,
 :root[dir='rtl'] .gs-btn:focus-visible > .gs-tip { transform: translate(50%, 0); }
 /* Chrome along the top edge has nowhere above it, so its tips hang below. */
 .gs-top .gs-tip { inset-block-end: auto; inset-block-start: calc(100% + 10px); }
