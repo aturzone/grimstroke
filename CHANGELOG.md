@@ -17,8 +17,11 @@ happened; small sounds for what a hand does; the tools set in one clear type.
 
 ### Sound
 - A sound per material -- a sticky note, a sticker, a picture, a card, ink -- and for opening a
-  notebook, turning a page, a menu or a dialog, a lock, a tick, a timer done, the pet.
-- Quiet hours: no sound between two hours of the day, across midnight.
+  notebook, turning a page, a menu, a dialog or a drawer, a lock, a tick, a timer done, the pet.
+- Quiet hours: no sound between two hours of the day, across midnight; sounds on or off from
+  the menu on every surface.
+- "Nothing moves" in settings now stops everything -- the page turn, the pet, the bookcase, the
+  way between surfaces -- and "calm" leaves out the flourishes.
 
 ### Clearer
 - The tools in a clear sans on one readable scale; the notebook's bar in three groups; a first-visit
@@ -26,6 +29,14 @@ happened; small sounds for what a hand does; the tools set in one clear type.
 - Where in a notebook you are: a rail along the page turner, and the open pages marked in every
   page.
 - The tools' inks are measured on every palette by a test: Carbon's quiet ink was 3.6:1, now 4.7:1.
+
+### Fixed
+- A timer that ran out while the page was shut no longer says "time is up" on every visit.
+- Settings sits centred on a wide screen, with one left edge in every card.
+- On a phone: the shelf's title is not cut off, a tapped button's tip does not stay up, and the
+  tour points at the menu the places fold into.
+- A repository's error says its status once; the stamp on a card no longer covers its title.
+- The `/` box fades out the way it came in, and a `/` pressed as it goes opens a new one.
 
 ### The pet
 - A proper loaf; the dog's crouch, leap and landing on its walking body, and a real crouch to
