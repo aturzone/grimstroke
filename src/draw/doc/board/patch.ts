@@ -13,6 +13,7 @@
  */
 
 import type { BoardItem, BoardSpec } from '~/draw/doc/board/model.ts';
+import { ITEM_WIDTH } from '~/draw/doc/board/model.ts';
 
 /**
  * A patch that may also CLEAR a field, by naming it as null: ungrouping, unlocking, undoing a
@@ -138,6 +139,13 @@ export function apply(spec: BoardSpec, ops: readonly Op[]): PatchResult {
   }
 
   const kept = changed.filter((id) => !removed.includes(id));
+  // A page of a notebook has an edge, and nothing goes past it: whatever put an item there -- a
+  // drag, an agent, a move from another page or the board -- it lands inside the sheet.
+  if (board.sheet && board.extent) {
+    const [, , width, height] = board.extent;
+    const moved = new Set(kept);
+    items.splice(0, items.length, ...onSheet(items, width, height, (it) => moved.has(it.id)));
+  }
   return {
     spec: { ...board, items, version: (spec.version ?? 0) + 1 },
     changed: kept,
@@ -145,6 +153,29 @@ export function apply(spec: BoardSpec, ops: readonly Op[]): PatchResult {
     removed,
     reset,
   };
+}
+
+/**
+ * Items kept inside a sheet of width x height: each one's box (its width when known, and at least
+ * its top 40px) lies on the page. A thing dragged off the side used to be kept out there,
+ * invisible and unreachable; `which` says which items to bring in (all, by default).
+ */
+export function onSheet(
+  items: readonly BoardItem[],
+  width: number,
+  height: number,
+  which: (item: BoardItem) => boolean = () => true,
+): BoardItem[] {
+  return items.map((item) => {
+    if (!which(item) || !Array.isArray(item.at)) return item;
+    const w = Math.min(item.size?.[0] ?? Math.min(ITEM_WIDTH, width), width);
+    const h = Math.min(item.size?.[1] ?? 40, height);
+    const x = Math.min(Math.max(item.at[0], 0), Math.max(0, width - w));
+    const y = Math.min(Math.max(item.at[1], 0), Math.max(0, height - h));
+    return x === item.at[0] && y === item.at[1]
+      ? item
+      : { ...item, at: [x, y] as [number, number] };
+  });
 }
 
 /** The highest z on the board, so a new thing lands on top of the pile. */

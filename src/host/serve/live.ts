@@ -10,6 +10,7 @@
 import type { ServerResponse } from 'node:http';
 import { resolve } from 'node:path';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
+import { onSheet } from '~/draw/doc/board/patch.ts';
 import { workspaceExtent } from '~/draw/doc/board/render.ts';
 import { type BookSpec, bookTitle, boundLeaves, leafSize } from '~/draw/doc/book/model.ts';
 import { apply as applyBook } from '~/draw/doc/book/patch.ts';
@@ -132,7 +133,8 @@ export class Live {
       ...(book.fonts ? { fonts: book.fonts } : {}),
       ...(book.digits ? { digits: book.digits } : {}),
       ...(book.uppercaseLabels !== undefined ? { uppercaseLabels: book.uppercaseLabels } : {}),
-      items: leaf.items ?? [],
+      // Anything that was left off the page's edge is brought back onto it, where it can be seen.
+      items: onSheet(leaf.items ?? [], ...leafSize(book)),
       extent: [0, 0, ...leafSize(book)],
       version: book.version ?? 0,
       sheet: {

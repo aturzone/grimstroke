@@ -15,6 +15,7 @@
  * PDF. An image of a book would be none of those things.
  */
 
+import { onSheet } from '~/draw/doc/board/patch.ts';
 import { renderItem } from '~/draw/doc/board/render.ts';
 import type { BookSpec, Cover, Leaf, Sticker } from '~/draw/doc/book/model.ts';
 import { bookTitle, boundLeaves, leafSize, spineWidth } from '~/draw/doc/book/model.ts';
@@ -277,7 +278,8 @@ export function renderLeaf(
   ].join(';');
   // Placed, as on a board: each item at its own position from the page's corner, drawn by
   // the board's own renderItem, in paint order.
-  const items = [...(upgradeLeaf(leaf).items ?? [])]
+  // Nothing drawn past the page's edge, on the spread as on the page (see onSheet).
+  const items = [...onSheet(upgradeLeaf(leaf).items ?? [], ...leafSize(spec))]
     .map((item, index) => ({ item, index }))
     .sort((a, b) => (a.item.z ?? 0) - (b.item.z ?? 0) || a.index - b.index)
     .map(({ item }) => renderItem(item, 0, 0, ctx))

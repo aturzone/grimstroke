@@ -208,8 +208,9 @@ export class BoardApp implements BoardContext {
     if (ids.length === 0) return;
     const from = this.session.spec.id;
     const sheet = this.session.spec.sheet;
-    const to = sheet ? 'workspace' : await pickPage();
-    if (!to) return;
+    // Anywhere: the board, or any page of any notebook -- not only back to where it came from.
+    const to = await pickPage(from);
+    if (!to || to === from) return;
     const res = await fetch('/api/items/move', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -222,7 +223,8 @@ export class BoardApp implements BoardContext {
     const reply = (await res.json()) as { ids: string[] };
     this.selection.clear();
     await this.session.refresh();
-    const where = sheet ? 'the board' : 'the page';
+    const where = to.startsWith('book:') ? 'the page' : 'the board';
+    void sheet;
     toast(`${ids.length === 1 ? 'one thing' : `${ids.length} things`} sent to ${where}`, 'info', {
       label: 'undo',
       run: () => {
@@ -845,14 +847,17 @@ export async function bootBoard(): Promise<BoardApp> {
 }
 
 /** Which page of which notebook: a small card with the notebooks and a page number. */
-async function pickPage(): Promise<string | undefined> {
+async function pickPage(from = ''): Promise<string | undefined> {
   const res = await fetch('/api/shelf');
   if (!res.ok) return undefined;
   const { rows, archive } = (await res.json()) as {
     rows: Array<Array<{ id: string }>>;
     archive: string[];
   };
-  const ids = [...rows.flat().map((s) => s.id), ...archive];
+  // Notebooks only: the bookcase's rows also hold its objects (a plant, a lamp).
+  const ids = [...rows.flat().map((s) => s.id), ...archive].filter(
+    (id) => !id.startsWith('decor:'),
+  );
   const titles = await Promise.all(
     ids.map(async (id) => {
       const r = await fetch(`/api/state?kind=book&id=${encodeURIComponent(id)}`);
@@ -867,9 +872,9 @@ async function pickPage(): Promise<string | undefined> {
     const form = document.createElement('form');
     form.method = 'dialog';
     form.innerHTML =
-      '<header class="gs-dialog-head"><h2>send to a page</h2></header>' +
+      '<header class="gs-dialog-head"><h2>send it somewhere else</h2></header>' +
       '<div class="gs-dialog-body">' +
-      '<label class="gs-ask-label" for="gs-move-book">which notebook</label>' +
+      '<label class="gs-ask-label" for="gs-move-book">where to</label>' +
       '<select class="gs-field" id="gs-move-book" data-gs="move-book"></select>' +
       '<label class="gs-ask-label" for="gs-move-page">page</label>' +
       '<input class="gs-field" id="gs-move-page" type="number" min="1" value="1" data-gs="move-page">' +
@@ -877,6 +882,18 @@ async function pickPage(): Promise<string | undefined> {
       '<button class="gs-btn" value="cancel" formnovalidate>not now</button>' +
       '<button class="gs-btn gs-btn-primary" value="send" data-gs="move-send">send</button></div>';
     const select = form.querySelector('select') as HTMLSelectElement;
+    const pageField = form.querySelector('input') as HTMLInputElement;
+    // The board first, unless that is where they are coming from.
+    if (from.startsWith('book:')) {
+      const board = document.createElement('option');
+      board.value = '';
+      board.textContent = 'the board';
+      select.append(board);
+    }
+    const onBoard = (): void => {
+      pageField.disabled = select.value === '';
+    };
+    select.addEventListener('change', onBoard);
     ids.forEach((id, i) => {
       const option = document.createElement('option');
       option.value = id;
@@ -884,14 +901,13 @@ async function pickPage(): Promise<string | undefined> {
       select.append(option);
     });
     dialog.append(form);
+    onBoard();
     dialog.addEventListener('close', () => {
-      const page = Math.max(
-        1,
-        Number((form.querySelector('input') as HTMLInputElement).value) || 1,
-      );
+      const page = Math.max(1, Number(pageField.value) || 1);
       const book = select.value;
       dialog.remove();
-      done(dialog.returnValue === 'send' && book ? `book:${book}:${page}` : undefined);
+      if (dialog.returnValue !== 'send') return done(undefined);
+      done(book ? `book:${book}:${page}` : 'workspace');
     });
     document.body.append(dialog);
     dialog.showModal();

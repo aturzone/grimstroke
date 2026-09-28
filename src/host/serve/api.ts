@@ -659,8 +659,14 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
     const minX = Math.min(...moving.map((i) => i.at[0]));
     const minY = Math.min(...moving.map((i) => i.at[1]));
     let base: [number, number];
-    if (target.sheet) base = [40, 44];
-    else if (target.items.length) {
+    // On a page, under what is already written there (and onSheet keeps it on the page);
+    // at the top margin, it was laid straight over the page's first card.
+    if (target.sheet) {
+      const bottom = target.items.length
+        ? Math.max(...target.items.map((i) => i.at[1] + (i.size?.[1] ?? 180)))
+        : 28;
+      base = [40, Math.round(bottom + 16)];
+    } else if (target.items.length) {
       const right = Math.max(...target.items.map((i) => i.at[0] + (i.size?.[0] ?? 240)));
       const top = Math.min(...target.items.map((i) => i.at[1]));
       base = [Math.round(right + 80), Math.round(top)];
