@@ -691,9 +691,11 @@ export const PAGES = `/* ---- every page at once ----
   font-size: 10px;
   text-align: start;
   cursor: grab;
+  transition: translate 140ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 140ms;
 }
+.page-cell:hover { translate: 0 -4px; box-shadow: 0 5px 0 rgba(0, 0, 0, 0.35); }
 .page-cell[data-selected] { outline: 3px solid var(--accent); outline-offset: 2px; }
-.page-cell[aria-current='page'] { box-shadow: 0 0 0 3px var(--accent, #d23); translate: 0 -3px; }
+.page-cell[aria-current='page'], .page-cell[aria-current='page']:hover { box-shadow: 0 0 0 3px var(--accent, #d23); translate: 0 -3px; }
 .page-cell[aria-current='page'] .page-number::after { content: ' · open'; font-weight: 400; opacity: 0.6; }
 .page-cell .page-number { font-size: 15px; font-weight: 700; }
 .page-cell .page-hint { opacity: 0.55; }
