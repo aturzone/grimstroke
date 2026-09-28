@@ -94,8 +94,23 @@ The **profile** is you: a portrait you draw yourself in a 3:4 photo frame with t
 same pens, your name and a few words, on an ID card you can pin to a board, paste
 on a notebook's cover, or stick on as a portrait.
 
-**Search** covers every board, every notebook — archived ones too — and every
-the profile, and folds Persian spelling variants so a search finds what you meant.
+**Type anything** after `/` — "dinner friday 8pm", "۲۵ دقیقه تمرکز", "split 90 between
+3" — and it becomes a card you can tick, start, vote on and change by hand: an
+event, a checklist, a timer, a habit, a sum, a poll and a dozen more, in English
+or Persian. A small classifier inside the page decides which, with no network
+and no dependency, and every value on a card is computed, never guessed.
+
+A notebook can be **connected to a repository** on GitHub, GitLab or Gitea: its
+issues, merge requests, commits and pipelines become cards that stay up to date,
+and ticking one closes the issue.
+
+The **bookcase** is yours to arrange and decorate, and a pixel-art cat or dog
+lives on it. **Settings** keep the rest: corners and faces for each part of the
+workspace, small synthesised sounds and how much things move (with quiet hours),
+connections, backups.
+
+**Search** covers every board, every notebook — archived ones too — and the
+profile, and folds Persian spelling variants so a search finds what you meant.
 
 Every one of those is a patch operation, so an agent can do all of it over
 `POST /api/patch`, and all of it round-trips through the `.grimstroke` backup
