@@ -22,7 +22,7 @@ import { RepoSetup } from '~/app/book/repo.ts';
 import { bookShapes } from '~/app/book/shapes.ts';
 import { toast } from '~/app/chrome.ts';
 import { go, must, onClick, typing } from '~/app/dom.ts';
-import { play } from '~/app/feel.ts';
+import { appear, play, vanish } from '~/app/feel.ts';
 import { letterOf } from '~/app/keys.ts';
 import { Session } from '~/app/net.ts';
 import type { BookSpec, Leaf } from '~/draw/doc/book/model.ts';
@@ -685,7 +685,8 @@ export class BookApp {
   private togglePages(): void {
     const existing = document.querySelector('.pages-grid');
     if (existing) {
-      existing.remove();
+      play('close');
+      vanish(existing, () => existing.remove());
       return;
     }
     const grid = document.createElement('div');
@@ -761,6 +762,10 @@ export class BookApp {
     };
     draw();
     document.body.append(grid);
+    // The pages come in one after another, a sheaf being fanned out.
+    play('open');
+    for (const [n, cell] of [...grid.querySelectorAll('.page-cell')].entries())
+      appear(cell, Math.min(n, 30) * 16);
   }
 }
 
