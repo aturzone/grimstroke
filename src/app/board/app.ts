@@ -31,7 +31,7 @@ import { DRAWING, type Tool } from '~/app/board/tools.ts';
 import { type Point, View } from '~/app/board/view.ts';
 import { toast } from '~/app/chrome.ts';
 import { must, onClick, typing } from '~/app/dom.ts';
-import { appear, play, vanish } from '~/app/feel.ts';
+import { appear, play, slideFrom, vanish } from '~/app/feel.ts';
 import { letterOf } from '~/app/keys.ts';
 import { type PatchReply, Session } from '~/app/net.ts';
 import type { BoardItem, BoardSpec } from '~/draw/doc/board/model.ts';
@@ -350,7 +350,13 @@ export class BoardApp implements BoardContext {
     for (const place of reply.placed ?? []) {
       const element = this.element(place.id);
       if (!element || element.classList.contains('is-dragging')) continue;
+      // Moved by something other than this hand -- undo, a tidy, an agent: it slides there.
+      const was = element instanceof HTMLElement ? element.getBoundingClientRect() : undefined;
       this.place(element, place.at);
+      if (was && element instanceof HTMLElement) {
+        const now = element.getBoundingClientRect();
+        slideFrom(element, was.left - now.left, was.top - now.top);
+      }
       element.style.zIndex = String(place.z);
     }
     for (const change of reply.changed) {

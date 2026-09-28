@@ -203,6 +203,7 @@ export class Gestures {
         .filter((entry) => entry.from !== undefined);
       this.mode = 'move';
       play('lift', 0.7);
+      for (const entry of this.moving) this.ctx.element(entry.id)?.classList.add('is-lifted');
       return;
     }
 
@@ -291,6 +292,8 @@ export class Gestures {
         }
       }
     }
+    for (const el of this.ctx.board.querySelectorAll('.is-lifted'))
+      el.classList.remove('is-lifted');
     if (this.mode === 'draw' && this.stroke.length > 1) {
       this.commitStroke();
       play('pen', 0.8);

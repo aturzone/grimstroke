@@ -240,4 +240,13 @@ export const HANDLES = `/* ---- the frame and its grips ----
   .gs-grip { width: 20px; height: 20px; margin: -10px; }
   .gs-grip-turn { width: 24px; height: 24px; margin-left: -12px; top: -44px; }
 }
+
+/* Picked up: it rises off the paper, and its shadow -- hard, never blurred -- falls further away. */
+.item.is-lifted { scale: 1.015; filter: drop-shadow(6px 9px 0 rgb(20 17 14 / 0.28)); transition: scale 140ms cubic-bezier(0.2, 1.3, 0.35, 1), filter 140ms ease-out; z-index: 9990 !important; }
+/* The selection's own controls grow out of what is chosen. */
+.gs-selbar:not([hidden]) { animation: gs-rise 180ms cubic-bezier(0.2, 1.2, 0.35, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .item.is-lifted { scale: none; transition: none; }
+  .gs-selbar:not([hidden]) { animation: none; }
+}
 `;

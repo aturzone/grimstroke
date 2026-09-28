@@ -326,6 +326,7 @@ export function bump(el: Element): void {
  */
 export function bindFeel(): void {
   document.documentElement.dataset.motion = moving() ? feel.motion : 'none';
+  bindHighlights();
   document.addEventListener(
     'toggle',
     (event) => {
@@ -345,4 +346,95 @@ export function bindFeel(): void {
     );
     if (b) play('tap', 0.7);
   });
+}
+
+// ---------------------------------------------------------------- things moved
+
+/**
+ * A thing now somewhere else slides there from where it was (a FLIP: measure, move, then play
+ * the difference back). For moves the hand did not make -- undo, redo, a tidy, an agent -- which
+ * otherwise jump. `translate` is its own property, so a turned item keeps its turn.
+ */
+export function slideFrom(el: HTMLElement, dx: number, dy: number): void {
+  if (!moving() || (Math.abs(dx) < 1 && Math.abs(dy) < 1)) return;
+  if (Math.hypot(dx, dy) > 4000) return;
+  el.animate([{ translate: `${dx}px ${dy}px` }, { translate: '0 0' }], {
+    duration: feel.motion === 'calm' ? 160 : 320,
+    easing: SETTLE,
+    composite: 'add',
+  });
+}
+
+/**
+ * A choice made slides its highlight across: from the button that was chosen to the one that is
+ * now. A ghost the shape and colour of the new highlight travels from the old one's box to the
+ * new one's, and is gone when it lands.
+ */
+function slideHighlight(from: Element, to: Element): void {
+  if (!moving() || feel.motion === 'calm') return;
+  const a = from.getBoundingClientRect();
+  const b = to.getBoundingClientRect();
+  if (!a.width || !b.width || Math.hypot(a.left - b.left, a.top - b.top) > 900) return;
+  const cs = getComputedStyle(to);
+  const bg = cs.backgroundColor;
+  if (!bg || bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)') return;
+  const ghost = document.createElement('div');
+  ghost.setAttribute('aria-hidden', 'true');
+  Object.assign(ghost.style, {
+    position: 'fixed',
+    left: `${b.left}px`,
+    top: `${b.top}px`,
+    width: `${b.width}px`,
+    height: `${b.height}px`,
+    background: bg,
+    borderRadius: cs.borderRadius,
+    pointerEvents: 'none',
+    zIndex: '90',
+    transformOrigin: '0 0',
+    mixBlendMode: 'normal',
+  } satisfies Partial<CSSStyleDeclaration>);
+  document.body.append(ghost);
+  const sx = a.width / b.width;
+  const sy = a.height / b.height;
+  const anim = ghost.animate(
+    [
+      {
+        transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${sx}, ${sy})`,
+        opacity: 0.9,
+      },
+      { transform: 'none', opacity: 0.9, offset: 0.85 },
+      { transform: 'none', opacity: 0 },
+    ],
+    { duration: 260, easing: SETTLE },
+  );
+  anim.onfinish = () => ghost.remove();
+  anim.oncancel = () => ghost.remove();
+}
+
+const GROUPS =
+  '.gs-tray-tools, .st-nav, .gs-chip-row, .gs-drawer-tabs, .gs-places, .sc-row, .gs-decorate-swatches';
+
+/** Remember which sibling was chosen before a press, and slide from it after. */
+export function bindHighlights(): void {
+  document.addEventListener(
+    'pointerdown',
+    (event) => {
+      const b = (event.target as HTMLElement).closest<HTMLElement>('button, a');
+      const group = b?.closest(GROUPS);
+      if (!b || !group) return;
+      const before = group.querySelector('[aria-pressed="true"], [aria-current="page"]');
+      if (!before || before === b) return;
+      const check = (): void => {
+        if (
+          b.getAttribute('aria-pressed') === 'true' ||
+          b.getAttribute('aria-current') === 'page'
+        ) {
+          slideHighlight(before, b);
+        }
+      };
+      // After the click has done its work, whenever that is.
+      b.addEventListener('click', () => requestAnimationFrame(check), { once: true });
+    },
+    true,
+  );
 }
