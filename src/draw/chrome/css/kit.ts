@@ -35,9 +35,10 @@ export const TOKENS = `/* ---- the chrome's tokens ----
   --gs-s3: 12px;
   --gs-s4: 16px;
   --gs-s5: 24px;
-  --gs-t1: 10.5px;
-  --gs-t2: 12.5px;
-  --gs-t3: 14px;
+  /* The tools' type scale: small enough to step back, large enough to read at a glance. */
+  --gs-t1: 12px;
+  --gs-t2: 13.5px;
+  --gs-t3: 15px;
   --gs-t4: 18px;
   --gs-t5: 24px;
   --gs-control: 34px;

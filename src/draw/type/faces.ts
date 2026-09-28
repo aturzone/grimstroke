@@ -97,10 +97,14 @@ export function stack(role: Role, override: Roles = {}, direction: Direction = '
  * title, a label typed by a person -- never code -- so a Persian notebook title in a field must
  * not fall through to whatever the system has, with its own spacing.
  */
-export function uiFontFamily(override: Roles = {}, direction: Direction = 'ltr'): string {
-  const families = stack('mono', override, direction);
-  if (!families.includes(PERSIAN)) families.push(PERSIAN);
-  return [...families.map((f) => `'${f}'`), GENERIC.mono].join(', ');
+/**
+ * The face of the tools -- bars, menus, dialogs, settings. A clear sans, the system's own, with
+ * Estedad for Persian: the tools step back so the paper can speak, and a monospace interface read
+ * like a developer's console. A document's own faces are for its paper, not its tools; Settings
+ * can set any face for the tools of each section.
+ */
+export function uiFontFamily(_override: Roles = {}, _direction: Direction = 'ltr'): string {
+  return "system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, 'Helvetica Neue', Arial, 'Estedad', sans-serif";
 }
 
 /** The same stack as a CSS `font-family` value. */
