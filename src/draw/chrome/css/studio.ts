@@ -172,6 +172,9 @@ body.on-profile {
 .st-field { display: grid; gap: 4px; font-family: var(--ui-font); font-size: var(--gs-t1); color: var(--gs-soft); }
 .st-field .gs-field { margin: 0; height: 36px; }
 .st-check { display: flex; align-items: center; gap: 8px; font-family: var(--ui-font); font-size: var(--gs-t2); }
+.st-quiet { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 16px; }
+.st-quiet .st-check { flex: 1 0 100%; }
+.st-quiet select:disabled { opacity: 0.55; }
 .st-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .st-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; min-height: 40px; padding: 4px 0; border-block-end: 1px dashed var(--gs-faint); font-family: var(--ui-font); font-size: var(--gs-t2); }
 .st-row a { color: inherit; }

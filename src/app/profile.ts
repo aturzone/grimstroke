@@ -19,6 +19,7 @@ interface FeelSetting {
   sound: boolean;
   volume: number;
   motion: 'full' | 'calm' | 'none';
+  quiet?: { from: number; to: number } | undefined;
 }
 
 import { go, must, onClick, typing } from '~/app/dom.ts';
@@ -528,7 +529,18 @@ class ProfileEditor {
     const volume = document.querySelector<HTMLInputElement>('[data-gs="feel-volume"]');
     const out = document.querySelector<HTMLOutputElement>('[data-gs="feel-volume-value"]');
     const motion = document.querySelector<HTMLSelectElement>('[data-gs="feel-motion"]');
-    if (!sound || !volume || !motion) return;
+    const quiet = document.querySelector<HTMLInputElement>('[data-gs="feel-quiet"]');
+    const from = document.querySelector<HTMLSelectElement>('[data-gs="feel-quiet-from"]');
+    const to = document.querySelector<HTMLSelectElement>('[data-gs="feel-quiet-to"]');
+    if (!sound || !volume || !motion || !quiet || !from || !to) return;
+    quiet.checked = Boolean(feel.quiet);
+    from.value = String(feel.quiet?.from ?? 22);
+    to.value = String(feel.quiet?.to ?? 7);
+    const hours = (): void => {
+      from.disabled = !quiet.checked;
+      to.disabled = !quiet.checked;
+    };
+    hours();
     sound.checked = feel.sound;
     volume.value = String(Math.round(feel.volume * 100));
     if (out) out.value = `${volume.value}%`;
@@ -539,7 +551,12 @@ class ProfileEditor {
         sound: sound.checked,
         volume: Number(volume.value) / 100,
         motion: motion.value as FeelSetting['motion'],
+        quiet:
+          quiet.checked && from.value !== to.value
+            ? { from: Number(from.value), to: Number(to.value) }
+            : undefined,
       };
+      hours();
       setFeel(next);
       document.documentElement.dataset.motion = next.motion;
       if (out) out.value = `${volume.value}%`;
@@ -548,7 +565,8 @@ class ProfileEditor {
         void fetch('/api/look', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ feel: next }),
+          // null, not absent, is what turns the quiet hours off.
+          body: JSON.stringify({ feel: { ...next, quiet: next.quiet ?? null } }),
         });
       }, 250);
     };
@@ -556,6 +574,7 @@ class ProfileEditor {
     volume.addEventListener('input', save);
     volume.addEventListener('change', () => play('tick'));
     motion.addEventListener('change', save);
+    for (const el of [quiet, from, to]) el.addEventListener('change', save);
     document.querySelector('[data-gs="feel-try"]')?.addEventListener('click', () => {
       const tune: SoundName[] = ['lift', 'drop', 'pop', 'turn', 'tick', 'chime'];
       for (const [i, name] of tune.entries()) {

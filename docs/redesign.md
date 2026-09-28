@@ -75,7 +75,7 @@ torn edges, tape, hard shadows that never blur. What changes is everything aroun
   grows off the spread to be worked on and settles back into it; every page fans in; the bookcase
   reflows its books and objects.
 - [x] 2. A sound per material (note, sticker, picture, card, ink), notebook opening, repository
-  tick, undo; settings for sound, volume and motion. (Quiet hours: not yet.)
+  tick, undo; settings for sound, volume, motion and quiet hours.
 - [x] 3. The tools in a clear sans on a readable scale; faces per section in settings. (A full
   spacing pass and contrast table: not yet.)
 - [x] 4. The notebook's bar in three; the shelf counts what is in use and archived; every button

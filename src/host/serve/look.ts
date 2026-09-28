@@ -43,6 +43,11 @@ export interface Feel {
   volume: number;
   /** full: things arrive, settle and leave; calm: fades only; none: nothing moves. */
   motion: 'full' | 'calm' | 'none';
+  /**
+   * Hours of the day, on this computer's clock, when no sound is made: from the start of `from`
+   * to the start of `to`, across midnight when `to` is the smaller. Absent: never quiet.
+   */
+  quiet?: { from: number; to: number };
 }
 
 export const DEFAULT_FEEL: Readonly<Feel> = Object.freeze({
@@ -72,7 +77,26 @@ function readFeel(raw: unknown, fallback: Feel = DEFAULT_FEEL): Feel {
       f.motion === 'full' || f.motion === 'calm' || f.motion === 'none'
         ? f.motion
         : fallback.motion,
+    ...quietOf(f.quiet, fallback.quiet),
   };
+}
+
+function hour(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 23
+    ? value
+    : undefined;
+}
+
+/** Quiet hours as sent: an object of two whole hours, or null to turn them off. */
+function quietOf(raw: unknown, fallback: Feel['quiet']): Pick<Feel, 'quiet'> {
+  if (raw === null) return {};
+  if (raw === undefined) return fallback ? { quiet: fallback } : {};
+  const q = (typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  const from = hour(q.from);
+  const to = hour(q.to);
+  if (from === undefined || to === undefined || from === to)
+    return fallback ? { quiet: fallback } : {};
+  return { quiet: { from, to } };
 }
 
 function corners(value: unknown, fallback: number): number {

@@ -88,11 +88,13 @@ on the event stream.
 | `GET /api/look` | each section's look -- `board`, `notebook`, `settings` -- as `{ corners, ui?, text? }`, and the faces there are to choose from |
 | `POST /api/look` | `{ corners }` sets every section's corners at once; `{ board: { corners: 0 } }` one section; `{ notebook: { ui: 'Estedad', text: 'system serif' } }` its faces (`null` goes back to as designed) |
 
-`feel` is how working feels, everywhere: `{ sound: true|false, volume: 0..1, motion: 'full'|'calm'|'none' }`
+`feel` is how working feels, everywhere: `{ sound: true|false, volume: 0..1, motion: 'full'|'calm'|'none', quiet?: { from: 0..23, to: 0..23 } }`
 -- small synthesised sounds when a hand does something (paper lifted and set down, a page
 turned, a card placed, a box ticked, a timer done, the pet purring), and things that arrive,
 settle and leave. `POST /api/look { feel: { sound: false } }` turns the sounds off. No audio file
 is ever loaded; nothing plays before the page has been touched.
+`quiet` is the hours, on the browser's clock, when no sound is made -- across midnight when `to`
+is the smaller; send `quiet: null` to turn them off.
 
 `corners` is 0 (square) to 3 (very round); 1 is as designed. Below 1 the rounded things straighten;
 above 1 even the things drawn square round too, and the bars grow their padding to keep what is

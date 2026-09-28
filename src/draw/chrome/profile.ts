@@ -73,6 +73,14 @@ function swatch(gs: string, colour: string, pressed: boolean, label: string): st
   );
 }
 
+/** The hours of a day, for the quiet hours: 00:00 to 23:00. */
+function hourOptions(): string {
+  return Array.from(
+    { length: 24 },
+    (_, h) => `<option value="${h}">${String(h).padStart(2, '0')}:00</option>`,
+  ).join('');
+}
+
 export function renderProfilePage(
   profile: Profile,
   options: ProfilePageOptions = {},
@@ -303,6 +311,9 @@ function lookSection(): string {
     '<option value="full">things arrive, settle and leave</option>' +
     '<option value="calm">calm: fades only</option>' +
     '<option value="none">nothing moves</option></select></label>' +
+    '<div class="st-quiet"><label class="st-check"><input type="checkbox" data-gs="feel-quiet"> quiet hours</label>' +
+    `<label class="st-field"><span>from</span><select class="gs-field" data-gs="feel-quiet-from">${hourOptions()}</select></label>` +
+    `<label class="st-field"><span>until</span><select class="gs-field" data-gs="feel-quiet-to">${hourOptions()}</select></label></div>` +
     '<div class="gs-chip-row"><button type="button" class="gs-btn" data-gs="feel-try">hear it</button></div>' +
     '</section>' +
     '<section class="st-card gs-card st-sample" aria-hidden="true">' +

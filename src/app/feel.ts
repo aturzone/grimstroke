@@ -39,6 +39,7 @@ interface Feel {
   sound: boolean;
   volume: number;
   motion: 'full' | 'calm' | 'none';
+  quiet?: { from: number; to: number } | undefined;
 }
 
 let feel: Feel = { sound: true, volume: 0.5, motion: 'full' };
@@ -52,6 +53,7 @@ function readMeta(): void {
       sound: f.sound !== false,
       volume: typeof f.volume === 'number' ? Math.min(1, Math.max(0, f.volume)) : 0.5,
       motion: f.motion === 'calm' || f.motion === 'none' ? f.motion : 'full',
+      quiet: f.quiet,
     };
   } catch {
     // An unreadable setting keeps the defaults.
@@ -63,6 +65,14 @@ if (typeof document !== 'undefined') readMeta();
 /** Settings changed in this tab: take effect now, without a reload. */
 export function setFeel(next: Partial<Feel>): void {
   feel = { ...feel, ...next };
+}
+
+/** Inside the quiet hours, which may run across midnight. */
+export function hushed(now: number, quiet = feel.quiet): boolean {
+  if (!quiet) return false;
+  return quiet.from < quiet.to
+    ? now >= quiet.from && now < quiet.to
+    : now >= quiet.from || now < quiet.to;
 }
 
 export function moving(): boolean {
@@ -80,7 +90,9 @@ let unlocked = false;
 const last = new Map<SoundName, number>();
 
 function audio(): AudioContext | undefined {
-  if (!unlocked || !feel.sound || feel.volume <= 0) return undefined;
+  if (!unlocked || !feel.sound || feel.volume <= 0 || hushed(new Date().getHours())) {
+    return undefined;
+  }
   if (!context) {
     try {
       context = new AudioContext();
