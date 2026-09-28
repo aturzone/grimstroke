@@ -30,6 +30,18 @@ happened; small sounds for what a hand does; the tools set in one clear type.
   page.
 - The tools' inks are measured on every palette by a test: Carbon's quiet ink was 3.6:1, now 4.7:1.
 
+### Simpler, and at home on a phone
+- One value of corners now looks the same on every surface: at "soft" the board's small parts had
+  been turned into pills while settings' cards barely changed. The `/` cards and the `/` box are
+  drawn like the rest of the tools -- the same keyline, hard shadow and corners.
+- A sticky note's toolbar comes up under the pointer or when the note is chosen, not on every note
+  all the time.
+- Settings: one set of corners and faces for everywhere, each part on its own folded away.
+- On a phone: 40px targets everywhere; a tray of eight full-size tools, the marker and highlighter
+  waiting beside the inks while drawing; the top bar gives its room to the name, with export in
+  the menu and a page saying "12 / 40" once; a new note brings the camera in to write in it; a `/`
+  guess can be kept with a tap; the `/` button sits beside the page turner.
+
 ### Fixed
 - A timer that ran out while the page was shut no longer says "time is up" on every visit.
 - Settings sits centred on a wide screen, with one left edge in every card.
