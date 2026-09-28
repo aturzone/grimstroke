@@ -296,6 +296,9 @@ function lookSection(): string {
       )
       .join('')}</div>` +
     `<div class="st-faces">${faceSelect(id, 'ui', 'buttons and menus')}${id === 'settings' ? '' : faceSelect(id, 'text', 'text, where a document names none')}</div>` +
+    (id === 'all'
+      ? '<p class="pf-note">A board or a notebook can keep its own corners over these: a board in its menu, a notebook in its page setup. The bookcase, the books, torn paper, stickers and pixel art keep their own edges.</p>'
+      : '') +
     '</section>';
   return (
     // One set of choices for everything first; each part on its own only for whoever asks.
@@ -318,13 +321,6 @@ function lookSection(): string {
     `<label class="st-field"><span>from</span><select class="gs-field" data-gs="feel-quiet-from">${hourOptions()}</select></label>` +
     `<label class="st-field"><span>until</span><select class="gs-field" data-gs="feel-quiet-to">${hourOptions()}</select></label></div>` +
     '<div class="gs-chip-row"><button type="button" class="gs-btn gs-chip-btn" data-gs="feel-try">hear it</button></div>' +
-    '</section>' +
-    '<section class="st-card gs-card st-sample" aria-hidden="true">' +
-    heading('how it looks') +
-    '<div class="pf-corners-sample"><span class="gs-btn">button</span>' +
-    '<span class="gs-card pf-corners-card">card</span><span class="pf-corners-pill">tag</span></div>' +
-    '<p class="pf-note">A notebook or a board can keep its own corners: a notebook in its page setup, a board in its menu. ' +
-    'The bookcase and the books have their own look: the bookcase’s decorate panel, and a notebook’s cover. Torn paper, die-cut stickers and pixel art keep their edges.</p>' +
     '</section>'
   );
 }

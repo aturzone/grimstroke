@@ -149,9 +149,6 @@ body.on-profile {
 .pf-corners-row { display: flex; align-items: center; gap: 12px; }
 .pf-corners-range { flex: 1; accent-color: var(--gs-hot); }
 .pf-corners-value { min-width: 48px; font-family: var(--ui-font); font-variant-numeric: tabular-nums; text-align: end; }
-.pf-corners-sample { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-.pf-corners-card { padding: 10px 16px; }
-.pf-corners-pill { padding: 4px 12px; border: 1.5px solid var(--gs-line); border-radius: calc(999px * var(--round, 1)); font-family: var(--ui-font); font-size: var(--gs-t1); }
 
 /* ---- the settings ---- */
 .st-layout { display: grid; grid-template-columns: 220px minmax(0, 860px); justify-content: center; gap: 20px; align-items: start; padding: 84px 24px 40px; max-width: 1400px; margin: 0 auto; }
