@@ -337,11 +337,25 @@ export class ShelfApp {
         });
         continue;
       }
-      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
-      spine.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], {
-        duration: 380,
-        easing: 'cubic-bezier(0.2, 0.8, 0.25, 1)',
-      });
+      const slid = Math.abs(dx) >= 1 || Math.abs(dy) >= 1;
+      if (slid) {
+        spine.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], {
+          duration: 380,
+          easing: 'cubic-bezier(0.2, 0.8, 0.25, 1)',
+        });
+      }
+      // The book set down rocks once on its foot as it comes to rest.
+      if (from?.id === id) {
+        spine.animate(
+          [
+            { transform: 'rotate(0deg)', transformOrigin: '50% 100%' },
+            { transform: 'rotate(-2.4deg)', transformOrigin: '50% 100%', offset: 0.35 },
+            { transform: 'rotate(1.1deg)', transformOrigin: '50% 100%', offset: 0.7 },
+            { transform: 'rotate(0deg)', transformOrigin: '50% 100%' },
+          ],
+          { duration: 420, delay: slid ? 320 : 0, easing: 'ease-out', composite: 'add' },
+        );
+      }
     }
     const count = document.querySelector<HTMLElement>('[data-gs="trash-count"]');
     if (count) count.textContent = String(reply.trash);
@@ -351,9 +365,18 @@ export class ShelfApp {
     for (const id of [...this.selected]) if (!this.spine(id)) this.selected.delete(id);
     this.showSelection();
     this.pet.start(next);
-    const title = document.querySelector<HTMLElement>('.gs-top-title');
-    const n = next.querySelectorAll('.spine').length;
-    if (title) title.textContent = n === 1 ? 'one notebook' : `${n} notebooks`;
+    // The title says what is in use and what is put away, as the server first drew it.
+    const title = document.querySelector<HTMLElement>('[data-gs="title"]');
+    const all = next.querySelectorAll('.spine').length;
+    const archived = next.querySelectorAll('.spine[data-archived]').length;
+    if (title) {
+      title.textContent =
+        archived && archived < all
+          ? `${all - archived} in use · ${archived} archived`
+          : all === 1
+            ? 'one notebook'
+            : `${all} notebooks`;
+    }
   }
 
   async refresh(): Promise<void> {
