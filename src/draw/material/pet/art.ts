@@ -400,6 +400,17 @@ const FAR: Readonly<Record<string, string>> = {
 };
 
 /**
+ * The top of a leg, drawn in keys of its own: two rows that reach up into the body. A leg that
+ * stopped at the hip met the body only through the body's bottom outline, so whenever the body
+ * rose a pixel in its stride a dark line ran across the hip and the leg read as a stick held on
+ * underneath. A near leg's reach replaces that bottom outline with fur, and nothing else: never
+ * the outline where it turns up at the rump or the chest, never the body's own fur, never bare
+ * background. A far leg has none: it is behind the body, and meeting it at its outline is how
+ * that is said.
+ */
+const REACH: Readonly<Record<string, string>> = { '7': 'l', '8': 'f', '9': 'd' };
+
+/**
  * A dog's face: its fur drawn in keys of its own (1 2 3 for l f d), coloured the same, so that a
  * Dalmatian's spots keep off it -- at this size a spotted face reads as noise, or as extra eyes.
  */
@@ -417,10 +428,23 @@ function compose(name: string, swap: Readonly<Record<string, string>>): Grid {
     const under = compose(inc.name, swap);
     for (let y = 0; y < PET_H; y++) {
       for (let x = 0; x < PET_W; x++) {
-        const c = under[y]?.[x] ?? '.';
+        let c = under[y]?.[x] ?? '.';
         const row = g[y + inc.dy];
         const tx = x + inc.dx;
         if (c === '.' || !row || tx < 0 || tx >= PET_W) continue;
+        const ext = REACH[c];
+        if (ext) {
+          // A leg's top, reaching up into the body (see REACH): it joins the leg to the body.
+          const here = row[tx] ?? '.';
+          const above = g[y + inc.dy - 1]?.[tx] ?? '.';
+          const fur = (k: string): boolean => k !== '.' && k !== 'o';
+          // The body's bottom outline, and only that: fur above it, outline running on both
+          // sides -- not a corner of the rump or the chest, where the outline turns up.
+          const bottomEdge =
+            here === 'o' && fur(above) && row[tx - 1] !== '.' && row[tx + 1] !== '.';
+          if (inc.far || !bottomEdge) continue;
+          c = ext;
+        }
         row[tx] = inc.far ? (FAR[c] ?? c) : c;
       }
     }
@@ -447,6 +471,7 @@ const PRICKED: Readonly<Record<string, string>> = {
   dhappy: 'dhappyU',
   dup: 'dupU',
   dtailflat: 'dtailflatU',
+  dtongue: 'dtongueU',
   // Walking, running, bowing and eating, the tail stays curled over the back; sitting, on the haunch.
   dtw0: 'dstailU',
   dtw1: 'dstailU',

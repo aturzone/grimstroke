@@ -333,36 +333,41 @@ oqqqoffddwwwwo.
 == dgsh x=3 y=26
 ggggggggggggggggggggggggg
 
-== dheadU x=6 y=3
-...o..............o...
-..oLo............oLo..
-..oLvo..........ovLo..
-.oLvvFo........oFvvLo.
-.oLLLLooooooooooLLLFo.
-..olllllllllllllllfo..
-...olwwllllllllwwfo...
-...owwwullllllulwwo...
-...owwwellllllelwwo...
-...owwwwwwwwwwwwwwo...
-....owwwwwnnwwwwwo....
-....owwwwwnnwwwwdo....
-....ofwwwwwwwwwwdo....
-.....odwwwmmwwwddo....
-......oowwwwwwwoo.....
+== dtongueU x=5 y=16
+.........orro.........
+.........orro.........
+..........oo..........
+
+== dheadU x=5 y=3
+..oLLo..........oLLo..
+..oLtLo........oLtLo..
+..oLttLo......oLttLo..
+..oLttLLooooooLLttLo..
+..oLLLLLLLwwLLLLLLLo..
+.oLLLLLLLwwwwLLLLLLLo.
+.oLLwwwLLwwwwLLwwwLLo.
+.oLwwuuwlwwwwlwuuwwLo.
+.owwweewlwwwwlweewwwo.
+.owwwwwwwwwwwwwwwwwwo.
+..ovwwwwwwwwwwwwwwvo..
+...ovwwwwwnnwwwwwvo...
+....owwwwwwwwwwwwo....
+.....owmwwwwwwmwo.....
+......oooooooooo......
 
 == dsheadU x=17 y=5
-...oo.........
-..otto........
-..otFoooo.....
-..oLLLLLLoo...
-.oLLLLLLLLLoo.
-.olllllllulloo
-ollllllllewwwoo
-offllllllwwwwno
-offdllllwwwwwno
-odddffddwwwwo..
-.oodffdmmmoo...
-..oooooooooo...
+..oo...........
+.oLLo..........
+.oLtLoooo......
+oLLtLLLLLoo....
+oLLLLLLLLLLo...
+oLlllllluwlo...
+oLllllllewwoooo
+olllllllwwwwwno
+offlllwwwwwwwno
+.offdwwwwmmmoo.
+..oooowwwwoo...
+......oooo.....
 
 == dstailU x=2 y=5
 ..oooo..
@@ -555,22 +560,22 @@ oPo..opo
 .........l....
 ........oo....
 
-== dhalfU x=6 y=10
-.......d......d.......
-.......o......o.......
+== dhalfU x=5 y=10
+.....oo........oo.....
+.....ee........ee.....
 
-== dshutU x=6 y=10
-.......w......w.......
-......oo......oo......
+== dshutU x=5 y=10
+.....ww........ww.....
+.....oo........oo.....
 
-== dhappyU x=6 y=10
-.......o......o.......
-......owo....owo......
+== dhappyU x=5 y=10
+.....oo........oo.....
+....owwo......owwo....
 
-== dupU x=6 y=9
-.......u......u.......
-.......e......e.......
-.......w......w.......
+== dupU x=5 y=9
+.....uu........uu.....
+.....ee........ee.....
+.....ww........ww.....
 
 == legReach
 # The play bow: rear up on long hind legs, chest down, the forearms lying forward on the ground in
@@ -815,6 +820,8 @@ odffffffffffffdo
 ..oooooo...ooooo
 
 == cf0
+.78....
+.78....
 olfo...
 olfo...
 .olfo..
@@ -824,6 +831,8 @@ olfo...
 ..ooooo
 
 == cf1
+.78...
+.78...
 olfo..
 olfo..
 olfo..
@@ -833,6 +842,8 @@ olfo..
 .ooooo
 
 == cf2
+.78..
+.78..
 olfo.
 olfo.
 olfo.
@@ -842,6 +853,8 @@ oaaao
 ooooo
 
 == cf3
+...78.
+...78.
 ..olfo
 .olfo.
 .olfo.
@@ -851,6 +864,8 @@ oaaao.
 ooooo.
 
 == cf4
+...78.
+...78.
 ..olfo
 ..olfo
 .olfo.
@@ -859,6 +874,8 @@ oaao..
 .ooo..
 
 == cf5
+..78..
+..78..
 .olfo.
 .olfo.
 .olffo
@@ -866,6 +883,8 @@ oaao..
 ..oooo
 
 == cf6
+.78....
+.78....
 olfo...
 .olfo..
 ..olffo
@@ -873,6 +892,8 @@ olfo...
 ...oooo
 
 == cf7
+.78....
+.78....
 olfo...
 olfo...
 .olfo..
@@ -881,6 +902,8 @@ olfo...
 ..ooooo
 
 == ch0
+.7788...
+.7788...
 ollffo..
 .ollffo.
 ..olffo.
@@ -890,6 +913,8 @@ ollffo..
 ...ooooo
 
 == ch1
+.7788..
+.7788..
 ollffo.
 ollffo.
 .olffo.
@@ -899,6 +924,8 @@ ollffo.
 ..ooooo
 
 == ch2
+.7788..
+.7788..
 ollffo.
 ollffo.
 .olffo.
@@ -908,6 +935,8 @@ ollffo.
 .ooooo.
 
 == ch3
+..7788.
+..7788.
 .ollffo
 .ollffo
 .olffo.
@@ -917,6 +946,8 @@ oaaao..
 ooooo..
 
 == ch4
+..7788.
+..7788.
 .ollffo
 .ollffo
 olffo..
@@ -924,6 +955,8 @@ oaao...
 oooo...
 
 == ch5
+.7788..
+.7788..
 ollffo.
 ollffo.
 .olffo.
@@ -931,6 +964,8 @@ ollffo.
 .ooooo.
 
 == ch6
+.7788...
+.7788...
 ollffo..
 .olffoo.
 ..olfffo
@@ -938,6 +973,8 @@ ollffo..
 ...ooooo
 
 == ch7
+.7788...
+.7788...
 ollffo..
 .ollffo.
 ..olffo.
@@ -989,86 +1026,88 @@ ollffo..
 
 == cat.walk.0
 @gsh
-@cf4~ 16 19
-@ch0~ 5 19
-@ctw0
-@ctorso
-@ch4 5 19
-@cf0 16 19
+@cf4~ 16 17
+@ch0~ 5 17
+@ctw0 0 0
+@ctorso 0 0
+@ch4 5 17
+@cf0 16 17
 @chead 0 -2
 
 == cat.walk.1
 @gsh
-@cf5~ 16 19
-@ch1~ 5 19
+@cf5~ 16 17
+@ch1~ 5 17
 @ctw0 0 1
 @ctorso 0 1
-@ch5 5 19
-@cf1 16 19
+@ch5 5 17
+@cf1 16 17
 @chead 0 -1
 
 == cat.walk.2
 @gsh
-@cf6~ 16 19
-@ch2~ 5 19
-@ctw1
-@ctorso
-@ch6 5 19
-@cf2 16 19
-@chead 0 0
+@cf6~ 16 17
+@ch2~ 5 17
+@ctw1 0 0
+@ctorso 0 0
+@ch6 5 17
+@cf2 16 17
+@chead 0 -1
 
 == cat.walk.3
 @gsh
-@cf7~ 16 19
-@ch3~ 5 19
-@ctw1 0 -1
-@ctorso 0 -1
-@ch7 5 19
-@cf3 16 19
-@chead 0 -1
+@cf7~ 16 17
+@ch3~ 5 17
+@ctw1 0 0
+@ctorso 0 0
+@ch7 5 17
+@cf3 16 17
+@chead 0 -2
 
 == cat.walk.4
 @gsh
-@cf0~ 16 19
-@ch4~ 5 19
-@ctw0
-@ctorso
-@ch0 5 19
-@cf4 16 19
+@cf0~ 16 17
+@ch4~ 5 17
+@ctw0 0 0
+@ctorso 0 0
+@ch0 5 17
+@cf4 16 17
 @chead 0 -2
 
 == cat.walk.5
 @gsh
-@cf1~ 16 19
-@ch5~ 5 19
+@cf1~ 16 17
+@ch5~ 5 17
 @ctw2 0 1
 @ctorso 0 1
-@ch1 5 19
-@cf5 16 19
+@ch1 5 17
+@cf5 16 17
 @chead 0 -1
 
 == cat.walk.6
 @gsh
-@cf2~ 16 19
-@ch6~ 5 19
-@ctw2
-@ctorso
-@ch2 5 19
-@cf6 16 19
-@chead 0 0
+@cf2~ 16 17
+@ch6~ 5 17
+@ctw2 0 0
+@ctorso 0 0
+@ch2 5 17
+@cf6 16 17
+@chead 0 -1
 
 == cat.walk.7
 @gsh
-@cf3~ 16 19
-@ch7~ 5 19
-@ctw0 0 -1
-@ctorso 0 -1
-@ch3 5 19
-@cf7 16 19
-@chead 0 -1
+@cf3~ 16 17
+@ch7~ 5 17
+@ctw0 0 0
+@ctorso 0 0
+@ch3 5 17
+@cf7 16 17
+@chead 0 -2
 
 == crx
 # ---------------- run (gallop)
+.78.....
+.78.....
 olfo....
 .olffo..
 ...olfoo
@@ -1076,12 +1115,16 @@ olfo....
 ....oooo
 
 == crt
+..78.
+..78.
 .olfo
 olfo.
 oaao.
 ooo..
 
 == chx
+...7788.
+...7788.
 ..ollffo
 .olffo..
 olfo....
@@ -1089,6 +1132,8 @@ oaao....
 oooo....
 
 == cht
+.7788...
+.7788...
 ollffo..
 .olfffoo
 ...oaaao
@@ -1114,93 +1159,93 @@ oPpoo....
 
 == cat.run.0
 @gsh
-@crx~ 15 18
-@chx~ 5 18
+@crx~ 15 16
+@chx~ 5 16
 @crtail 0 -1
 @ctorso 0 -1
-@chx 3 18
-@crx 17 18
+@chx 3 16
+@crx 17 16
 @chead 0 -2
 
 == cat.run.1
 @gsh
-@cf1~ 15 19
-@chx~ 5 18
+@cf1~ 15 17
+@chx~ 5 16
 @crtail
 @ctorso
-@chx 3 18
-@cf0 17 19
+@chx 3 16
+@cf0 17 17
 @chead 0 -1
 
 == cat.run.2
 @gsh
-@cf2~ 15 19
-@cht~ 7 18
+@cf2~ 15 17
+@cht~ 7 16
 @crtail 0 1
 @ctorsoA 0 1
-@cht 6 18
-@cf3 16 19
+@cht 6 16
+@cf3 16 17
 @chead 0 0
 
 == cat.run.3
 @gsh
-@crt~ 14 18
-@cht~ 8 17
+@crt~ 14 16
+@cht~ 8 15
 @crtail 0 -1
 @ctorsoA 0 -1
-@cht 7 17
-@crt 15 18
+@cht 7 15
+@crt 15 16
 @chead 0 -2
 
 == cat.run.4
 @gsh
-@crx~ 16 18
-@ch0~ 6 19
+@crx~ 16 16
+@ch0~ 6 17
 @crtail
 @ctorso
-@ch0 4 19
-@crx 18 18
+@ch0 4 17
+@crx 18 16
 @chead 0 -1
 
 == cat.run.5
 @gsh
-@crx~ 16 17
-@ch3~ 5 19
+@crx~ 16 15
+@ch3~ 5 17
 @crtail 0 -1
 @ctorso 0 -1
-@ch3 3 19
-@crx 18 17
+@ch3 3 17
+@crx 18 15
 @chead 0 -2
 
 == cat.stand.0
 # ---------------- stand (side idle)
 @gsh
-@cf1~ 17 19
-@ch1~ 6 19
+@cf1~ 17 17
+@ch1~ 6 17
 @ctw0
 @ctorso
-@ch2 5 19
-@cf2 16 19
+@ch2 5 17
+@cf2 16 17
 @chead 0 -1
 
 == cat.stand.1
 @gsh
-@cf1~ 17 19
-@ch1~ 6 19
+@cf1~ 17 17
+@ch1~ 6 17
 @ctw1
 @ctorso
-@ch2 5 19
-@cf2 16 19
+@ch2 5 17
+@cf2 16 17
 @chead 0 -1
 
 == cat.stand.2
 @gsh
-@cf1~ 17 19
-@ch1~ 6 19
+@cf1~ 17 17
+@ch1~ 6 17
 @ctw2
 @ctorso
-@ch2 5 19
-@cf2 16 19
+@ch2 5 17
+@cf2 16 17
 @chead 0 -1
 @chalf 0 -1
 
@@ -1233,10 +1278,10 @@ opo.....
 
 == c_sitside0
 @gsh
-@cf2~ 18 19
+@cf2~ 18 17
 @csitT
 @csitB
-@cf2 16 19
+@cf2 16 17
 @chead 0 -4
 
 == c_turn0
@@ -1257,21 +1302,21 @@ odfffffffffffffffo
 
 == c_bow0
 @gsh
-@ch2~ 7 19
+@ch2~ 7 17
 @legReach~ 17 22
 @ctw1 1 1
 @cbow2
-@ch2 5 19
+@ch2 5 17
 @legReach 20 22
 @chead 0 5
 
 == c_bow1
 @gsh
-@ch2~ 7 19
+@ch2~ 7 17
 @legReach~ 17 22
 @ctw2 1 1
 @cbow2
-@ch2 5 19
+@ch2 5 17
 @legReach 20 22
 @chead 0 6
 @chalf 0 6
@@ -1287,24 +1332,24 @@ dffffffflo
 
 == cat.eat.0
 @gsh
-@cf1~ 17 19
-@ch1~ 6 19
+@cf1~ 17 17
+@ch1~ 6 17
 @ctw0
 @ctorso
 @cneck
-@ch2 5 19
-@cf2 16 19
+@ch2 5 17
+@cf2 16 17
 @chead 2 5
 
 == cat.eat.1
 @gsh
-@cf1~ 17 19
-@ch1~ 6 19
+@cf1~ 17 17
+@ch1~ 6 17
 @ctw1
 @ctorso
 @cneck
-@ch2 5 19
-@cf2 16 19
+@ch2 5 17
+@cf2 16 17
 @chead 2 6
 @cshut 2 6
 
@@ -1316,60 +1361,60 @@ dffffffflo
 == cat.crouch.0
 # ---------------- the jump: settle, wiggle, spring, fly, land on the forepaws, recover
 @gsh
-@cf5~ 17 21
-@ch5~ 6 21
+@cf5~ 17 19
+@ch5~ 6 19
 @crtail 0 2
 @ctorso 0 3
-@ch5 5 21
-@cf5 16 21
+@ch5 5 19
+@cf5 16 19
 @chead 0 3
 
 == cat.crouch.1
 @gsh
-@cf5~ 17 21
-@ch5~ 6 21
+@cf5~ 17 19
+@ch5~ 6 19
 @crtail 1 3
 @ctorso 0 4
-@ch5 4 21
-@cf5 16 21
+@ch5 4 19
+@cf5 16 19
 @chead 0 4
 
 == cat.leap.0
-@chx~ 5 16
-@crx~ 16 14
+@chx~ 5 14
+@crx~ 16 12
 @crtail 0 -3
 @ctorso 0 -3
-@chx 3 16
-@crx 18 14
+@chx 3 14
+@crx 18 12
 @chead 0 -4
 
 == cat.leap.1
-@chx~ 4 15
-@crx~ 17 13
+@chx~ 4 13
+@crx~ 17 11
 @crtail -1 -4
 @ctorso 0 -4
-@chx 2 15
-@crx 19 13
+@chx 2 13
+@crx 19 11
 @chead 0 -5
 
 == cat.land.0
 @gsh
-@cht~ 8 18
-@cf1~ 17 20
+@cht~ 8 16
+@cf1~ 17 18
 @crtail 0 1
 @ctorsoA 0 3
-@cht 7 18
-@cf1 16 20
+@cht 7 16
+@cf1 16 18
 @chead 0 2
 
 == cat.land.1
 @gsh
-@cf1~ 17 19
-@ch1~ 6 19
+@cf1~ 17 17
+@ch1~ 6 17
 @crtail 0 1
 @ctorso 0 1
-@ch1 5 19
-@cf1 16 19
+@ch1 5 17
+@cf1 16 17
 @chead 0 0
 
 == c_loafshut0
@@ -1455,6 +1500,8 @@ odffffffffffffffffo.
 ...........oooooooo.
 
 == df0
+.788....
+.788....
 olffo...
 olffo...
 .olffo..
@@ -1464,6 +1511,8 @@ olffo...
 ..oooooo
 
 == df1
+.788...
+.788...
 olffo..
 olffo..
 olffo..
@@ -1473,6 +1522,8 @@ olffo..
 .oooooo
 
 == df2
+.788..
+.788..
 olffo.
 olffo.
 olffo.
@@ -1482,6 +1533,8 @@ oaaaao
 oooooo
 
 == df3
+...788.
+...788.
 ..olffo
 .olffo.
 .olffo.
@@ -1491,6 +1544,8 @@ oaaaao.
 oooooo.
 
 == df4
+...788.
+...788.
 ..olffo
 ..olffo
 .olffo.
@@ -1499,6 +1554,8 @@ oaaao..
 .oooo..
 
 == df5
+..788..
+..788..
 .olffo.
 .olffo.
 .olfffo
@@ -1506,6 +1563,8 @@ oaaao..
 ..ooooo
 
 == df6
+.788....
+.788....
 olffo...
 .olffo..
 ..olfffo
@@ -1513,6 +1572,8 @@ olffo...
 ...ooooo
 
 == df7
+.788....
+.788....
 olffo...
 olffo...
 .olffo..
@@ -1521,6 +1582,8 @@ olffo...
 ..oooooo
 
 == dh0
+.77888...
+.77888...
 ollfffo..
 .ollfffo.
 ..olfffo.
@@ -1530,6 +1593,8 @@ ollfffo..
 ...oooooo
 
 == dh1
+.77888..
+.77888..
 ollfffo.
 ollfffo.
 .olfffo.
@@ -1539,6 +1604,8 @@ ollfffo.
 ..oooooo
 
 == dh2
+.77888..
+.77888..
 ollfffo.
 ollfffo.
 .olfffo.
@@ -1548,6 +1615,8 @@ ollfffo.
 .oooooo.
 
 == dh3
+..77888.
+..77888.
 .ollfffo
 .ollfffo
 .olfffo.
@@ -1557,6 +1626,8 @@ oaaaao..
 oooooo..
 
 == dh4
+..77888.
+..77888.
 .ollfffo
 .ollfffo
 olfffo..
@@ -1564,6 +1635,8 @@ oaaao...
 ooooo...
 
 == dh5
+.77888..
+.77888..
 ollfffo.
 ollfffo.
 .olfffo.
@@ -1571,6 +1644,8 @@ ollfffo.
 .oooooo.
 
 == dh6
+.77888...
+.77888...
 ollfffo..
 .olfffoo.
 ..olffffo
@@ -1578,6 +1653,8 @@ ollfffo..
 ...oooooo
 
 == dh7
+.77888...
+.77888...
 ollfffo..
 .ollfffo.
 ..olfffo.
@@ -1623,86 +1700,88 @@ oPpo...
 
 == dog.walk.0
 @dgsh
-@df4~ 16 19
-@dh0~ 4 19
+@df4~ 16 17
+@dh0~ 4 17
 @dtw0 0 0
 @dtorso 0 0
-@dh4 4 19
-@df0 16 19
+@dh4 4 17
+@df0 16 17
 @dshead 0 -2
 
 == dog.walk.1
 @dgsh
-@df5~ 16 19
-@dh1~ 4 19
+@df5~ 16 17
+@dh1~ 4 17
 @dtw0 0 1
 @dtorso 0 1
-@dh5 4 19
-@df1 16 19
+@dh5 4 17
+@df1 16 17
 @dshead 0 -1
 
 == dog.walk.2
 @dgsh
-@df6~ 16 19
-@dh2~ 4 19
+@df6~ 16 17
+@dh2~ 4 17
 @dtw1 0 0
 @dtorso 0 0
-@dh6 4 19
-@df2 16 19
-@dshead 0 0
+@dh6 4 17
+@df2 16 17
+@dshead 0 -1
 
 == dog.walk.3
 @dgsh
-@df7~ 16 19
-@dh3~ 4 19
-@dtw1 0 -1
-@dtorso 0 -1
-@dh7 4 19
-@df3 16 19
-@dshead 0 -1
+@df7~ 16 17
+@dh3~ 4 17
+@dtw1 0 0
+@dtorso 0 0
+@dh7 4 17
+@df3 16 17
+@dshead 0 -2
 
 == dog.walk.4
 @dgsh
-@df0~ 16 19
-@dh4~ 4 19
+@df0~ 16 17
+@dh4~ 4 17
 @dtw0 0 0
 @dtorso 0 0
-@dh0 4 19
-@df4 16 19
+@dh0 4 17
+@df4 16 17
 @dshead 0 -2
 
 == dog.walk.5
 @dgsh
-@df1~ 16 19
-@dh5~ 4 19
+@df1~ 16 17
+@dh5~ 4 17
 @dtw2 0 1
 @dtorso 0 1
-@dh1 4 19
-@df5 16 19
+@dh1 4 17
+@df5 16 17
 @dshead 0 -1
 
 == dog.walk.6
 @dgsh
-@df2~ 16 19
-@dh6~ 4 19
+@df2~ 16 17
+@dh6~ 4 17
 @dtw2 0 0
 @dtorso 0 0
-@dh2 4 19
-@df6 16 19
-@dshead 0 0
+@dh2 4 17
+@df6 16 17
+@dshead 0 -1
 
 == dog.walk.7
 @dgsh
-@df3~ 16 19
-@dh7~ 4 19
-@dtw0 0 -1
-@dtorso 0 -1
-@dh3 4 19
-@df7 16 19
-@dshead 0 -1
+@df3~ 16 17
+@dh7~ 4 17
+@dtw0 0 0
+@dtorso 0 0
+@dh3 4 17
+@df7 16 17
+@dshead 0 -2
 
 == drx
 # ---------------- run (gallop)
+.788.....
+.788.....
 olffo....
 .olfffo..
 ...olffoo
@@ -1710,12 +1789,16 @@ olffo....
 ....ooooo
 
 == drt
+..788.
+..788.
 .olffo
 olffo.
 oaaao.
 oooo..
 
 == dhx
+...77888.
+...77888.
 ..ollfffo
 .olfffo..
 olffo....
@@ -1723,6 +1806,8 @@ oaaao....
 ooooo....
 
 == dht
+.77888...
+.77888...
 ollfffo..
 .olffffoo
 ...oaaaao
@@ -1738,93 +1823,93 @@ oPPpoo....
 
 == dog.run.0
 @dgsh
-@drx~ 15 18
-@dhx~ 4 18
+@drx~ 15 16
+@dhx~ 4 16
 @drtail 0 -1
 @dtorso 0 -1
-@dhx 2 18
-@drx 17 18
+@dhx 2 16
+@drx 17 16
 @dshead 0 -2
 
 == dog.run.1
 @dgsh
-@df1~ 15 19
-@dhx~ 4 18
+@df1~ 15 17
+@dhx~ 4 16
 @drtail 0 0
 @dtorso 0 0
-@dhx 2 18
-@df0 17 19
+@dhx 2 16
+@df0 17 17
 @dshead 0 -1
 
 == dog.run.2
 @dgsh
-@df2~ 15 19
-@dht~ 6 18
+@df2~ 15 17
+@dht~ 6 16
 @drtail 0 1
 @dtorsoA 0 1
-@dht 5 18
-@df3 16 19
+@dht 5 16
+@df3 16 17
 @dshead 0 0
 
 == dog.run.3
 @dgsh
-@drt~ 14 18
-@dht~ 7 17
+@drt~ 14 16
+@dht~ 7 15
 @drtail 0 -1
 @dtorsoA 0 -1
-@dht 6 17
-@drt 15 18
+@dht 6 15
+@drt 15 16
 @dshead 0 -2
 
 == dog.run.4
 @dgsh
-@drx~ 16 18
-@dh0~ 5 19
+@drx~ 16 16
+@dh0~ 5 17
 @drtail 0 0
 @dtorso 0 0
-@dh0 3 19
-@drx 18 18
+@dh0 3 17
+@drx 18 16
 @dshead 0 -1
 
 == dog.run.5
 @dgsh
-@drx~ 16 17
-@dh3~ 4 19
+@drx~ 16 15
+@dh3~ 4 17
 @drtail 0 -1
 @dtorso 0 -1
-@dh3 2 19
-@drx 18 17
+@dh3 2 17
+@drx 18 15
 @dshead 0 -2
 
 == dog.stand.0
 # ---------------- stand (side idle)
 @dgsh
-@df1~ 17 19
-@dh1~ 5 19
+@df1~ 17 17
+@dh1~ 5 17
 @dtw0 0 0
 @dtorso 0 0
-@dh2 4 19
-@df2 16 19
+@dh2 4 17
+@df2 16 17
 @dshead 0 -1
 
 == dog.stand.1
 @dgsh
-@df1~ 17 19
-@dh1~ 5 19
+@df1~ 17 17
+@dh1~ 5 17
 @dtw1 0 0
 @dtorso 0 0
-@dh2 4 19
-@df2 16 19
+@dh2 4 17
+@df2 16 17
 @dshead 0 -1
 
 == dog.stand.2
 @dgsh
-@df1~ 17 19
-@dh1~ 5 19
+@df1~ 17 17
+@dh1~ 5 17
 @dtw2 0 0
 @dtorso 0 0
-@dh2 4 19
-@df2 16 19
+@dh2 4 17
+@df2 16 17
 @dshead 0 -1
 @dsshut 0 -1
 
@@ -1841,29 +1926,29 @@ opo.....
 
 == d_sitside0
 @dgsh
-@df2~ 18 19
+@df2~ 18 17
 @dsitT 0 0
 @dsitB 0 0
-@df2 16 19
+@df2 16 17
 @dshead 0 -4
 
 == d_bow0
 @dgsh
-@dh2~ 6 19
+@dh2~ 6 17
 @dReach~ 17 22
 @dtw1 1 1
 @dbow2 0 0
-@dh2 4 19
+@dh2 4 17
 @dReach 20 22
 @dshead 0 5
 
 == d_bow1
 @dgsh
-@dh2~ 6 19
+@dh2~ 6 17
 @dReach~ 17 22
 @dtw2 1 1
 @dbow2 0 0
-@dh2 4 19
+@dh2 4 17
 @dReach 20 22
 @dshead 0 6
 @dsshut 0 6
@@ -1871,84 +1956,84 @@ opo.....
 == dog.eat.0
 # ---------------- eating: the neck runs down from the shoulder into the lowered head
 @dgsh
-@df1~ 17 19
-@dh1~ 5 19
+@df1~ 17 17
+@dh1~ 5 17
 @dtw0 0 0
 @dtorso 0 0
 @dneck 0 0
-@dh2 4 19
-@df2 16 19
+@dh2 4 17
+@df2 16 17
 @dshead 2 5
 
 == dog.eat.1
 @dgsh
-@df1~ 17 19
-@dh1~ 5 19
+@df1~ 17 17
+@dh1~ 5 17
 @dtw1 0 0
 @dtorso 0 0
 @dneck 0 0
-@dh2 4 19
-@df2 16 19
+@dh2 4 17
+@df2 16 17
 @dshead 2 6
 @dsshut 2 6
 
 == dog.crouch.0
 # ---------------- eyes shut, side-on
 @dgsh
-@df5~ 17 21
-@dh5~ 5 21
+@df5~ 17 19
+@dh5~ 5 19
 @drtail 0 2
 @dtorso 0 3
-@dh5 4 21
-@df5 16 21
+@dh5 4 19
+@df5 16 19
 @dshead 0 3
 
 == dog.crouch.1
 @dgsh
-@df5~ 17 21
-@dh5~ 5 21
+@df5~ 17 19
+@dh5~ 5 19
 @drtail 1 3
 @dtorso 0 4
-@dh5 3 21
-@df5 16 21
+@dh5 3 19
+@df5 16 19
 @dshead 0 4
 
 == dog.leap.0
-@dhx~ 4 16
-@drx~ 16 14
+@dhx~ 4 14
+@drx~ 16 12
 @drtail 0 -3
 @dtorso 0 -3
-@dhx 2 16
-@drx 18 14
+@dhx 2 14
+@drx 18 12
 @dshead 0 -4
 
 == dog.leap.1
-@dhx~ 3 15
-@drx~ 17 13
+@dhx~ 3 13
+@drx~ 17 11
 @drtail -1 -4
 @dtorso 0 -4
-@dhx 1 15
-@drx 19 13
+@dhx 1 13
+@drx 19 11
 @dshead 0 -5
 
 == dog.land.0
 @dgsh
-@dht~ 7 18
-@df1~ 17 20
+@dht~ 7 16
+@df1~ 17 18
 @drtail 0 3
 @dtorsoA 0 3
-@dht 6 18
-@df1 16 20
+@dht 6 16
+@df1 16 18
 @dshead 0 2
 
 == dog.land.1
 @dgsh
-@df1~ 17 19
-@dh1~ 5 19
+@df1~ 17 17
+@dh1~ 5 17
 @drtail 0 1
 @dtorso 0 1
-@dh1 4 19
-@df1 16 19
+@dh1 4 17
+@df1 16 17
 @dshead 0 0
 
 == d_turn0

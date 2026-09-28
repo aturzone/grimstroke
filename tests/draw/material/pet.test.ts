@@ -388,4 +388,86 @@ describe('the poses that used to break', () => {
       expect(inside).toEqual([]);
     }
   });
+  it('draws every frame of every pose, in every coat, as one body: strictly 4-connected', () => {
+    // The z's of sleep and a heart are glyphs over the pet, not part of it.
+    const body = (g: string[][]) =>
+      g.map((row) => row.map((k) => (k === 'z' || k === 'h' || k === 'H' ? '.' : k)));
+    const loose: string[] = [];
+    for (const c of COATS) {
+      for (const pose of POSES) {
+        for (let n = 0; n < PET_FRAMES[pose].count; n++) {
+          if (pieces(body(petFrame(c.species, c, pose, n))) !== 1)
+            loose.push(`${c.id} ${pose}.${n}`);
+        }
+      }
+    }
+    expect(loose).toEqual([]);
+  });
+
+  /** The top of the back: the highest pixel over the middle of the body, side on. */
+  const backTop = (g: string[][]): number => {
+    for (let y = 0; y < PET_H; y++) for (let x = 11; x <= 15; x++) if (g[y]?.[x] !== '.') return y;
+    return PET_H;
+  };
+
+  it('keeps a walking body on its legs: fur from the body to the paw, never a line across the hip', () => {
+    const broken: string[] = [];
+    for (const c of COATS) {
+      const frames = Array.from({ length: PET_FRAMES.walk.count }, (_, n) =>
+        petFrame(c.species, c, 'walk', n),
+      );
+      const standing = backTop(frames[0] as string[][]);
+      frames.forEach((g, n) => {
+        const top = backTop(g);
+        // It dips at each step and never rises above standing: rising, it lifted off its legs.
+        if (top < standing) broken.push(`${c.id} walk.${n} rises`);
+        // Somewhere under the hip and somewhere under the shoulder, one column of fur runs from
+        // inside the body down to the paw with no outline across it: the near leg is part of the body.
+        for (const [from, to, where] of [
+          [5, 12, 'hip'],
+          [15, 23, 'shoulder'],
+        ] as const) {
+          // A path through fur (never an outline) from inside the body down toward the paw,
+          // which may step sideways as a leg slants.
+          const fur = (x: number, y: number): boolean => {
+            const k = g[y]?.[x] ?? '.';
+            return k !== '.' && k !== 'o';
+          };
+          let front = new Set<number>();
+          for (let x = from; x <= to; x++) if (fur(x, top + 3)) front.add(x);
+          for (let y = top + 4; y <= PET_GROUND - 4 && front.size; y++) {
+            const next = new Set<number>();
+            for (const x of front)
+              for (const nx of [x - 1, x, x + 1])
+                if ((fur(nx, y) && fur(nx, y - 1)) || (nx === x && fur(nx, y))) next.add(nx);
+            front = next;
+          }
+          const joined = front.size > 0;
+          if (!joined) broken.push(`${c.id} walk.${n} ${where}`);
+        }
+      });
+    }
+    expect(broken).toEqual([]);
+  });
+
+  it('carries the head with the body as it walks: a pixel of lag at most, never a jump', () => {
+    const headTop = (g: string[][]): number => {
+      for (let y = 0; y < PET_H; y++)
+        for (let x = 22; x < PET_W; x++) if (g[y]?.[x] !== '.') return y;
+      return PET_H;
+    };
+    const jumps: string[] = [];
+    for (const c of COATS) {
+      const rel = Array.from({ length: PET_FRAMES.walk.count }, (_, n) => {
+        const g = petFrame(c.species, c, 'walk', n);
+        return headTop(g) - backTop(g);
+      });
+      rel.forEach((r, n) => {
+        const next = rel[(n + 1) % rel.length] as number;
+        if (Math.abs(next - r) > 1)
+          jumps.push(`${c.id} walk.${n}->${(n + 1) % rel.length}: ${r} to ${next}`);
+      });
+    }
+    expect(jumps).toEqual([]);
+  });
 });
