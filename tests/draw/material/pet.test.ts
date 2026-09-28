@@ -252,4 +252,53 @@ describe('the poses that used to break', () => {
       expect(spots(spotted)).toBeGreaterThan(4);
     }
   });
+
+  it('sleeps with its ears laid flat and its head tucked, where a loaf holds its head up', () => {
+    // The highest pixel over the head's columns: the ear tips in a loaf, the laid-back head asleep.
+    const top = (pose: 'loaf' | 'sleep') => {
+      const ys = filled(petFrame('cat', coat('ginger'), pose, 0))
+        .filter(([x, y]) => x >= 24 && x <= 27 && y > 11)
+        .map(([, y]) => y);
+      return Math.min(...ys);
+    };
+    expect(top('sleep') - top('loaf')).toBeGreaterThanOrEqual(4);
+  });
+
+  it("gives a Siamese's ears its points, and every other cat pink ones", () => {
+    const siamese = coat('siamese');
+    expect(colourOf(siamese, 't')).toBe(siamese.second?.[1]);
+    expect(colourOf(coat('ginger'), 't')).toBe('#f0a0a8');
+  });
+
+  it('crouches to spring: rump up, head down low, belly off the ground', () => {
+    for (const id of ['golden', 'husky']) {
+      const walk = petFrame('dog', coat(id), 'walk', 0);
+      const crouch = petFrame('dog', coat(id), 'crouch', 0);
+      const topOf = (g: string[][], x0: number, x1: number) =>
+        Math.min(
+          ...filled(g)
+            .filter(([x]) => x >= x0 && x <= x1)
+            .map(([, y]) => y),
+        );
+      // The head, seven rows lower than it walks.
+      expect(topOf(crouch, 24, 30) - topOf(walk, 24, 30)).toBeGreaterThanOrEqual(6);
+      // The rump, higher than the head: the back slopes down to it.
+      expect(topOf(crouch, 3, 10)).toBeLessThan(topOf(crouch, 24, 30));
+      // A gap under the belly, between the hind paw and the forepaws.
+      expect(crouch[24]?.slice(13, 18).every((k) => k === '.')).toBe(true);
+    }
+  });
+
+  it("shades a sleeping dog's back as one arc, with no outline drawn across it", () => {
+    for (const id of ['golden', 'dalmatian']) {
+      const g = petFrame('dog', coat(id), 'sleep', 0);
+      // An outline pixel with fur on all four sides is a line drawn inside the body.
+      const inside = filled(g).filter(([x, y]) => {
+        if (g[y]?.[x] !== 'o' || x > 16) return false;
+        const fur = (k: string | undefined) => k !== undefined && k !== '.' && k !== 'o';
+        return fur(g[y - 1]?.[x]) && fur(g[y + 1]?.[x]) && fur(g[y]?.[x - 1]) && fur(g[y]?.[x + 1]);
+      });
+      expect(inside).toEqual([]);
+    }
+  });
 });
