@@ -386,7 +386,7 @@ function petSection(pet: Pet): string {
       `${c.species === pet.species ? '' : ' hidden'}><canvas width="48" height="40"></canvas><span>${escapeHtml(c.label)}</span></button>`,
   ).join('');
   return (
-    '<section class="pf-pet gs-card" aria-label="your pet">' +
+    '<section class="pf-pet st-card gs-card" aria-label="your pet">' +
     heading('your pet') +
     '<div class="pf-pet-stage"><canvas data-gs="pet-preview" width="48" height="40" aria-hidden="true"></canvas></div>' +
     `<div class="gs-chip-row pf-pet-row" role="group" aria-label="cat or dog">${species}` +

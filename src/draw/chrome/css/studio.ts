@@ -132,17 +132,18 @@ body.on-profile {
   body.on-profile { padding-block-start: 64px; }
 }
 /* ---- your pet ---- */
-.pf-pet { display: grid; gap: 8px; padding-block-end: 12px; }
-.pf-pet-stage { display: grid; place-items: center; height: 104px; margin: 0 12px; background: repeating-linear-gradient(0deg, #6e4a2c 0 3px, #7a5230 3px 14px); border-radius: var(--gs-radius); }
+/* A settings card like the others: its padding is the card's, so the parts inside have none. */
+.pf-pet { display: grid; gap: 10px; }
+.pf-pet-stage { display: grid; place-items: center; height: 104px; margin: 0; background: repeating-linear-gradient(0deg, #6e4a2c 0 3px, #7a5230 3px 14px); border-radius: var(--gs-radius); }
 .pf-pet-stage canvas { width: 144px; height: 120px; image-rendering: pixelated; margin-block-start: -24px; }
-.pf-pet-row { padding: 0 12px; align-items: center; }
+.pf-pet-row { padding: 0; align-items: center; }
 .pf-pet-on { margin-inline-start: auto; font-size: var(--gs-t2); display: flex; gap: 6px; align-items: center; }
-.pf-coats { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; padding: 0 12px; }
+.pf-coats { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; padding: 0; }
 .pf-coat { display: grid; justify-items: center; gap: 2px; padding: 4px 2px; border: 1.5px solid var(--gs-faint); border-radius: var(--gs-radius); background: var(--gs-paper); cursor: pointer; font: inherit; font-size: var(--gs-t1); color: var(--gs-soft); }
 .pf-coat[hidden] { display: none; }
 .pf-coat canvas { width: 96px; height: 80px; image-rendering: pixelated; }
 .pf-coat[aria-pressed='true'] { border-color: var(--gs-ink); box-shadow: 2px 2px 0 var(--gs-line); color: var(--gs-ink); }
-.pf-pet .pf-field, .pf-pet .pf-note { padding-inline: 12px; }
+.pf-pet .pf-field, .pf-pet .pf-note { padding-inline: 0; }
 
 /* ---- the corners slider ---- */
 .pf-corners-row { display: flex; align-items: center; gap: 12px; }
