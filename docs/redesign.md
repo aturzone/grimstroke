@@ -73,8 +73,8 @@ torn edges, tape, hard shadows that never blur. What changes is everything aroun
 - [x] 1. Things moved by anything but the hand slide there; picked-up things lift; choices slide
   their highlight; the selection bar grows in; a card flies from the island to its place; a page
   grows off the spread to be worked on and settles back into it; every page fans in; the bookcase
-  reflows its books and objects; going between the board, the notebooks and the settings fades
-  one surface into the next under a top bar that stays put.
+  reflows its books and objects; going between the board, the notebooks and the settings, the
+  place's highlight slides over before the next surface fades up.
 - [x] 2. A sound per material (note, sticker, picture, card, ink), notebook opening, repository
   tick, undo; settings for sound, volume, motion and quiet hours.
 - [x] 3. The tools in a clear sans on a readable scale; faces per section in settings; the tools'

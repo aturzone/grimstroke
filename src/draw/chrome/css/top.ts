@@ -13,8 +13,6 @@ export const TOP = `/* ---- the top ----
    things you can do on the right. The row itself takes no pointer, so the board under the
    gaps between the cards is still the board. */
 .gs-top {
-  /* Held still while the rest of the surface changes, where a browser crosses pages itself. */
-  view-transition-name: gs-top;
   position: fixed;
   inset-block-start: 14px;
   inset-inline: 14px;

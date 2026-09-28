@@ -5,6 +5,8 @@
  * start accumulating here they become one.
  */
 
+import { leavingFor } from '~/app/feel.ts';
+
 /** The element, or a loud failure naming what the page was missing. */
 export function must<T extends Element>(selector: string): T {
   const found = document.querySelector<T>(selector);
@@ -40,15 +42,16 @@ export function typing(target: EventTarget | null): boolean {
  * move from the board to the shelf reads as one place changing, not a page being thrown away
  * and a blank one put up.
  */
-export function go(href: string): void {
+export function go(href: string, from: HTMLAnchorElement | null = null): void {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
     window.location.href = href;
     return;
   }
+  const longer = leavingFor(from);
   document.documentElement.toggleAttribute('data-gs-leaving', true);
   window.setTimeout(() => {
     window.location.href = href;
-  }, 150);
+  }, 150 + longer);
 }
 
 /**
@@ -65,7 +68,7 @@ export function smoothLinks(): void {
     if (url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
     if (url.pathname === location.pathname && url.search === location.search) return;
     event.preventDefault();
-    go(url.href);
+    go(url.href, a);
   });
   // Back from the history cache: the page comes back as it was left, faded. Undo that.
   window.addEventListener('pageshow', () =>

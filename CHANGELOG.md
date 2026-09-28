@@ -11,8 +11,8 @@ happened; small sounds for what a hand does; the tools set in one clear type.
 - A card flies from the `/` box to its place; a card sent to another page is followed there.
 - Every page fans in and folds away; a page opened to work on comes up off the spread to meet you
   and settles back into it after.
-- Going between the board, the notebooks and the settings fades one surface into the next under a
-  top bar that stays put.
+- Going between the board, the notebooks and the settings, the place's highlight slides over to
+  the one you chose as the next surface fades up.
 - The bookcase reflows its books and objects; a book set down rocks once on its foot.
 
 ### Sound
