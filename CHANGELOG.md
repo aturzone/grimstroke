@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.5.0 — 2026-09-28
+
+A calendar, light and dark, and pages with an edge.
+
+- **Calendar**: the day page is a calendar -- a month from Saturday with each day's Solar Hijri
+  date and a mark of how full it was and how much was done; any day opens to what it held, and a
+  habit kept on a day gone by is kept on that day.
+- **Light and dark**: Light (the studio blue) and Dark, the same blue on a dark room, are the
+  defaults; settings chooses between them for everything without a template of its own, and the
+  tools go dark with it. Every palette's paper, ink and accent can be changed, and colours that
+  cannot be read are refused.
+- **Notebook pages have an edge**: nothing can be left off a page -- a drag, an agent or a move
+  lands inside it, and what was lost off an edge comes back. "Send it somewhere else" goes from
+  any surface to the board or any page of any notebook, landing under what is there.
+- An event marked done on the calendar can be taken back on its card; the phone's top bar looks
+  as it does on a desk.
+- **A login**, for a workspace served beyond this computer: a name and a password, the password
+  kept only as a hash.
+
 ## 0.4.0 — 2026-09-28
 
 The day, and a notebook that follows your theme.
