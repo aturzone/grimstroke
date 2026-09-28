@@ -24,8 +24,8 @@ write for them.
 - [x] `/today`: gathered from every card on every board and page -- now, today, every day,
   slipped past, open lists, this week -- with tick, done and keep-a-habit in a tap.
 - [x] `GET /api/today` for agents; `POST /api/today/act`.
-- [ ] The day as the phone's first screen: a phone opening `/` lands on the day, with the board a
-  tap away.
+- [x] The day as the phone's first screen: the first opening of the day on a phone lands on the
+  day, with the board a tap away (once a day, only arriving from outside, only at `/`).
 - [ ] Type from the day: the `/` box on the day page itself, putting the card on today's page of
   a "days" notebook (below) instead of sending the person to the board.
 - [ ] Evening: "how the day went" -- what was kept, what moves to tomorrow in one tap.

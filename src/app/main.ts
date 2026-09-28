@@ -18,7 +18,28 @@ import { bootShelf } from '~/app/shelf/index.ts';
 import { bootToday } from '~/app/today.ts';
 import { startWelcome } from '~/app/welcome.ts';
 
+/**
+ * On a phone, the first opening of the day is the day: the board is a tap away, but a morning
+ * starts with what is on. Once a day, only when arriving from outside, and only on the board's
+ * own address -- a link to a board or a page goes where it says.
+ */
+function morning(): boolean {
+  if (location.pathname !== '/' || location.search || window.innerWidth > 520) return false;
+  if (document.referrer && new URL(document.referrer).origin === location.origin) return false;
+  const d = new Date();
+  const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  try {
+    if (localStorage.getItem('gs-day-opened') === key) return false;
+    localStorage.setItem('gs-day-opened', key);
+  } catch {
+    return false;
+  }
+  location.replace('/today');
+  return true;
+}
+
 async function boot(): Promise<void> {
+  if (!navigator.webdriver && morning()) return;
   bootChrome();
   bindFeel();
   document.addEventListener('click', (event) => {
