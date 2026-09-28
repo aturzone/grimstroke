@@ -185,6 +185,27 @@ the right-hand page, or the one on show on a phone -- under what is on it; a ful
 to the other page, then to the next empty one. Controls on a card work on the spread as they do
 on its page.
 
+## The day
+
+`GET /today` is the page a person opens in the morning; `GET /api/today` is the same day as
+data, for an agent planning around it. Both read every card on every board and on every page
+of a notebook in use:
+
+| key | what |
+|---|---|
+| `date` | the day, `YYYY-MM-DD`, local |
+| `now` | timers running, with `endsAt` (epoch ms) |
+| `today` | events, reminders and countdowns falling today, by time |
+| `habits` | habits due today, with `done` for kept |
+| `overdue` | reminders whose day has gone by and are not done |
+| `lists` | checklists not finished, with their `items` |
+| `soon` | what falls in the next seven days |
+
+Each entry carries `address` (a board id or `book:<id>:<page>`), the item `id`, a `title` and
+`where` it lives. `POST /api/today/act { address, id, act, index? }` does what the card itself
+would: `tick` a checklist item, mark a reminder or event `done`, keep a `habit` today. It
+answers with the day page's markup, drawn again.
+
 ## Moving things between surfaces
 
 `POST /api/items/move` with `{ "from": "<address>", "to": "<address>", "ids": [...] }` takes the

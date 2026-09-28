@@ -36,6 +36,7 @@ import { PORTRAIT, PROFILE } from '~/draw/material/profile/css.ts';
 import { REMOTE } from '~/draw/material/remote/css.ts';
 import { STICKER } from '~/draw/material/sticker/css.ts';
 import { SHAPE } from '~/draw/shape/css.ts';
+import { TODAY } from '~/draw/today/css.ts';
 
 /** Layout, written in logical properties so a page mirrors with no branch. */
 export const BASE = [RESET, PAGE_LAYOUT, BLOCKS, PLATE, CODE, MOUNT].join('');
@@ -72,6 +73,7 @@ export const LIVE = [
   SETTINGS,
   EDITOR,
   SHAPE_BAR,
+  TODAY,
   SCREEN,
   PRINT,
 ].join('');
@@ -120,6 +122,7 @@ export const PIECES: Readonly<Record<string, string>> = {
   SETTINGS,
   EDITOR,
   SHAPE_BAR,
+  TODAY,
   SCREEN,
   PRINT,
   SCRIPT,

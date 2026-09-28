@@ -34,6 +34,7 @@ import {
 import { Live } from '~/host/serve/live.ts';
 import { pages } from '~/host/serve/pages.ts';
 import { keepFresh, oauthCallback, remoteApi } from '~/host/serve/remote.ts';
+import { today } from '~/host/serve/today.ts';
 import { Store } from '~/host/store/store.ts';
 
 export interface ServeOptions {
@@ -117,6 +118,7 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
 
     const ask: Ask = { req, res, url, path, board: options.board ?? 'workspace' };
     if (await pages(ask, live)) return;
+    if (await today(ask, live, ['/app.js'])) return;
     if (await remoteApi(ask, live)) return;
     if (await api(ask, live)) return;
     send(res, 404, { error: 'no such thing here' });

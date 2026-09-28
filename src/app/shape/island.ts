@@ -97,6 +97,13 @@ export class ShapeIsland {
     for (const b of document.querySelectorAll<HTMLElement>('[data-gs="shape-open"]')) {
       b.addEventListener('click', () => this.open());
     }
+    // Arriving from the day page's "type something": the box is open and waiting.
+    const url = new URL(location.href);
+    if (url.searchParams.has('type')) {
+      url.searchParams.delete('type');
+      history.replaceState(history.state, '', url);
+      window.setTimeout(() => this.open(), 350);
+    }
     // A card's controls.
     this.host.surface.addEventListener('click', (event) => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.sc-act');

@@ -14,14 +14,15 @@ import { icon } from '~/draw/chrome/icons.ts';
 import { item, kbd, menu, RULE } from '~/draw/chrome/parts.ts';
 import { escapeHtml } from '~/draw/type/text.ts';
 
-export type Place = 'board' | 'shelf' | 'profile';
+export type Place = 'today' | 'board' | 'shelf' | 'profile';
 
 const PLACES: ReadonlyArray<{
   place: Place;
   href: string;
   text: string;
-  icon: 'board' | 'book' | 'settings';
+  icon: 'today' | 'board' | 'book' | 'settings';
 }> = [
+  { place: 'today', href: '/today', text: 'today', icon: 'today' },
   { place: 'board', href: '/', text: 'board', icon: 'board' },
   { place: 'shelf', href: '/shelf', text: 'notebooks', icon: 'book' },
   { place: 'profile', href: '/settings', text: 'settings', icon: 'settings' },

@@ -15,6 +15,7 @@ import { bindFeel } from '~/app/feel.ts';
 import { bootPrint } from '~/app/print.ts';
 import { bootProfile } from '~/app/profile.ts';
 import { bootShelf } from '~/app/shelf/index.ts';
+import { bootToday } from '~/app/today.ts';
 import { startWelcome } from '~/app/welcome.ts';
 
 async function boot(): Promise<void> {
@@ -31,6 +32,7 @@ async function boot(): Promise<void> {
   });
   smoothLinks();
   if (bootPrint()) return;
+  if (bootToday()) return;
   if (bootShelf()) return;
   const profile = bootProfile();
   if (profile) {
