@@ -13,7 +13,11 @@ interface Step {
   target: string;
   title: string;
   body: string;
+  /** Where to point instead when the target is folded away, as the places are on a phone. */
+  folded?: { target: string; note: string };
 }
+
+const IN_MENU = { target: '[data-gs="more"]', note: ' Here it is in the ⋯ menu.' };
 
 const STEPS: Step[] = [
   {
@@ -30,11 +34,13 @@ const STEPS: Step[] = [
     target: '[data-gs="place-shelf"]',
     title: 'Your notebooks',
     body: 'A bookcase of notebooks, each with pages to write on, a cover to make, and a repository to connect.',
+    folded: IN_MENU,
   },
   {
     target: '[data-gs="place-profile"]',
     title: 'Make it yours',
     body: 'Settings: your profile, a pet for the bookcase, corners and faces, sound and motion, connections, backups.',
+    folded: IN_MENU,
   },
 ];
 
@@ -103,8 +109,16 @@ export function startWelcome(force = false): void {
   };
   const show = (): void => {
     const step = steps[at] as Step;
-    const el = document.querySelector<HTMLElement>(step.target);
-    const r = el?.getBoundingClientRect();
+    const shown = (sel: string): DOMRect | undefined => {
+      const box = document.querySelector<HTMLElement>(sel)?.getBoundingClientRect();
+      return box?.width ? box : undefined;
+    };
+    let r = shown(step.target);
+    let body = step.body;
+    if (!r && step.folded) {
+      r = shown(step.folded.target);
+      body += step.folded.note;
+    }
     if (!r) {
       go(1);
       return;
@@ -125,7 +139,7 @@ export function startWelcome(force = false): void {
       `<button type="button" class="gs-btn gs-btn-primary" data-w="next">${at === steps.length - 1 ? 'start' : 'next'}</button>` +
       '</div>';
     (card.querySelector('.gs-welcome-title') as HTMLElement).textContent = step.title;
-    (card.querySelector('.gs-welcome-body') as HTMLElement).textContent = step.body;
+    (card.querySelector('.gs-welcome-body') as HTMLElement).textContent = body;
     card.querySelector('[data-w="skip"]')?.addEventListener('click', end);
     card.querySelector('[data-w="back"]')?.addEventListener('click', () => go(-1));
     card.querySelector('[data-w="next"]')?.addEventListener('click', () => go(1));
