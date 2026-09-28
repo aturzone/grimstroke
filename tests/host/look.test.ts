@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { hushed } from '~/app/feel.ts';
-import { DEFAULT_LOOK, readLook } from '~/host/serve/look.ts';
+import { DEFAULT_LOOK, readLook, withLook } from '~/host/serve/look.ts';
 
 describe('quiet hours', () => {
   it('are kept only as two different whole hours', () => {
@@ -27,5 +27,14 @@ describe('quiet hours', () => {
     const lunch = { from: 12, to: 14 };
     expect([11, 12, 13, 14].map((h) => hushed(h, lunch))).toEqual([false, true, true, false]);
     expect(hushed(3, undefined)).toBe(false);
+  });
+});
+
+describe('motion on the page', () => {
+  it('is said on the root before the script runs, when it is not full', () => {
+    const page = '<!doctype html><html lang="en"><head></head><body></body></html>';
+    const calm = readLook({ feel: { motion: 'none' } });
+    expect(withLook(page, calm, 'board')).toContain('<html data-motion="none" lang="en">');
+    expect(withLook(page, DEFAULT_LOOK, 'board')).toContain('<html lang="en">');
   });
 });

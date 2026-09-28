@@ -180,7 +180,12 @@ export function withLook(html: string, look: Look, section: Section, ownFonts = 
   if (l.ui) vars.push(`--ui-font:${FONT_CHOICES[l.ui]}`);
   if (l.text && !ownFonts) vars.push(`--body-font:${FONT_CHOICES[l.text]}`);
   const style = vars.length ? `<style id="gs-look">:root{${vars.join(';')}}</style>` : '';
-  return html.includes('</head>')
+  const withHead = html.includes('</head>')
     ? html.replace('</head>', `${meta}${style}</head>`)
     : meta + style + html;
+  // Said on the root before anything paints, so "nothing moves" holds for the arrival too, not
+  // only once the script has read the setting.
+  return look.feel.motion === 'full'
+    ? withHead
+    : withHead.replace(/<html(?=[\s>])/, `<html data-motion="${look.feel.motion}"`);
 }
