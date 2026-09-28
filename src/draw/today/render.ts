@@ -120,6 +120,16 @@ export function renderTodayMain(data: TodayData, now: Date): string {
     ),
   );
 
+  // Yesterday, as a record: kept or not, nothing to do about it here but know.
+  const record = data.yesterday.map((e) =>
+    row(
+      `<span class="td-mark${e.done ? ' is-kept' : ''}" aria-label="${e.done ? 'kept' : 'not kept'}">${e.done ? icon('check') : '–'}</span>`,
+      `<b class="td-title" dir="auto">${esc(e.title)}</b>${e.kind !== 'habit' && e.hasTime && e.when ? `<span class="td-meta">${esc(time(e.when))}</span>` : ''}${where(e)}`,
+      '',
+      false,
+    ),
+  );
+  const kept = data.yesterday.filter((e) => e.done).length;
   const nothing =
     !running.length &&
     !today.length &&
@@ -128,13 +138,18 @@ export function renderTodayMain(data: TodayData, now: Date): string {
     !lists.length &&
     !soon.length;
   return (
-    `<header class="td-hello"><p class="td-greet">${esc(hello)}</p><h1 class="td-date">${esc(date)}</h1></header>` +
+    `<header class="td-hello"><p class="td-greet">${esc(hello)}</p><h1 class="td-date">${esc(date)}</h1>` +
+    // Shown by app/remind.ts only while the browser has not been asked yet.
+    '<button type="button" class="gs-btn gs-chip-btn td-remind" data-gs="remind-on" hidden>remind me on this computer</button></header>' +
     section('now', running, 'td-now') +
     section('today', today) +
     section('every day', habits) +
     section('slipped past', overdue, 'td-overdue') +
     section('open lists', lists) +
     section('this week', soon) +
+    (record.length
+      ? `<details class="td-card gs-card td-yesterday"><summary class="td-head">yesterday · ${kept} of ${record.length} kept</summary><ul class="td-list">${record.join('')}</ul></details>`
+      : '') +
     (nothing
       ? '<section class="td-card gs-card td-empty"><h2 class="td-head">a clear day</h2>' +
         '<p>Nothing is planned yet. On the board, press / and write what is coming -- ' +

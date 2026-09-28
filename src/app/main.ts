@@ -14,6 +14,7 @@ import { smoothLinks } from '~/app/dom.ts';
 import { bindFeel } from '~/app/feel.ts';
 import { bootPrint } from '~/app/print.ts';
 import { bootProfile } from '~/app/profile.ts';
+import { bootReminders } from '~/app/remind.ts';
 import { bootShelf } from '~/app/shelf/index.ts';
 import { bootToday } from '~/app/today.ts';
 import { startWelcome } from '~/app/welcome.ts';
@@ -42,6 +43,7 @@ async function boot(): Promise<void> {
   if (!navigator.webdriver && morning()) return;
   bootChrome();
   bindFeel();
+  bootReminders();
   document.addEventListener('click', (event) => {
     if ((event.target as HTMLElement).closest('[data-gs="tour-open"]')) {
       if (!document.querySelector('[data-gs="board"]')) {

@@ -120,3 +120,36 @@ describe('where a row goes', () => {
     ]);
   });
 });
+
+describe('yesterday', () => {
+  it('keeps a record of what was kept, only for habits that already existed', () => {
+    const now = new Date(2026, 8, 28, 9);
+    const old = new Date(2026, 8, 20, 9).toISOString();
+    const fresh = new Date(2026, 8, 28, 8).toISOString();
+    const habit = (id: string, made: string, log: string[]) =>
+      ({
+        id,
+        at: [0, 0],
+        block: { kind: 'shape', intent: 'habit', text: 'walk every day', made, state: { log } },
+      }) as never;
+    const day = gatherToday(
+      [
+        {
+          address: 'w',
+          title: 'w',
+          href: '/',
+          items: [
+            habit('kept', old, ['2026-09-27']),
+            habit('missed', old, []),
+            habit('new', fresh, []),
+          ],
+        },
+      ],
+      now,
+    );
+    expect(day.yesterday.map((e) => [e.id, e.done])).toEqual([
+      ['kept', true],
+      ['missed', false],
+    ]);
+  });
+});

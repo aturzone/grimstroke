@@ -59,6 +59,14 @@ body.on-today { margin: 0; min-height: 100vh; background: color-mix(in oklab, va
 .td-item { display: flex; align-items: center; gap: 12px; min-height: 44px; font-size: var(--gs-t3); }
 .td-more { padding-inline-start: 48px; color: var(--gs-soft); font-size: var(--gs-t1); }
 .td-overdue .td-head { color: color-mix(in oklab, var(--gs-hot) 70%, var(--gs-ink)); }
+.td-yesterday > summary { cursor: pointer; list-style: none; margin: 0; }
+.td-yesterday > summary::-webkit-details-marker { display: none; }
+.td-yesterday[open] > summary { margin-block-end: 6px; }
+.td-mark { display: grid; place-items: center; width: 28px; height: 28px; color: var(--gs-soft); font-weight: 700; }
+.td-mark.is-kept { color: var(--gs-ink); }
+.td-mark .gs-icon { width: 18px; height: 18px; }
+.td-remind { justify-self: start; margin-block-start: 8px; }
+.td-remind[hidden] { display: none; }
 .td-empty p { margin: 4px 0 8px; color: var(--gs-soft); line-height: 1.55; }
 .td-add { display: flex; justify-content: center; margin: 6px 0 0; }
 .td-add .gs-btn { height: 48px; padding: 0 18px; }

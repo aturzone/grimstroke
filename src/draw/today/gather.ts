@@ -54,6 +54,8 @@ export interface TodayData {
   overdue: TodayEntry[];
   lists: TodayEntry[];
   soon: TodayEntry[];
+  /** What yesterday held, kept or not: a day's record does not vanish at midnight. */
+  yesterday: TodayEntry[];
 }
 
 /** YYYY-MM-DD in local time: the key a habit's log is kept in. */
@@ -81,8 +83,11 @@ export function gatherToday(sources: readonly TodaySource[], now: Date): TodayDa
     overdue: [],
     lists: [],
     soon: [],
+    yesterday: [],
   };
   const today = startOfDay(now);
+  const yesterday = today - DAY;
+  const before = new Date(yesterday);
   const tomorrow = today + DAY;
   const week = today + 8 * DAY;
   for (const source of sources) {
@@ -133,6 +138,7 @@ export function gatherToday(sources: readonly TodaySource[], now: Date): TodayDa
             when: at.toISOString(),
             hasTime: d.hasTime,
           };
+          if (t >= yesterday && t < today) out.yesterday.push(entry);
           if (t >= today && t < tomorrow) out.today.push(entry);
           else if (t >= tomorrow && t < week) out.soon.push(entry);
           else if (t < today && block.intent === 'reminder' && !entry.done) out.overdue.push(entry);
@@ -155,6 +161,15 @@ export function gatherToday(sources: readonly TodaySource[], now: Date): TodayDa
         }
         case 'habit': {
           const d = readShape('habit', block.text, made, s);
+          // Only a habit that already existed yesterday can have been kept or missed then.
+          if (made.getTime() < today && (d.days.length === 0 || d.days.includes(before.getDay()))) {
+            out.yesterday.push({
+              ...base,
+              kind: 'habit',
+              title: d.title || shorten(block.text),
+              done: (s.log ?? []).includes(dayKey(before)),
+            });
+          }
           const due = d.days.length === 0 || d.days.includes(now.getDay());
           if (!due) break;
           out.habits.push({
@@ -189,6 +204,9 @@ export function gatherToday(sources: readonly TodaySource[], now: Date): TodayDa
   out.today.sort(byWhen);
   out.soon.sort(byWhen);
   out.overdue.sort(byWhen);
+  out.yesterday.sort(
+    (a, b) => Number(a.kind === 'habit') - Number(b.kind === 'habit') || byWhen(a, b),
+  );
   out.now.sort((a, b) => (a.endsAt ?? Infinity) - (b.endsAt ?? Infinity));
   return out;
 }
