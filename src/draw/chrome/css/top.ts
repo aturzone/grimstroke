@@ -86,6 +86,7 @@ export const TOP = `/* ---- the top ----
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+.gs-name-short { display: none; }
 
 /* The save state, as a word and a dot. Quiet when everything is written, the hot ink while
    something is on its way, and printed in reverse when the server cannot be reached -- that
@@ -203,6 +204,9 @@ export const TOP = `/* ---- the top ----
   .gs-top { inset-block-start: 8px; inset-inline: 8px; gap: 6px; }
   .gs-mast { height: 44px; padding-inline-end: calc(10px + var(--round-up, 0px) * 0.7); gap: 6px; }
   .gs-name { font-size: 19px; padding-inline-start: 8px; }
+  /* The whole title stays for a screen reader; the eye gets the short one. */
+  .gs-name-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .gs-name-short { display: inline; }
   .gs-saved { font-size: 0; gap: 0; padding: 3px; }
   .gs-saved[data-state='offline'] { font-size: var(--gs-t1); gap: 6px; padding: 3px 7px; }
   .gs-acts .gs-btn-text { display: none; }

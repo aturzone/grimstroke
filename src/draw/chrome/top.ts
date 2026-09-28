@@ -31,6 +31,8 @@ export interface TopOptions {
   place: Place;
   /** The document's own name, set in the hand. */
   title: string;
+  /** A shorter title for a phone, where the whole one would be cut off in the middle of a word. */
+  short?: string;
   /** A way back, for a surface that is inside another one. */
   back?: { href: string; label: string };
   /** Show the save state. Off for a surface that saves nothing on its own. */
@@ -73,7 +75,12 @@ export function topBar(o: TopOptions): string {
     '<span class="gs-brand-mark" aria-hidden="true">g</span>',
     '<span class="gs-brand-word">grimstroke</span></a>',
     back,
-    `<span class="gs-name" data-gs="title" dir="auto" title="${escapeHtml(o.title)}">${escapeHtml(o.title)}</span>`,
+    `<span class="gs-name" data-gs="title" dir="auto" title="${escapeHtml(o.title)}">${
+      o.short && o.short !== o.title
+        ? `<span class="gs-name-full">${escapeHtml(o.title)}</span>` +
+          `<span class="gs-name-short" aria-hidden="true">${escapeHtml(o.short)}</span>`
+        : escapeHtml(o.title)
+    }</span>`,
     o.saved
       ? '<span class="gs-saved" data-gs="saved" data-state="saved" role="status" aria-live="polite">saved</span>'
       : '',

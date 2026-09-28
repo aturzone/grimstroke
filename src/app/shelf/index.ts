@@ -13,7 +13,7 @@ import { Carry } from '~/app/shelf/carry.ts';
 import { Decorate } from '~/app/shelf/decorate.ts';
 import { ShelfPet } from '~/app/shelf/pet.ts';
 import { Preview } from '~/app/shelf/preview.ts';
-import { shelfTitle } from '~/draw/chrome/shelf-title.ts';
+import { shelfShort, shelfTitle } from '~/draw/chrome/shelf-title.ts';
 
 export interface BookInfo {
   id: string;
@@ -370,12 +370,33 @@ export class ShelfApp {
     const title = document.querySelector<HTMLElement>('[data-gs="title"]');
     const all = next.querySelectorAll('.spine').length;
     const archived = next.querySelectorAll('.spine[data-archived]').length;
-    if (title) title.textContent = shelfTitle(all, archived);
+    if (title) {
+      const full = shelfTitle(all, archived);
+      const short = shelfShort(all, archived);
+      title.title = full;
+      title.replaceChildren();
+      if (short === full) title.textContent = full;
+      else {
+        const long = document.createElement('span');
+        long.className = 'gs-name-full';
+        long.textContent = full;
+        const brief = document.createElement('span');
+        brief.className = 'gs-name-short';
+        brief.setAttribute('aria-hidden', 'true');
+        brief.textContent = short;
+        title.append(long, brief);
+      }
+    }
   }
 
   async refresh(): Promise<void> {
-    const res = await fetch(`/api/shelf${this.width ? `?width=${this.width}` : ''}`);
-    if (res.ok) this.absorb((await res.json()) as ShelfReply);
+    try {
+      const res = await fetch(`/api/shelf${this.width ? `?width=${this.width}` : ''}`);
+      if (res.ok) this.absorb((await res.json()) as ShelfReply);
+    } catch {
+      // Cut off by leaving the page, or the workspace gone for a moment: the bookcase drawn
+      // already stands, and the next change asks again.
+    }
   }
 
   /** Put books down: on a shelf in use at x along it, or onto the archive. */

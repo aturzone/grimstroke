@@ -9,3 +9,10 @@ export function shelfTitle(count: number, archived: number): string {
   if (archived >= count) return count === 1 ? 'one notebook, archived' : `all ${count} archived`;
   return `${count - archived} in use · ${archived} archived`;
 }
+
+/** The same, short enough for a phone: what is in use, when some are put away. */
+export function shelfShort(count: number, archived: number): string {
+  return archived > 0 && archived < count
+    ? `${count - archived} in use`
+    : shelfTitle(count, archived);
+}

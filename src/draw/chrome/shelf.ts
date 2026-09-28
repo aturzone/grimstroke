@@ -4,7 +4,7 @@
 
 import { icon } from '~/draw/chrome/icons.ts';
 import { button, item } from '~/draw/chrome/parts.ts';
-import { shelfTitle } from '~/draw/chrome/shelf-title.ts';
+import { shelfShort, shelfTitle } from '~/draw/chrome/shelf-title.ts';
 import { helpDialog, searchDialog, topBar } from '~/draw/chrome/top.ts';
 import type { Pet } from '~/draw/material/profile/model.ts';
 
@@ -24,6 +24,7 @@ export function shelfChrome(count: number, pet?: Pet, archived = 0): string {
       place: 'shelf',
       // What is on the bookcase, and what is put away: '6 notebooks' with one in sight read as a bug.
       title: shelfTitle(count, archived),
+      short: shelfShort(count, archived),
       actions:
         feed +
         button({
