@@ -156,7 +156,7 @@ export class BookApp {
   }
 
   private get quiet(): boolean {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return !moving();
   }
 
   // ---------------------------------------------------------------- flipping
@@ -182,7 +182,7 @@ export class BookApp {
      * the left-hand page only once the cover has passed upright and is over it; then the
      * inside of the board gives way to that page and the cover is gone.
      */
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = !moving();
     this.book.removeAttribute('data-closed');
     this.book.toggleAttribute('data-opening', true);
     play('book');

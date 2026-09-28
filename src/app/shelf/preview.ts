@@ -9,6 +9,7 @@
 
 import { confirmCard, toast } from '~/app/chrome.ts';
 import { go } from '~/app/dom.ts';
+import { moving } from '~/app/feel.ts';
 import { infoOf, type ShelfApp } from '~/app/shelf/index.ts';
 
 const EASE = 'cubic-bezier(0.2, 0.8, 0.25, 1)';
@@ -147,7 +148,7 @@ export class Preview {
     openIt.focus({ preventScroll: true });
 
     // Out of its place on the shelf: from the spine's own box, turning to show its cover.
-    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (moving()) {
       const a = spine.getBoundingClientRect();
       const b = book.getBoundingClientRect();
       const dx = a.left + a.width / 2 - (b.left + b.width / 2);
@@ -186,7 +187,7 @@ export class Preview {
     if (!root) return;
     this.root = undefined;
     const book = root.querySelector<HTMLElement>('.gs-preview-book');
-    if (book && spine?.isConnected && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (book && spine?.isConnected && moving()) {
       const a = spine.getBoundingClientRect();
       const b = book.getBoundingClientRect();
       const dx = a.left + a.width / 2 - (b.left + b.width / 2);
@@ -214,7 +215,7 @@ export class Preview {
       fill: 'forwards',
     });
     const href = `/book?id=${encodeURIComponent(id)}&opening`;
-    if (!book || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!book || !moving()) {
       go(href);
       return;
     }

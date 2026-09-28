@@ -5,7 +5,7 @@
  * start accumulating here they become one.
  */
 
-import { leavingFor } from '~/app/feel.ts';
+import { leavingFor, moving } from '~/app/feel.ts';
 
 /** The element, or a loud failure naming what the page was missing. */
 export function must<T extends Element>(selector: string): T {
@@ -43,7 +43,7 @@ export function typing(target: EventTarget | null): boolean {
  * and a blank one put up.
  */
 export function go(href: string, from: HTMLAnchorElement | null = null): void {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (!moving()) {
     window.location.href = href;
     return;
   }

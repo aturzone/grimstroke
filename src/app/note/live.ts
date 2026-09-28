@@ -13,7 +13,7 @@
  * screen. One position, one owner, and the paper still lags.
  */
 
-import { play } from '~/app/feel.ts';
+import { moving, play } from '~/app/feel.ts';
 import { leverFrom, TUNING as POSE, poseFromVelocity, smoothing } from '~/app/motion/pose.ts';
 import { type Animatable, type Spring, snap, spring, step } from '~/app/motion/spring.ts';
 import { smooth as smoothPath } from '~/draw/look/hand.ts';
@@ -378,7 +378,7 @@ export class LiveNote implements Animatable {
   }
 
   private get quiet(): boolean {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return !moving();
   }
 
   private readonly onGrab = (e: PointerEvent): void => {

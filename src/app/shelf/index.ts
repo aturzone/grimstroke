@@ -9,6 +9,7 @@
 
 import { confirmCard, toast } from '~/app/chrome.ts';
 import { go, onClick, typing } from '~/app/dom.ts';
+import { moving } from '~/app/feel.ts';
 import { Carry } from '~/app/shelf/carry.ts';
 import { Decorate } from '~/app/shelf/decorate.ts';
 import { ShelfPet } from '~/app/shelf/pet.ts';
@@ -321,7 +322,7 @@ export class ShelfApp {
     if (!next) return;
     next.style.setProperty('--case-scale', scale);
     room.replaceWith(next);
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = !moving();
     for (const spine of next.querySelectorAll<HTMLElement>('.spine, .decor')) {
       const id = spine.dataset.gsId ?? '';
       const was = before.get(id);

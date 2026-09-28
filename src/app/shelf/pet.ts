@@ -20,7 +20,7 @@
  * position is rounded to device pixels. Every art pixel is then a crisp, equal square.
  */
 
-import { play } from '~/app/feel.ts';
+import { moving, play } from '~/app/feel.ts';
 import {
   COATS,
   type Coat,
@@ -175,7 +175,7 @@ export class ShelfPet {
     });
     this.seen.observe(room);
     if (!this.settle()) return;
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!moving()) {
       this.set('sleep');
       this.bed();
       this.paint(performance.now());
@@ -511,7 +511,7 @@ export class ShelfPet {
   private poked(event: PointerEvent): void {
     if (!this.el || this.act?.kind === 'jump' || !this.near(event.clientX, event.clientY)) return;
     const ledge = this.ledge;
-    if (!ledge || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!ledge || !moving()) return;
     // A pet being stroked is not startled by the press that began the stroke.
     if (performance.now() < this.petting.until) return;
     const away =
