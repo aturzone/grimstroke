@@ -389,6 +389,14 @@ dialog.gs-dialog[open]::backdrop { animation: gs-fade 200ms ease-out; }
   .gs-menu[open] > .gs-menu-card, .gs-sheet[open] > .gs-sheet-card, dialog.gs-dialog[open], dialog.gs-dialog[open]::backdrop, .gs-toasts > .gs-toast { animation: none; }
 }
 :root[data-motion='none'] *, :root[data-motion='none'] *::before, :root[data-motion='none'] *::after { animation: none !important; transition: none !important; }
+
+/* ---- from one surface to the next ----
+   A browser that crosses documents itself cross-fades the surfaces with the top bar held still;
+   the others get app/feel.ts's handover, which does the same by hand. */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 180ms; }
+@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+:root[data-motion='none']::view-transition-old(*), :root[data-motion='none']::view-transition-new(*) { animation: none; }
 :root[data-motion='calm'] .gs-menu[open] > .gs-menu-card, :root[data-motion='calm'] .gs-toasts > .gs-toast { animation-name: gs-fade; }
 
 /* ---- the first-visit tour ---- */

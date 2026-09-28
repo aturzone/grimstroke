@@ -403,6 +403,82 @@ export function bindFeel(): void {
     );
     if (b) play('tap', 0.7);
   });
+  bindHandover();
+}
+
+// ---------------------------------------------------------------- from one surface to the next
+
+const HANDOVER = 'gs-handover';
+/** A browser that cross-fades documents by itself (the CSS in kit.ts asks it to) needs no help. */
+const crossesItself = typeof window !== 'undefined' && 'CSSViewTransitionRule' in window;
+
+/** Everything on the page but the top bar, which stays where it is from surface to surface. */
+function stage(): HTMLElement[] {
+  return [...document.body.children].filter(
+    (el): el is HTMLElement =>
+      el instanceof HTMLElement && !el.matches('.gs-top, dialog, script, [hidden]'),
+  );
+}
+
+/**
+ * Going from the board to the notebooks to the settings: the surface fades down as you leave,
+ * and the next one fades up under the same top bar -- one room with its contents changed, not a
+ * new page loading. Only for the ways between surfaces, and only when the arrival follows a
+ * leaving here; a reload or a typed address just appears.
+ */
+function bindHandover(): void {
+  let came = 0;
+  try {
+    came = Number(sessionStorage.getItem(HANDOVER) ?? 0);
+    sessionStorage.removeItem(HANDOVER);
+  } catch {
+    // No session storage: every arrival just appears.
+  }
+  if (!crossesItself && moving() && came && Date.now() - came < 2500) {
+    for (const el of stage()) {
+      el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: 'ease-out' });
+    }
+  }
+  let leaving: Animation[] = [];
+  // Back to this page from the browser's own history: it must not come back faded out.
+  window.addEventListener('pageshow', () => {
+    for (const a of leaving) a.cancel();
+    leaving = [];
+  });
+  document.addEventListener('click', (event) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return;
+    const a = (event.target as HTMLElement).closest<HTMLAnchorElement>(
+      'a.gs-place, a.gs-brand, a[data-gs="back"], a[data-gs^="menu-place-"]',
+    );
+    if (!a || a.target || !a.href) return;
+    const url = new URL(a.href, location.href);
+    if (url.origin !== location.origin) return;
+    if (url.pathname === location.pathname && url.search === location.search) return;
+    try {
+      sessionStorage.setItem(HANDOVER, String(Date.now()));
+    } catch {
+      // Unremembered: the next surface simply appears.
+    }
+    if (crossesItself || !moving()) return;
+    event.preventDefault();
+    play('paper', 0.45);
+    leaving = stage().map((el) =>
+      el.animate([{ opacity: 1 }, { opacity: 0 }], {
+        duration: 140,
+        easing: 'ease-in',
+        fill: 'forwards',
+      }),
+    );
+    window.setTimeout(() => location.assign(url.href), 130);
+  });
 }
 
 // ---------------------------------------------------------------- things moved

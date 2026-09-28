@@ -73,12 +73,13 @@ torn edges, tape, hard shadows that never blur. What changes is everything aroun
 - [x] 1. Things moved by anything but the hand slide there; picked-up things lift; choices slide
   their highlight; the selection bar grows in; a card flies from the island to its place; a page
   grows off the spread to be worked on and settles back into it; every page fans in; the bookcase
-  reflows its books and objects.
+  reflows its books and objects; going between the board, the notebooks and the settings fades
+  one surface into the next under a top bar that stays put.
 - [x] 2. A sound per material (note, sticker, picture, card, ink), notebook opening, repository
   tick, undo; settings for sound, volume, motion and quiet hours.
 - [x] 3. The tools in a clear sans on a readable scale; faces per section in settings; the tools'
   inks measured on every palette by a test (it found Carbon's quiet ink at 3.6:1, now 4.7:1).
-  (A full spacing pass: not yet.)
+  Spacing: most values off the 4 px grid are there to answer the 1.5 px keyline, and stay.
 - [x] 4. The notebook's bar in three; the shelf counts what is in use and archived; every button
   says what it does.
 - [x] 5. A first-visit tour; empty places say what goes in them (the board, the bookcase, a bookcase with everything put away, the archive, connections, the trash).
