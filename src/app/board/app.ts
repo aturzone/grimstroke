@@ -127,6 +127,20 @@ export class BoardApp implements BoardContext {
     this.refitOnResize();
     this.showEmpty();
     this.focusFromAddress();
+    // Back to the notebook from a page: say which page, so the spread can settle it into place.
+    const sheet = this.session.spec.sheet;
+    if (sheet) {
+      document.querySelector('[data-gs="back"]')?.addEventListener('click', () => {
+        try {
+          sessionStorage.setItem(
+            'gs-return-leaf',
+            this.session.spec.id.split(':').slice(2).join(':'),
+          );
+        } catch {
+          // Without storage the spread simply appears.
+        }
+      });
+    }
   }
 
   /**

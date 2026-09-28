@@ -805,5 +805,44 @@ export async function bootBook(): Promise<BookApp> {
   const id = book.dataset.gsId ?? 'notebook';
   const res = await fetch(`/api/state?kind=book&id=${encodeURIComponent(id)}`);
   const { spec } = (await res.json()) as { spec: BookSpec };
-  return new BookApp(spec);
+  const app = new BookApp(spec);
+  settleReturn(book);
+  return app;
+}
+
+/**
+ * Back from a page to its notebook: the page that was open shrinks back into its place on the
+ * spread, the other half of the handover that grew it (the page view leaves its id in this tab).
+ */
+function settleReturn(book: HTMLElement): void {
+  let id: string | null = null;
+  try {
+    id = sessionStorage.getItem('gs-return-leaf');
+    sessionStorage.removeItem('gs-return-leaf');
+  } catch {
+    return;
+  }
+  if (!id || !moving()) return;
+  const leaf = book.querySelector<HTMLElement>(`[data-gs="leaf"][data-gs-id="${CSS.escape(id)}"]`);
+  if (!leaf) return;
+  const r = leaf.getBoundingClientRect();
+  if (!r.width) return;
+  const k = r.width / (leaf.offsetWidth || r.width) || 1;
+  const s = Math.min((window.innerHeight * 0.92) / r.height, (window.innerWidth * 0.92) / r.width);
+  const dx = (window.innerWidth / 2 - (r.left + r.width / 2)) / k;
+  const dy = (window.innerHeight / 2 - (r.top + r.height / 2)) / k;
+  leaf.style.position = 'relative';
+  leaf.style.zIndex = '80';
+  play('drop', 0.7);
+  const a = leaf.animate(
+    [
+      { transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: 0.6 },
+      { transform: 'none', opacity: 1 },
+    ],
+    { duration: 320, easing: 'cubic-bezier(0.2, 1.1, 0.35, 1)' },
+  );
+  a.onfinish = () => {
+    leaf.style.zIndex = '';
+    leaf.style.position = '';
+  };
 }
