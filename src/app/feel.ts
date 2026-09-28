@@ -415,6 +415,31 @@ export function bindFeel(): void {
     );
     if (b) play('tap', 0.7);
   });
+  bindSoundToggle();
+}
+
+/**
+ * Sounds on or off from the menu, without a trip to settings: said as what pressing it does, and
+ * saved for every page the way settings saves it.
+ */
+function bindSoundToggle(): void {
+  const say = (): void => {
+    for (const row of document.querySelectorAll('[data-gs="sound-toggle"] .gs-item-text')) {
+      row.textContent = feel.sound ? 'turn sounds off' : 'turn sounds on';
+    }
+  };
+  say();
+  document.addEventListener('click', (event) => {
+    if (!(event.target as HTMLElement).closest('[data-gs="sound-toggle"]')) return;
+    setFeel({ sound: !feel.sound });
+    say();
+    if (feel.sound) play('tick');
+    void fetch('/api/look', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ feel: { sound: feel.sound } }),
+    }).catch(() => undefined);
+  });
 }
 
 // ---------------------------------------------------------------- from one surface to the next
