@@ -185,6 +185,13 @@ export function helpDialog(): string {
       ['1', 'actual size'],
       ['←↑→↓', 'nudge; Shift for 10'],
     ]) +
+    keys('the / box', [
+      ['Enter', 'place the card'],
+      ['Tab', 'take the card it is guessing'],
+      ['← / →', 'choose between two guesses'],
+      ['/', 'every kind of card, when empty'],
+      ['Esc', 'clear, then close'],
+    ]) +
     keys('a selected note', [
       ['Enter', 'write in it'],
       ['D', 'draw on it'],
