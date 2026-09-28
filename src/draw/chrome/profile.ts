@@ -17,6 +17,7 @@ import { helpDialog, searchDialog, topBar } from '~/draw/chrome/top.ts';
 import { renderHead } from '~/draw/doc/head.ts';
 import type { RenderedPage } from '~/draw/doc/model.ts';
 import { surface } from '~/draw/doc/surface.ts';
+import { PALETTES } from '~/draw/look/palette.ts';
 import { halftoneDefs } from '~/draw/material/note/render.ts';
 import { COATS } from '~/draw/material/pet/art.ts';
 import {
@@ -31,6 +32,8 @@ import { escapeHtml } from '~/draw/type/text.ts';
 
 export interface ProfilePageOptions {
   live?: { scripts?: string[] } | undefined;
+  /** The workspace's theme palette. */
+  palette?: string | undefined;
 }
 
 /** The pens on the easel: the board's, less the ones that place things. */
@@ -85,7 +88,7 @@ export function renderProfilePage(
   profile: Profile,
   options: ProfilePageOptions = {},
 ): RenderedPage {
-  const ctx = surface('profile', { palette: 'studio' });
+  const ctx = surface('profile', { palette: options.palette ?? 'studio' });
   const head = renderHead(ctx, 'ltr', { paper: 'blank', grain: 0.7 });
   const paper = profile.portrait?.paper ?? PAPERS[0];
 
@@ -301,11 +304,37 @@ function lookSection(): string {
       : '') +
     '</section>';
   return (
+    // Light or dark first: the one choice that changes everything at once.
+    '<section class="st-card gs-card" aria-label="light or dark">' +
+    heading('light or dark') +
+    '<p class="pf-note">For everything that has no colours of its own: the board, notebooks, the calendar, settings.</p>' +
+    '<div class="gs-chip-row" role="group" aria-label="theme">' +
+    '<button type="button" class="gs-btn gs-chip-btn" data-gs="theme-choice" data-gs-value="light" aria-pressed="true">light</button>' +
+    '<button type="button" class="gs-btn gs-chip-btn" data-gs="theme-choice" data-gs-value="dark" aria-pressed="false">dark</button>' +
+    '</div></section>' +
     // One set of choices for everything first; each part on its own only for whoever asks.
     card('all', 'everywhere', 'corners and faces for the whole workspace') +
     '<details class="st-more"><summary class="gs-btn gs-chip-btn">set each part on its own</summary>' +
     LOOK_SECTIONS.map(([id, title, what]) => card(id, title, what)).join('') +
     '</details>' +
+    // Every palette's colours, the owner's to change: light and dark first, then the templates.
+    '<section class="st-card gs-card" aria-label="colours">' +
+    heading('colours') +
+    '<p class="pf-note">Each palette\u2019s paper, ink and accent. Ink that cannot be read on its paper is not saved.</p>' +
+    `<div class="st-palettes">${PALETTES.map(
+      (p) =>
+        `<div class="st-palette" data-palette="${escapeHtml(p.id)}">` +
+        `<span class="st-palette-name">${escapeHtml(p.label)}</span>` +
+        (['paper', 'ink', 'accent'] as const)
+          .map(
+            (k) =>
+              `<label class="st-swatch"><input type="color" data-gs="palette-colour" data-palette="${escapeHtml(p.id)}" data-field="${k}" value="${escapeHtml(p[k])}" aria-label="${escapeHtml(`${p.label} ${k}`)}"><span>${k}</span></label>`,
+          )
+          .join('') +
+        `<button type="button" class="gs-btn gs-chip-btn" data-gs="palette-reset" data-palette="${escapeHtml(p.id)}">as made</button>` +
+        '</div>',
+    ).join('')}</div>` +
+    '</section>' +
     '<section class="st-card gs-card" data-feel aria-label="sound and motion">' +
     heading('sound and motion') +
     '<p class="pf-note">Small sounds when a hand does something -- paper lifted and set down, a page turned, a card placed, a timer done -- and things that arrive, settle and leave.</p>' +

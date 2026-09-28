@@ -16,15 +16,20 @@ import { renderSpread } from '~/draw/doc/book/render.ts';
 import { renderShelf } from '~/draw/doc/shelf/render.ts';
 import { type Ask, html } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
-import { lookOf, sectionOf, withLook } from '~/host/serve/look.ts';
+import { lookOf, sectionOf, THEME_PALETTE, withLook } from '~/host/serve/look.ts';
 
 const APP = ['/app.js'];
 
 export async function pages(ask: Ask, live: Live): Promise<boolean> {
   const { url, path, res } = ask;
+  // The workspace's light or dark, for everything that does not name a palette of its own.
+  const look = await lookOf(live.store);
+  const themed = THEME_PALETTE[look.theme];
+  const own = <T extends { palette?: string | undefined }>(spec: T): T =>
+    spec.palette ? spec : { ...spec, palette: themed };
 
   if (path === '/' || path === '/index.html') {
-    const spec = await live.board(url.searchParams.get('board') ?? ask.board);
+    const spec = own(await live.board(url.searchParams.get('board') ?? ask.board));
     const rendered = renderBoard(spec, { live: { chrome: chrome(spec), scripts: APP } });
     live.allow(rendered.assets);
     html(
@@ -40,7 +45,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
    */
   if (path === '/page') {
     const book = url.searchParams.get('book') ?? 'notebook';
-    const spec = await live.board(`book:${book}:${url.searchParams.get('leaf') ?? '1'}`);
+    const spec = own(await live.board(`book:${book}:${url.searchParams.get('leaf') ?? '1'}`));
     const rendered = renderBoard(spec, { live: { chrome: chrome(spec), scripts: APP } });
     live.allow(rendered.assets);
     html(
@@ -51,7 +56,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
   }
 
   if (path === '/book') {
-    const spec = await live.book(url.searchParams.get('id') ?? 'notebook');
+    const spec = own(await live.book(url.searchParams.get('id') ?? 'notebook'));
     const rendered = renderSpread(spec, {
       leaf: Number(url.searchParams.get('leaf') ?? 0),
       // Arriving from the shelf, it is shut; arriving at a page, it is open at it.
@@ -91,16 +96,18 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
   // The settings: the profile is one of its sections, and the old address still arrives there.
   if (path === '/profile' || path === '/settings') {
     const rendered = renderProfilePage(await live.store.readProfile(), {
+      palette: themed,
       live: { scripts: APP },
     });
     live.allow(rendered.assets);
-    html(res, withLook(rendered.html, await lookOf(live.store), sectionOf(path), false));
+    html(res, withLook(rendered.html, look, sectionOf(path), false));
     return true;
   }
 
   if (path === '/shelf') {
     const { books: all, layout, edited, trash, pet } = await live.shelf();
     const rendered = renderShelf(all, {
+      palette: themed,
       layout,
       edited,
       trash,

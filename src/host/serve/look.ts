@@ -12,6 +12,7 @@
  * and the font variables, for a document that does not name its own faces.
  */
 
+import { customPalette, PALETTES } from '~/draw/look/palette.ts';
 import type { Store } from '~/host/store/store.ts';
 
 export const SECTIONS = ['board', 'notebook', 'settings'] as const;
@@ -56,14 +57,57 @@ export const DEFAULT_FEEL: Readonly<Feel> = Object.freeze({
   motion: 'full',
 });
 
-export type Look = Record<Section, SectionLook> & { feel: Feel };
+/** A palette's colours as the owner set them: the same id, their own paper, ink and accent. */
+export type OwnColours = { paper: string; ink: string; accent: string };
+
+export type Look = Record<Section, SectionLook> & {
+  feel: Feel;
+  /** Light or dark: the palette for everything that does not name its own. */
+  theme: 'light' | 'dark';
+  /** The owner's colours for any palette, by id. */
+  palettes: Record<string, OwnColours>;
+};
+
+/** The palette each theme stands for (draw/look/palette.ts). */
+export const THEME_PALETTE = { light: 'studio', dark: 'night' } as const;
 
 export const DEFAULT_LOOK: Readonly<Look> = Object.freeze({
   board: { corners: 1 },
   notebook: { corners: 1 },
   settings: { corners: 1 },
   feel: DEFAULT_FEEL,
+  theme: 'light',
+  palettes: {},
 });
+
+const HEX = /^#[0-9a-f]{6}$/i;
+
+function readPalettes(
+  raw: unknown,
+  fallback: Record<string, OwnColours> = {},
+): Record<string, OwnColours> {
+  if (raw === undefined) return { ...fallback };
+  const from = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  const out: Record<string, OwnColours> = { ...fallback };
+  for (const [id, value] of Object.entries(from)) {
+    if (!PALETTES.some((p) => p.id === id)) continue;
+    // null gives a palette its own colours back.
+    if (value === null) {
+      delete out[id];
+      continue;
+    }
+    const v = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+    const base = PALETTES.find((p) => p.id === id) as (typeof PALETTES)[number];
+    const colours = {
+      paper: typeof v.paper === 'string' && HEX.test(v.paper) ? v.paper.toLowerCase() : base.paper,
+      ink: typeof v.ink === 'string' && HEX.test(v.ink) ? v.ink.toLowerCase() : base.ink,
+      accent:
+        typeof v.accent === 'string' && HEX.test(v.accent) ? v.accent.toLowerCase() : base.accent,
+    };
+    out[id] = colours;
+  }
+  return out;
+}
 
 function readFeel(raw: unknown, fallback: Feel = DEFAULT_FEEL): Feel {
   const f = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
@@ -133,6 +177,8 @@ export function readLook(raw: unknown): Look {
     out[s] = readSection(from[s], base);
   }
   out.feel = readFeel(from.feel);
+  out.theme = from.theme === 'dark' ? 'dark' : 'light';
+  out.palettes = readPalettes(from.palettes);
   return out;
 }
 
@@ -156,6 +202,12 @@ export async function saveLook(store: Store, patch: Record<string, unknown>): Pr
     next[s] = readSection(merged, { corners: current[s].corners });
   }
   next.feel = readFeel(patch.feel, current.feel);
+  next.theme = patch.theme === 'dark' || patch.theme === 'light' ? patch.theme : current.theme;
+  next.palettes = readPalettes(patch.palettes, current.palettes);
+  // Colours nobody could read are turned away, with the reason, rather than saved.
+  for (const [id, colours] of Object.entries(next.palettes)) {
+    customPalette({ ...colours, id });
+  }
   await store.writeSettings({ ...settings, look: next });
   return next;
 }

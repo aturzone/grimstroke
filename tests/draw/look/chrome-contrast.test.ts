@@ -9,13 +9,13 @@
  */
 import { describe, expect, it } from 'vitest';
 import { photoTint } from '~/draw/doc/head.ts';
-import { capLightness, contrast, mixOklab, textOn } from '~/draw/look/colour.ts';
+import { boundLightness, contrast, mixOklab, textOn } from '~/draw/look/colour.ts';
 import { BODY_FLOOR, CHIP_FLOOR, PALETTES } from '~/draw/look/palette.ts';
 
 function chromeOf(p: (typeof PALETTES)[number]) {
   const tint = photoTint(p);
-  const paper = mixOklab('#fdfbf6', 0.86, tint.paper);
-  const ink = mixOklab('#14110e', 0.86, tint.ink);
+  const paper = mixOklab(tint.paperBase, 0.86, tint.paper);
+  const ink = mixOklab(tint.inkBase, 0.86, tint.ink);
   return {
     paper,
     ink,
@@ -44,7 +44,8 @@ describe('the chrome on every palette', () => {
       // The / cards' and box's accent: the palette's, held at 0.42 lightness, as text on its
       // own pale tint (draw/shape/css.ts).
       brand: (() => {
-        const b = capLightness(p.accent, 0.42);
+        const [lo, hi] = photoTint(p).brand;
+        const b = boundLightness(p.accent, lo, hi);
         return contrast(b, mixOklab(b, 0.12, c.paper));
       })(),
     };

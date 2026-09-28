@@ -22,7 +22,7 @@ import { renderTodayMain, renderTodayPage } from '~/draw/today/render.ts';
 import { applyBoard } from '~/host/serve/api.ts';
 import { type Ask, html, readBody, send } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
-import { lookOf, withLook } from '~/host/serve/look.ts';
+import { lookOf, THEME_PALETTE, withLook } from '~/host/serve/look.ts';
 
 /** Every place a card can be: each board, and each page of each notebook still in use. */
 export async function todaySources(live: Live, home: string): Promise<TodaySource[]> {
@@ -86,11 +86,13 @@ export async function today(ask: Ask, live: Live, scripts: string[]): Promise<bo
 
   if (path === '/today') {
     const day = dayOf(url.searchParams.get('date'));
+    const look = await lookOf(live.store);
     const rendered = renderTodayPage(drawn(await todaySources(live, ask.board), day), dayKey(day), {
       live: { scripts },
+      palette: THEME_PALETTE[look.theme],
     });
     live.allow(rendered.assets);
-    html(res, withLook(rendered.html, await lookOf(live.store), 'board', false));
+    html(res, withLook(rendered.html, look, 'board', false));
     return true;
   }
 

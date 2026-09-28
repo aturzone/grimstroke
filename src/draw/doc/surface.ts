@@ -14,7 +14,7 @@
 
 import type { Direction } from '~/draw/doc/model.ts';
 import type { Palette } from '~/draw/look/palette.ts';
-import { DEFAULT_PALETTE, palette } from '~/draw/look/palette.ts';
+import { defaultPalette, palette } from '~/draw/look/palette.ts';
 import { hashString } from '~/draw/look/rng.ts';
 
 export interface Surface {
@@ -61,7 +61,13 @@ export function surface(id: string, options: SurfaceOptions = {}): Surface {
   const direction = options.direction ?? 'ltr';
   return {
     id,
-    pal: palette(options.palette ?? DEFAULT_PALETTE),
+    // Light and Dark are the theme, not a choice of colours: a page in either follows the
+    // workspace's light or dark. The templates -- the riso inks -- stay what was chosen.
+    pal: palette(
+      !options.palette || options.palette === 'studio' || options.palette === 'night'
+        ? defaultPalette()
+        : options.palette,
+    ),
     direction,
     digits: options.digits,
     // Uppercasing is meaningless in a script without case, and the tracking

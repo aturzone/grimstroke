@@ -118,3 +118,10 @@ export function capLightness(colour: string, cap: number): string {
   const out = fromOklab([Math.min(L, cap), a, b]);
   return `#${out.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
 }
+
+/** CSS's oklch(from colour clamp(lo, l, hi) c h): the tools' accent, held light or dark. */
+export function boundLightness(colour: string, lo: number, hi: number): string {
+  const [L, a, b] = toOklab(rgb(colour));
+  const out = fromOklab([Math.min(Math.max(L, lo), hi), a, b]);
+  return `#${out.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+}

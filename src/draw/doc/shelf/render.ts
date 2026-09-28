@@ -28,6 +28,8 @@ import { renderStickerFace } from '~/draw/material/sticker/render.ts';
 import { escapeHtml, inline, label } from '~/draw/type/text.ts';
 
 export interface ShelfOptions {
+  /** The workspace's theme palette, for the room and its chrome. */
+  palette?: string | undefined;
   /** The pet who lives on the bookcase, as the profile says. */
   pet?: Pet;
   /** How wide a shelf is, in the bookcase's pixels. Narrower on a phone. */
@@ -219,8 +221,9 @@ function renderRoom(books: readonly BookSpec[], ctx: Surface, options: ShelfOpti
   );
 }
 
-function shelfSurface(books: readonly BookSpec[], options: ShelfOptions): Surface {
-  return surface(options.id ?? 'shelf', { palette: books[0]?.palette ?? 'studio' });
+function shelfSurface(_books: readonly BookSpec[], options: ShelfOptions): Surface {
+  // The room follows the workspace's theme; each book keeps its own cover.
+  return surface(options.id ?? 'shelf', { palette: options.palette ?? 'studio' });
 }
 
 /** The whole bookcase: the notebooks in use, then the archive, then the way to the trash. */

@@ -16,15 +16,15 @@
 export const SHAPE = `/* ---- shape cards ---- */
 .sc {
   /* The palette's own paper, ink and accent, as the tools mix them (draw/chrome/css/kit.ts): the
-     card and the box change with the theme. The accent is held no lighter than 0.42 so it reads
-     on the paper whatever it is -- measured for every palette in tests/draw/look. */
+     card and the box change with the theme. The accent is held dark on a light theme and light on a
+     dark one (--brand-lo/hi, from draw/doc/head.ts) so it reads on the paper whatever it is -- measured for every palette in tests/draw/look. */
   --sc-bg: var(--gs-paper, #ffffff);
   --sc-fg: var(--gs-ink, #1a1a19);
   --sc-soft: var(--gs-soft, #6f6d68);
   --sc-faint: color-mix(in oklab, var(--sc-fg) 38%, var(--sc-bg));
   --sc-line: color-mix(in oklab, var(--sc-fg) 12%, var(--sc-bg));
   --sc-tile: color-mix(in oklab, var(--sc-fg) 6%, var(--sc-bg));
-  --sc-brand: oklch(from var(--accent, #3b5bdb) min(l, 0.42) c h);
+  --sc-brand: oklch(from var(--accent, #3b5bdb) clamp(var(--brand-lo, 0), l, var(--brand-hi, 0.42)) c h);
   --sc-brand-soft: color-mix(in oklab, var(--sc-brand) 12%, var(--sc-bg));
   --sc-good: #2b8a3e;
   --sc-caution: #c2410c;

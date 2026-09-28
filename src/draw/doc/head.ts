@@ -35,10 +35,25 @@ export interface HeadOptions {
  * it greyed the chrome's quiet ink to 3.6:1 on Carbon. It takes the dark paper instead.
  */
 export function photoTint(pal: { paper: string; ink: string; dark: boolean }): {
+  /** The photo paper's own colour, and the palette colour it takes a trace of. */
+  paperBase: string;
   paper: string;
+  inkBase: string;
   ink: string;
+  /** How light the tools' accent may be: dark on a light theme, light on a dark one. */
+  brand: [number, number];
 } {
-  return { paper: pal.paper, ink: pal.dark ? pal.paper : pal.ink };
+  // A dark theme is dark all the way through: the tools are a dark card with light ink too,
+  // not a pale photo lying on a dark desk.
+  return pal.dark
+    ? { paperBase: '#1d2026', paper: pal.paper, inkBase: '#eef0f4', ink: pal.ink, brand: [0.72, 1] }
+    : {
+        paperBase: '#fdfbf6',
+        paper: pal.paper,
+        inkBase: '#14110e',
+        ink: pal.ink,
+        brand: [0, 0.42],
+      };
 }
 
 export function cornersOf(value: unknown): number | undefined {
@@ -126,11 +141,17 @@ export function styleVars(
     // Photo paper is photo paper, whatever the document is printed on -- but it
     // picks up a trace of the palette so a mount never reads as a foreign white
     // rectangle dropped onto a coloured sheet.
-    '--mat-paper': `color-mix(in oklab, #fdfbf6 86%, ${photo.paper})`,
-    '--mat-ink': `color-mix(in oklab, #14110e 86%, ${photo.ink})`,
+    '--mat-paper': `color-mix(in oklab, ${photo.paperBase} 86%, ${photo.paper})`,
+    '--mat-ink': `color-mix(in oklab, ${photo.inkBase} 86%, ${photo.ink})`,
+    '--brand-lo': String(photo.brand[0]),
+    '--brand-hi': String(photo.brand[1]),
     // The desk the sheet lies on. Dark enough that the paper reads as lit, and
     // derived from the palette so it is the same room in every one of them.
-    '--desk': 'color-mix(in oklab, var(--ink) 78%, var(--paper))',
+    // On a dark palette the ink is the light colour, and a desk leaning to it came out pale:
+    // there the desk is the paper, a shade deeper.
+    '--desk': pal.dark
+      ? 'color-mix(in oklab, var(--paper) 72%, #000)'
+      : 'color-mix(in oklab, var(--ink) 78%, var(--paper))',
     '--image-max-height': `${options.imageMaxHeight ?? 1400}px`,
     '--paper-rule': rule.image || 'none',
     '--paper-rule-size': rule.size || 'auto',

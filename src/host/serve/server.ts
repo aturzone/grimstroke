@@ -20,6 +20,7 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { extname } from 'node:path';
 import { useClock } from '~/draw/doc/surface.ts';
+import { useDefaultPalette, usePalettes } from '~/draw/look/palette.ts';
 import { api } from '~/host/serve/api.ts';
 import {
   type Ask,
@@ -33,6 +34,7 @@ import {
 } from '~/host/serve/http.ts';
 import { Live } from '~/host/serve/live.ts';
 import { type Login, loginDoor } from '~/host/serve/login.ts';
+import { lookOf, THEME_PALETTE } from '~/host/serve/look.ts';
 import { pages } from '~/host/serve/pages.ts';
 import { keepFresh, oauthCallback, remoteApi } from '~/host/serve/remote.ts';
 import { today } from '~/host/serve/today.ts';
@@ -124,6 +126,10 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
       return;
     }
 
+    // The owner's colours for the palettes, for every page drawn in this request.
+    const look = await lookOf(store);
+    usePalettes(look.palettes);
+    useDefaultPalette(THEME_PALETTE[look.theme]);
     const ask: Ask = { req, res, url, path, board: options.board ?? 'workspace' };
     if (await pages(ask, live)) return;
     if (await today(ask, live, ['/app.js'])) return;

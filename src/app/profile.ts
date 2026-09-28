@@ -540,6 +540,9 @@ class ProfileEditor {
       show(false);
     }
     this.bindFeel(look as unknown as { feel?: FeelSetting });
+    this.bindTheme(
+      look as unknown as { theme?: string; palettes?: Record<string, Record<string, string>> },
+    );
     for (const select of document.querySelectorAll<HTMLSelectElement>(
       'select[data-gs="look-face"]',
     )) {
@@ -561,6 +564,73 @@ class ProfileEditor {
         save({ [section]: { [field]: value } });
         toast(select.value ? `${section}: ${select.value}` : `${section}: as designed`);
       });
+    }
+  }
+
+  /** Light or dark, and each palette's own colours: saved, then the page drawn again in them. */
+  private bindTheme(look: {
+    theme?: string;
+    palettes?: Record<string, Record<string, string>>;
+  }): void {
+    const theme = look.theme === 'dark' ? 'dark' : 'light';
+    for (const b of document.querySelectorAll<HTMLElement>('[data-gs="theme-choice"]')) {
+      b.setAttribute('aria-pressed', String(b.dataset.gsValue === theme));
+      b.addEventListener('click', async () => {
+        if (b.dataset.gsValue === theme) return;
+        await this.saveLook({ theme: b.dataset.gsValue });
+        location.reload();
+      });
+    }
+    for (const input of document.querySelectorAll<HTMLInputElement>('[data-gs="palette-colour"]')) {
+      const id = input.dataset.palette ?? '';
+      const field = input.dataset.field ?? '';
+      const mine = look.palettes?.[id]?.[field];
+      if (mine) input.value = mine;
+      const made = input.defaultValue;
+      input.addEventListener('change', async () => {
+        const row = [
+          ...document.querySelectorAll<HTMLInputElement>(
+            `[data-gs="palette-colour"][data-palette="${id}"]`,
+          ),
+        ];
+        const colours = Object.fromEntries(row.map((i) => [i.dataset.field, i.value]));
+        const ok = await this.saveLook({ palettes: { [id]: colours } });
+        if (!ok) {
+          input.value = mine ?? made;
+          return;
+        }
+        toast('colours kept -- pages in this palette show them when opened', 'info');
+      });
+    }
+    for (const b of document.querySelectorAll<HTMLElement>('[data-gs="palette-reset"]')) {
+      b.addEventListener('click', async () => {
+        const id = b.dataset.palette ?? '';
+        if (!(await this.saveLook({ palettes: { [id]: null } }))) return;
+        for (const i of document.querySelectorAll<HTMLInputElement>(
+          `[data-gs="palette-colour"][data-palette="${id}"]`,
+        ))
+          i.value = i.defaultValue;
+        toast('back to the colours it was made with', 'info');
+      });
+    }
+  }
+
+  private async saveLook(patch: Record<string, unknown>): Promise<boolean> {
+    try {
+      const res = await fetch('/api/look', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
+      if (!res.ok) {
+        const { error } = (await res.json().catch(() => ({}))) as { error?: string };
+        toast(error ?? 'that could not be saved', 'error');
+        return false;
+      }
+      return true;
+    } catch {
+      toast('the workspace did not answer', 'error');
+      return false;
     }
   }
 

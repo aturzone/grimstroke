@@ -243,6 +243,8 @@ function renderDay(data: TodayData, now: Date, isToday: boolean, greet?: string)
 
 export interface TodayPageOptions {
   live?: { scripts?: string[] } | undefined;
+  /** The workspace's theme palette. */
+  palette?: string | undefined;
 }
 
 export function renderTodayPage(
@@ -250,7 +252,7 @@ export function renderTodayPage(
   date: string,
   options: TodayPageOptions = {},
 ): RenderedPage {
-  const ctx = surface('today', { palette: 'studio' });
+  const ctx = surface('today', { palette: options.palette ?? 'studio' });
   const head = renderHead(ctx, 'ltr', { paper: 'blank', grain: 0.7 });
   const html = [
     '<!doctype html>',

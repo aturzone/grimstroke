@@ -160,6 +160,12 @@ body.on-profile {
 .st-panels { min-width: 0; }
 .st-panel { display: grid; gap: 16px; }
 .st-panel[hidden] { display: none; }
+/* Every palette, a row of its three colours. */
+.st-palettes { display: grid; gap: 4px; }
+.st-palette { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 48px; padding: 4px 0; border-block-end: 1px dashed var(--gs-faint); }
+.st-palette-name { flex: 1 1 110px; font-family: var(--ui-font); font-size: var(--gs-t2); }
+.st-swatch { display: grid; justify-items: center; gap: 2px; font-family: var(--ui-font); font-size: 11px; color: var(--gs-soft); cursor: pointer; }
+.st-swatch input { width: 38px; height: 30px; padding: 0; border: 1.5px solid var(--gs-line); border-radius: calc(3px * var(--round, 1) + var(--round-up, 0px)); background: none; cursor: pointer; }
 /* Each part on its own, folded away under the one set of choices for everything. */
 .st-more > summary { width: fit-content; list-style: none; cursor: pointer; font-family: var(--ui-font); }
 .st-more > summary::-webkit-details-marker { display: none; }

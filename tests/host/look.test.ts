@@ -38,3 +38,16 @@ describe('motion on the page', () => {
     expect(withLook(page, DEFAULT_LOOK, 'board')).toContain('<html lang="en">');
   });
 });
+
+describe('light or dark, and the owner’s colours', () => {
+  it('keeps the theme to light or dark, and colours only for real palettes, as hex', () => {
+    expect(readLook({}).theme).toBe('light');
+    expect(readLook({ theme: 'dark' }).theme).toBe('dark');
+    expect(readLook({ theme: 'purple' }).theme).toBe('light');
+    const l = readLook({
+      palettes: { night: { paper: '#101820', ink: 'nope' }, invented: { paper: '#000000' } },
+    });
+    expect(Object.keys(l.palettes)).toEqual(['night']);
+    expect(l.palettes.night).toEqual({ paper: '#101820', ink: '#e9ebf0', accent: '#6d8bff' });
+  });
+});

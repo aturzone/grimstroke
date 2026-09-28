@@ -283,10 +283,17 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
 
   // The workspace's look: how round every corner is, everywhere.
   if (path === '/api/look') {
-    const look =
-      req.method === 'POST'
-        ? await saveLook(store, (await readBody(req)) as Record<string, unknown>)
-        : await lookOf(store);
+    let look: Awaited<ReturnType<typeof lookOf>>;
+    try {
+      look =
+        req.method === 'POST'
+          ? await saveLook(store, (await readBody(req)) as Record<string, unknown>)
+          : await lookOf(store);
+    } catch (error) {
+      // Colours nobody could read are the caller's to fix, not a failure of the workspace.
+      send(res, 400, { error: error instanceof Error ? error.message : String(error) });
+      return true;
+    }
     send(res, 200, {
       look,
       sections: SECTIONS,

@@ -10,8 +10,12 @@ import {
 } from '~/draw/look/palette.ts';
 
 describe('palettes', () => {
-  it('ships nine', () => {
-    expect(PALETTES).toHaveLength(9);
+  it('ships ten, light and dark first', () => {
+    expect(PALETTES).toHaveLength(10);
+    expect(PALETTES.slice(0, 2).map((p) => [p.id, p.dark])).toEqual([
+      ['studio', false],
+      ['night', true],
+    ]);
   });
 
   it('meets both contrast floors, every one of them', () => {

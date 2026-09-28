@@ -171,7 +171,7 @@ describe('the page, as a document', () => {
   it('gives a sticky note its own palette without changing the page', () => {
     const out = html((p) => p.text('body').note('stuck on', { palette: 'postit' }));
     expect(out).toContain('--cn-paper:#ffe94a');
-    expect(out).toContain('--paper:#f0e7d2');
+    expect(out).toContain('--paper:#f4f1e8'); // the default, Light
   });
 
   it('renders a note as real torn paper, not as a styled box', () => {

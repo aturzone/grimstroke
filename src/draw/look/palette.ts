@@ -27,6 +27,27 @@ export interface Palette {
  * black, and pure black next to a fluorescent paper vibrates unpleasantly.
  */
 export const PALETTES: readonly Palette[] = [
+  // The two defaults, light and dark; the riso inks after them are the templates.
+  {
+    id: 'studio',
+    label: 'Light',
+    dark: false,
+    // The one palette that is not a riso ink. It is the wall of a room with
+    // things pinned to it: a warm off-white ground, near-black, and the blue
+    // of the marker most people reach for first.
+    paper: '#f4f1e8',
+    ink: '#1b1a17',
+    accent: '#1f3fd0',
+  },
+  {
+    id: 'night',
+    label: 'Dark',
+    dark: true,
+    // Light's twin: the same room with the lights down, and the same blue, lifted to read on it.
+    paper: '#16181d',
+    ink: '#e9ebf0',
+    accent: '#6d8bff',
+  },
   {
     id: 'postit',
     label: 'Post-it',
@@ -84,17 +105,6 @@ export const PALETTES: readonly Palette[] = [
     accent: '#c01b3a',
   },
   {
-    id: 'studio',
-    label: 'Studio board',
-    dark: false,
-    // The one palette that is not a riso ink. It is the wall of a room with
-    // things pinned to it: a warm off-white ground, near-black, and the blue
-    // of the marker most people reach for first.
-    paper: '#f4f1e8',
-    ink: '#1b1a17',
-    accent: '#1f3fd0',
-  },
-  {
     id: 'carbon',
     label: 'Carbon',
     dark: true,
@@ -104,7 +114,7 @@ export const PALETTES: readonly Palette[] = [
   },
 ] as const;
 
-export const DEFAULT_PALETTE = 'newsprint';
+export const DEFAULT_PALETTE = 'studio';
 
 /**
  * The palette with this id, or the default.
@@ -113,8 +123,42 @@ export const DEFAULT_PALETTE = 'newsprint';
  * possibly saved by an older version, and a workspace that refuses to open because one note
  * names a palette that has been renamed is worse than one that opens in yellow.
  */
+/**
+ * A person's own colours for the palettes, handed in by the host (like the clock): the same ids,
+ * other paper, ink and accent. Every lookup below sees them; nothing here reads where they live.
+ */
+let own: Readonly<Record<string, Pick<Palette, 'paper' | 'ink' | 'accent'>>> = {};
+
+/** The palette for anything that names none: the workspace's light or dark, handed in. */
+let fallback: string = DEFAULT_PALETTE;
+
+export function useDefaultPalette(id: string | undefined): void {
+  fallback = id && PALETTES.some((p) => p.id === id) ? id : DEFAULT_PALETTE;
+}
+
+export function defaultPalette(): string {
+  return fallback;
+}
+
+export function usePalettes(
+  colours: Readonly<Record<string, Pick<Palette, 'paper' | 'ink' | 'accent'>>> | undefined,
+): void {
+  own = colours ?? {};
+}
+
+function withOwn(p: Palette): Palette {
+  const mine = own[p.id];
+  if (!mine) return p;
+  try {
+    return customPalette({ ...p, ...mine, id: p.id, label: p.label });
+  } catch {
+    // Unreadable colours (ink too close to the paper) never reach a page: the palette as made.
+    return p;
+  }
+}
+
 export function paletteById(id: string): Palette {
-  return PALETTES.find((p) => p.id === id) ?? (PALETTES[0] as Palette);
+  return withOwn(PALETTES.find((p) => p.id === id) ?? (PALETTES[0] as Palette));
 }
 
 /**
@@ -140,7 +184,7 @@ export function palette(id: string): Palette {
       `unknown palette ${JSON.stringify(id)}; try one of: ${PALETTES.map((p) => p.id).join(', ')}`,
     );
   }
-  return found;
+  return withOwn(found);
 }
 
 /** A palette the caller supplied, checked for the two things that must hold. */

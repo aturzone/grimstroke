@@ -13,14 +13,14 @@
 export const SHAPE_BAR = `/* ---- the shape bar ---- */
 .ss-layer {
   /* The palette's own paper, ink and accent, as the tools mix them (draw/chrome/css/kit.ts): the
-     card and the box change with the theme. The accent is held no lighter than 0.42 so it reads
-     on the paper whatever it is -- measured for every palette in tests/draw/look. */
+     card and the box change with the theme. The accent is held dark on a light theme and light on a
+     dark one (--brand-lo/hi, from draw/doc/head.ts) so it reads on the paper whatever it is -- measured for every palette in tests/draw/look. */
   --ss-bg: var(--gs-paper, #ffffff);
   --ss-fg: var(--gs-ink, #1a1a19);
   --ss-soft: var(--gs-soft, #6f6d68);
   --ss-line: color-mix(in oklab, var(--ss-fg) 12%, var(--ss-bg));
   --ss-tile: color-mix(in oklab, var(--ss-fg) 6%, var(--ss-bg));
-  --ss-brand: oklch(from var(--accent, #3b5bdb) min(l, 0.42) c h);
+  --ss-brand: oklch(from var(--accent, #3b5bdb) clamp(var(--brand-lo, 0), l, var(--brand-hi, 0.42)) c h);
   --ss-brand-soft: color-mix(in oklab, var(--ss-brand) 12%, var(--ss-bg));
   --ss-g: calc(var(--round, 1) * 0.4);
   /* The tools' corners, as every dialog has them (see draw/shape/css.ts). */
@@ -162,14 +162,14 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   --se-g: calc(var(--round, 1) * 0.4);
   --se-r: min(calc(4px * var(--round, 1) + var(--round-up, 0px)), 26px);
   /* The palette's own paper, ink and accent, as the tools mix them (draw/chrome/css/kit.ts): the
-     card and the box change with the theme. The accent is held no lighter than 0.42 so it reads
-     on the paper whatever it is -- measured for every palette in tests/draw/look. */
+     card and the box change with the theme. The accent is held dark on a light theme and light on a
+     dark one (--brand-lo/hi, from draw/doc/head.ts) so it reads on the paper whatever it is -- measured for every palette in tests/draw/look. */
   --ss-bg: var(--gs-paper, #ffffff);
   --ss-fg: var(--gs-ink, #1a1a19);
   --ss-soft: var(--gs-soft, #6f6d68);
   --ss-line: color-mix(in oklab, var(--ss-fg) 12%, var(--ss-bg));
   --ss-tile: color-mix(in oklab, var(--ss-fg) 6%, var(--ss-bg));
-  --ss-brand: oklch(from var(--accent, #3b5bdb) min(l, 0.42) c h);
+  --ss-brand: oklch(from var(--accent, #3b5bdb) clamp(var(--brand-lo, 0), l, var(--brand-hi, 0.42)) c h);
   --ss-brand-soft: color-mix(in oklab, var(--ss-brand) 12%, var(--ss-bg));
   box-sizing: border-box;
   display: flex;
