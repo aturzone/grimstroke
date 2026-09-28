@@ -619,8 +619,12 @@ export class ShapeIsland {
       }
       if (total && ran >= total && !timer.dataset.scRang) {
         timer.dataset.scRang = '1';
-        play('chime');
-        toast('time is up');
+        // Only a timer seen running out rings. One that ran out while the page was shut had its
+        // moment; announcing it again on every visit made "time is up" the board's greeting.
+        if (ran - total < 10) {
+          play('chime');
+          toast('time is up');
+        }
       }
     }
   }
