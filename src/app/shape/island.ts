@@ -17,7 +17,7 @@
 
 import { toast } from '~/app/chrome.ts';
 import { typing } from '~/app/dom.ts';
-import { comingFrom, play } from '~/app/feel.ts';
+import { comingFrom, moving, play } from '~/app/feel.ts';
 import { fieldEditor, openFieldEditor } from '~/app/shape/editor.ts';
 import { classify, type ShapeResult } from '~/draw/shape/classify.ts';
 import { activeIntent, decide, force, type Memory, promote, START } from '~/draw/shape/decide.ts';
@@ -165,8 +165,21 @@ export class ShapeIsland {
     });
   }
 
-  close(): void {
-    this.root?.remove();
+  close(fade = true): void {
+    // Out quickly, the way it came in; straight away when it is about to be opened again.
+    const root = this.root;
+    if (root && fade && moving()) {
+      root.style.pointerEvents = 'none';
+      delete root.dataset.gs;
+      // Keys must not go on landing in the box on its way out: the next "/" opens a new one.
+      if (root.contains(document.activeElement)) (document.activeElement as HTMLElement).blur();
+      const out = root.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(4px)' }], {
+        duration: 120,
+        easing: 'ease-in',
+      });
+      out.onfinish = () => root.remove();
+      out.oncancel = () => root.remove();
+    } else root?.remove();
     Object.assign(this, {
       root: undefined,
       input: undefined,
@@ -184,7 +197,7 @@ export class ShapeIsland {
 
   /** A placed card, back in the box to be changed. */
   edit(id: string, block: ShapeBlock): void {
-    this.close();
+    this.close(false);
     this.open(block.text, { id, block }, block.intent);
   }
 
