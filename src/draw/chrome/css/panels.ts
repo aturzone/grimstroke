@@ -68,20 +68,22 @@ export const PANELS = `/* ---- search ---- */
 
 /* ---- the shortcut sheet ---- */
 .gs-help { width: min(94vw, 980px); }
+/* Columns, not a grid: the sections are of very different lengths, and a grid row as tall as
+   the board's twenty keys left a hole under every short one beside it. */
 .gs-keys-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 6px 26px;
+  columns: 3 240px;
+  column-gap: 28px;
   padding: 16px 20px 20px;
 }
+.gs-keys { break-inside: avoid; margin-block-end: 14px; }
 .gs-keys h3 {
-  margin: 8px 0 8px;
+  margin: 0 0 8px;
   font-size: var(--gs-t1);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--gs-soft);
 }
-.gs-keys dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-items: center; }
+.gs-keys dl { display: grid; grid-template-columns: minmax(92px, auto) 1fr; gap: 6px 12px; align-items: center; margin: 0; }
 .gs-keys dt { display: flex; justify-content: flex-end; }
 .gs-keys dd { margin: 0; }
 
