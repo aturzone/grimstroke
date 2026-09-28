@@ -84,7 +84,8 @@ torn edges, tape, hard shadows that never blur. What changes is everything aroun
   says what it does.
 - [x] 5. A first-visit tour; empty places say what goes in them (the board, the bookcase, a bookcase with everything put away, the archive, connections, the trash).
 - [x] 6. A card sent to another page is followed there; a rail on the turner shows where in the book you are, and "every page" marks the open ones.
-- [ ] 7. The pet's remaining weak poses (in progress); books that wobble when set down.
+- [x] 7. The pet's weak poses redrawn in two rounds (loaf, crouch/leap/land, sleep, Siamese mask and
+  ears, Dalmatian face); a book set down rocks once on its foot.
 
 ## Done means
 - `pnpm check` green (types, lint, 390+ tests, build, the layout audit at six sizes and two

@@ -28,8 +28,9 @@ happened; small sounds for what a hand does; the tools set in one clear type.
 - The tools' inks are measured on every palette by a test: Carbon's quiet ink was 3.6:1, now 4.7:1.
 
 ### The pet
-- A proper loaf; the dog's crouch, leap and landing on its walking body; sleep curled on its side;
-  a Siamese mask; a clean Dalmatian face.
+- A proper loaf; the dog's crouch, leap and landing on its walking body, and a real crouch to
+  spring from; sleep curled on its side, and a cat asleep lays its ears flat; a Siamese mask and
+  dark points on its ears; a clean Dalmatian face.
 
 ## 0.2.0 — 2026-09-28
 
