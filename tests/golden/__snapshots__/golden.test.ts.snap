@@ -2,19 +2,19 @@
 
 exports[`golden > renders every surface exactly as before 1`] = `
 {
-  "board": "18a5405927eac7d3 225593",
-  "board-live": "da491f8c9b0ef76b 299477",
-  "page-carbon-ltr": "a6d980a811ce2d8c 227227",
-  "page-carbon-rtl": "80a28bc08687b531 227196",
-  "page-newsprint-ltr": "61c91204d5d11750 227240",
-  "page-newsprint-rtl": "113fa0b8520aefe7 227194",
-  "page-studio-ltr": "96077ecada4af071 227246",
-  "page-studio-rtl": "b5f98e94616f104d 227229",
-  "profile": "3ab0e864d18f2af7 279937",
-  "shelf": "67b464d76334f8c9 252858",
-  "spread-live-ltr": "9cce54abe2f5aaa8 242471",
-  "spread-live-rtl": "1ead85fe46645f7f 242533",
-  "spread-ltr": "2f310f0ae0bd1d25 224366",
-  "spread-rtl": "b5a3f8a99161bdf6 224428",
+  "board": "b153f8dcd562ed63 226060",
+  "board-live": "b449c8d62037ce29 299944",
+  "page-carbon-ltr": "bd57876464114692 227694",
+  "page-carbon-rtl": "1efb09116d6df458 227663",
+  "page-newsprint-ltr": "eca56d95bd06bd09 227707",
+  "page-newsprint-rtl": "fbf2dbc3f99e3362 227661",
+  "page-studio-ltr": "be528f1653a017d9 227713",
+  "page-studio-rtl": "3b25270802361271 227696",
+  "profile": "9fa3d539c67ed6eb 280404",
+  "shelf": "f3aaa35b7a77e6bc 253325",
+  "spread-live-ltr": "4eafdce2bb119172 242938",
+  "spread-live-rtl": "7a3687b7e5485de4 243000",
+  "spread-ltr": "b1df9a8b6b0309f6 224833",
+  "spread-rtl": "266399ad27c18214 224895",
 }
 `;

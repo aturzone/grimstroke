@@ -180,7 +180,11 @@ export const TRAY = `/* ---- the tray ---- */
   flex-direction: column;
   gap: 8px;
   padding: 10px 12px 12px;
+  /* Slid in from the edge it lives on, like a drawer. */
+  animation: gs-drawer-in 200ms var(--gs-ease) both;
 }
+@keyframes gs-drawer-in { from { opacity: 0; transform: translateX(18px); } }
+@media (prefers-reduced-motion: reduce) { .gs-drawer { animation: none; } }
 .gs-drawer-head { display: flex; align-items: center; gap: 10px; }
 .gs-drawer-head b { display: block; font-family: var(--ui-font); font-size: var(--gs-t2); }
 .gs-drawer-head small { color: var(--gs-soft); font-size: var(--gs-t1); }

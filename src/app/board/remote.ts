@@ -321,6 +321,7 @@ export class RemoteCards {
       }
     });
     document.body.append(panel);
+    play('open', 0.8);
     this.thread = panel;
 
     const load = async (): Promise<void> => {
@@ -442,6 +443,7 @@ export class RemoteCards {
     this.hideGuide();
     this.closeThread();
     if (this.drawer) {
+      play('close', 0.8);
       this.drawer.remove();
       this.drawer = undefined;
       document.querySelector('[data-gs="repo-drawer"]')?.setAttribute('aria-pressed', 'false');
@@ -468,6 +470,7 @@ export class RemoteCards {
         drawer.append(go);
       }
       document.body.append(drawer);
+      play('open', 0.8);
       this.drawer = drawer;
       return;
     }
@@ -569,6 +572,7 @@ export class RemoteCards {
     foot.append(make, liveList, tracker);
     drawer.append(head, tabs, filters, search, status, list, foot);
     document.body.append(drawer);
+    play('open', 0.8);
     this.drawer = drawer;
 
     let ask = 0;

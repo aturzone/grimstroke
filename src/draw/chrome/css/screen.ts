@@ -17,7 +17,9 @@ export const SCREEN = `/* Moving between surfaces. The top bar is the same on ev
    between the board and the shelf. Live pages only: an export never animates. */
 :root:has(> body.live, > body.is-live, > body.on-profile) { background-color: var(--desk, #2f2a24); }
 :root:has(> body.on-board) { background-color: var(--paper, #f4efe2); }
-:is(body.live, body.is-live, body.on-profile) > :not(.gs-top, script, dialog, svg, .gs-toasts) {
+/* On arriving only: once the page has come up (app/dom.ts marks it), a drawer or a panel put
+   in later comes in its own way, not with this fade over whatever it does. */
+:root:not([data-gs-arrived]) :is(body.live, body.is-live, body.on-profile) > :not(.gs-top, script, dialog, svg, .gs-toasts) {
   animation: gs-arrive 220ms cubic-bezier(0.2, 0.8, 0.25, 1) both;
 }
 @keyframes gs-arrive { from { opacity: 0; } to { opacity: 1; } }

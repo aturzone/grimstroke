@@ -78,6 +78,8 @@ export function smoothLinks(): void {
   // A request still out when the page is left is cut off, and its failure is not news: every
   // surface would otherwise report "NetworkError" on the way out. Only then -- a failure while
   // the page is in use still surfaces. (pagehide, not beforeunload, which costs the history cache.)
+  // The arrival fade is for arriving; after it, what is added comes in its own way.
+  window.setTimeout(() => document.documentElement.toggleAttribute('data-gs-arrived', true), 400);
   window.addEventListener('pagehide', () => {
     unloading = true;
   });
