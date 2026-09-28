@@ -388,6 +388,11 @@ export function bindFeel(): void {
     'toggle',
     (event) => {
       const el = event.target as HTMLElement;
+      // A dialog -- search, the shortcuts, a question -- opens and closes like a menu does.
+      if (el instanceof HTMLDialogElement) {
+        play(el.open ? 'open' : 'close', 0.8);
+        return;
+      }
       if (
         !(el instanceof HTMLDetailsElement) ||
         (!el.classList.contains('gs-menu') && !el.classList.contains('gs-sheet'))

@@ -77,6 +77,7 @@ export class BoardApp implements BoardContext {
       invert,
       onPatch: (reply) => this.absorb(reply),
       onStatus: (state) => this.status(state),
+      onStep: (ops) => stepSound(ops),
     });
     this.counter = spec.items.length;
 
@@ -885,3 +886,19 @@ const MARKS_STAMPS: ReadonlySet<string> = new Set(
     .filter(([, mark]) => mark.family === 'stamp')
     .map(([name]) => name),
 );
+
+/**
+ * The sound of an edit made in place, where nothing arrives, leaves or moves to say it: a lock
+ * clicks shut, a colour taps, a group sticks together. Arrivals, removals and moves have their
+ * own, in absorb and the gestures.
+ */
+function stepSound(ops: readonly Op[]): void {
+  const first = ops[0];
+  if (!first) return;
+  // Not for a raise: picking a note up raises it, and the pick-up already sounds.
+  if (first.op !== 'update') return;
+  const patch = first.patch as Record<string, unknown>;
+  if ('locked' in patch) play(patch.locked ? 'tick' : 'untick', 0.8);
+  else if ('group' in patch) play('stick', 0.7);
+  else if ('colour' in patch || 'palette' in patch) play('tap', 0.8);
+}

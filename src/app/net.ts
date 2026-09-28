@@ -55,6 +55,8 @@ export interface SessionOptions<S extends Doc, O> {
   invert(spec: S, ops: readonly O[]): O[];
   onPatch(reply: PatchReply): void;
   onStatus(state: 'saved' | 'saving' | 'offline'): void;
+  /** A new step was done by hand (not one more event of a drag already under way). */
+  onStep?(ops: readonly O[]): void;
 }
 
 /** How long a run of edits is gathered before it counts as one undo step. */
@@ -215,6 +217,7 @@ export class Session<S extends Doc, O> {
     } else {
       this.past.push(back);
       if (this.past.length > 200) this.past.shift();
+      this.options.onStep?.(ops);
     }
     this.lastEdit = now;
     this.lastLabel = label;
