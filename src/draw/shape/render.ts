@@ -12,10 +12,11 @@
  */
 
 import { hslString, inkOn, rgbString } from './colors.ts';
+import { type Fields, readShape } from './fields.ts';
 import { INTENTS, iconSvg, type ShapeIntent } from './intents.ts';
-import { describeRandom, formatClock, parseShape, type ShapeDataMap } from './parse.ts';
+import { describeRandom, formatClock, type ShapeDataMap } from './parse.ts';
 import { digitsFor, formatAmount, isPersian } from './text.ts';
-import { convertValue, UNITS, unitOptions } from './units.ts';
+import { UNITS, unitOptions } from './units.ts';
 import { daysBetween, formatWhen } from './when.ts';
 import { formatIn, localZone, offsetBetween } from './zones.ts';
 
@@ -43,6 +44,11 @@ export interface ShapeState {
   result?: string;
   /** Reminder, todo, event: marked as done. */
   closed?: boolean;
+  /**
+   * Values set by hand, over what the text says: see fields.ts for each kind's keys. The older
+   * `people`, `total`, `days`, `current` and `to` above are read beneath these.
+   */
+  fields?: Fields;
 }
 
 export interface ShapeBlock {
@@ -61,6 +67,8 @@ export interface FaceOptions {
   interactive?: boolean;
   /** Draws a check mark on a live timer tick without redrawing: the app sets the clock text. */
   id?: string;
+  /** A pencil in the header that opens the card's fields. On by default for a live card. */
+  editable?: boolean;
 }
 
 const esc = (s: string): string =>
@@ -108,6 +116,8 @@ const I = {
     '<svg class="sc-mini" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12 A7.5 7.5 0 1 0 7 6.5 M4.5 4 V8.5 H9"/></svg>',
   dice: '<svg class="sc-mini" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5 H19 V19 H5 Z M9 9 H9.1 M15 15 H15.1 M12 12 H12.1"/></svg>',
   mail: '<svg class="sc-mini" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6 H20.5 V18 H3.5 Z M3.5 6 L12 13 L20.5 6"/></svg>',
+  pencil:
+    '<svg class="sc-mini" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 L4.8 16 L15.5 5.3 A2 2 0 0 1 18.7 8.5 L8 19.2 Z M14 6.8 L17.2 10"/></svg>',
   plane:
     '<svg class="sc-mini" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12.5 L20.5 5.5 L16.5 20 L12 14.5 Z"/></svg>',
 };
@@ -173,11 +183,14 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
     const running = typeof s.startedAt === 'number';
     const ran =
       (s.elapsed ?? 0) + (running ? (c.now.getTime() - (s.startedAt as number)) / 1000 : 0);
-    const stopwatch = !total;
-    const left = stopwatch ? ran : Math.max(0, total - ran);
-    const progress = stopwatch ? (ran % 60) / 60 : total ? Math.min(1, ran / total) : 0;
+    // A stopwatch is asked for; a timer with no time yet offers some, and counts up if started.
+    const stopwatch = /stopwatch|count ?up|کرنومتر/i.test(c.text) && !total;
+    const left = total ? Math.max(0, total - ran) : ran;
+    const progress = total ? Math.min(1, ran / total) : (ran % 60) / 60;
     const R = 52;
     const len = 2 * Math.PI * R;
+    const idle = !running && ran === 0;
+    const presets = [5, 10, 25, 45];
     return (
       `<div class="sc-timer" data-sc-total="${total}" data-sc-elapsed="${s.elapsed ?? 0}"` +
       `${running ? ` data-sc-started="${s.startedAt}"` : ''}>` +
@@ -186,21 +199,43 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
       `stroke-dashoffset="${(len * progress).toFixed(1)}"/></svg>` +
       `<span class="sc-clock" role="timer">${formatClock(left)}</span></div>` +
       `<div class="sc-side"><h3 class="sc-title">${esc(d.label || (stopwatch ? t(c.fa, 'Stopwatch', 'کرنومتر') : t(c.fa, 'Timer', 'تایمر')))}</h3>` +
+      (total && idle
+        ? `<div class="sc-row sc-steps">${act('timer:-60', t(c.fa, 'one minute less', 'یک دقیقه کمتر'), `${I.minus}<span>${t(c.fa, '1m', '۱ دقیقه')}</span>`, c.live && total > 60, 'sc-btn sc-soft-btn')}` +
+          `${act('timer:+60', t(c.fa, 'one minute more', 'یک دقیقه بیشتر'), `${I.plus}<span>${t(c.fa, '1m', '۱ دقیقه')}</span>`, c.live, 'sc-btn sc-soft-btn')}</div>`
+        : !total && !stopwatch && idle
+          ? `<p class="sc-meta">${t(c.fa, 'How long?', 'چقدر؟')}</p><div class="sc-row sc-steps">${presets
+              .map((m) =>
+                act(
+                  `timer:set:${m * 60}`,
+                  `${m} ${t(c.fa, 'minutes', 'دقیقه')}`,
+                  `${digitsFor(m, c.fa)}${t(c.fa, 'm', ' دقیقه')}`,
+                  c.live,
+                  'sc-pill',
+                ),
+              )
+              .join('')}</div>`
+          : '') +
       `<div class="sc-row">` +
       act(
         'timer:toggle',
-        running ? 'pause' : 'start',
+        running ? t(c.fa, 'pause', 'مکث') : t(c.fa, 'start', 'شروع'),
         `${running ? I.pause : I.play}<span>${running ? t(c.fa, 'Pause', 'مکث') : ran > 0 ? t(c.fa, 'Resume', 'ادامه') : t(c.fa, 'Start', 'شروع')}</span>`,
         c.live,
         'sc-btn',
       ) +
-      act('timer:reset', 'reset', I.reset, c.live && ran > 0, 'sc-btn sc-icon-btn') +
+      act(
+        'timer:reset',
+        t(c.fa, 'reset', 'از نو'),
+        I.reset,
+        c.live && ran > 0,
+        'sc-btn sc-icon-btn',
+      ) +
       `</div></div>`
     );
   },
 
   habit: (d, s, c) => {
-    const days = new Set(s.days ?? d.days);
+    const days = new Set(d.days);
     const order = c.fa ? [6, 0, 1, 2, 3, 4, 5] : [1, 2, 3, 4, 5, 6, 0];
     const letters = c.fa
       ? ['ی', 'د', 'س', 'چ', 'پ', 'ج', 'ش']
@@ -226,9 +261,9 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
         `<dl class="sc-codes"><dt>HEX</dt><dd>${d.hex.toUpperCase()}</dd><dt>RGB</dt><dd>${rgbString(d.hex)}</dd><dt>HSL</dt><dd>${hslString(d.hex)}</dd></dl>`
       : missing(t(c.fa, 'A hex code, rgb(), or a colour name', 'کد رنگ یا نام رنگ')),
 
-  split: (d, s, c) => {
-    const people = s.people ?? d.people ?? 2;
-    const total = s.total ?? d.total ?? 0;
+  split: (d, _s, c) => {
+    const people = d.people ?? 2;
+    const total = d.total ?? 0;
     return (
       `<div class="sc-split"><div><p class="sc-meta">${t(c.fa, 'Total', 'مبلغ کل')}</p><p class="sc-num">${total ? formatAmount(total, d.currency) : '—'}</p>` +
       `<p class="sc-meta">${t(c.fa, 'People', 'نفرات')}</p><div class="sc-row">` +
@@ -244,11 +279,11 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
     `<div class="sc-split"><h3 class="sc-title">${d.item ? esc(d.item) : missing(t(c.fa, 'on what?', 'برای چی؟'))}</h3>` +
     `<p class="sc-hero">${d.amount !== null ? formatAmount(d.amount, d.currency) : '—'}</p></div>`,
 
-  convert: (d, s, c) => {
+  convert: (d, _s, c) => {
     if (d.value === null || !d.from)
       return missing(t(c.fa, 'Like “5 miles in km”', 'مثل «۵ مایل به کیلومتر»'));
-    const to = s.to ?? d.to;
-    const value = to ? convertValue(d.value, d.from, to) : null;
+    const to = d.to;
+    const value = d.result;
     const opts = unitOptions(d.from).filter((u) => u !== d.from);
     return (
       `<div class="sc-convert"><p class="sc-num">${d.value} <span>${UNITS[d.from]?.label ?? d.from}</span></p>` +
@@ -365,10 +400,10 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
     `<div class="sc-row">${act('roll', 'roll', `${I.dice}<span>${s.result ? t(c.fa, 'Again', 'دوباره') : t(c.fa, 'Roll', 'بنداز')}</span>`, c.live, 'sc-btn')}</div></div>` +
     `<p class="sc-hero sc-result">${s.result ? esc(s.result) : '?'}</p></div>`,
 
-  goal: (d, s, c) => {
+  goal: (d, _s, c) => {
     if (!d.target)
       return `<h3 class="sc-title">${esc(d.title)}</h3>${missing(t(c.fa, 'Add a target, like “12 books, 4 done”', 'یه هدف بنویس، مثل «۱۲ کتاب، ۴ تا خوندم»'))}`;
-    const cur = Math.min(d.target, s.current ?? d.current);
+    const cur = Math.min(d.target, d.current);
     const pct = Math.round((cur / d.target) * 100);
     return (
       `<div class="sc-split"><div><h3 class="sc-title">${esc(d.title)}</h3><p class="sc-meta">${cur} ${t(c.fa, 'of', 'از')} ${d.target}${d.unit ? ` ${esc(d.unit)}` : ''}</p></div>` +
@@ -395,12 +430,13 @@ export function renderShape(block: ShapeBlock, options: FaceOptions = {}): strin
   const now = options.now ?? written ?? new Date(0);
   const made = written ?? now;
   const fa = isPersian(block.text);
-  const data = parseShape(block.intent, block.text, Number.isNaN(made.getTime()) ? now : made);
   const s = block.state ?? {};
+  const data = readShape(block.intent, block.text, Number.isNaN(made.getTime()) ? now : made, s);
+  const live = options.interactive ?? true;
   const body = (BODIES[block.intent] as Body<ShapeIntent>)(data, s, {
     fa,
     now,
-    live: options.interactive ?? true,
+    live,
     text: block.text,
   });
   const urgent = /\b(urgent|asap|important)\b|فوری|مهم/i.test(block.text);
@@ -409,6 +445,9 @@ export function renderShape(block: ShapeBlock, options: FaceOptions = {}): strin
     `<header class="sc-head"><span class="sc-tile">${iconSvg(block.intent)}</span>` +
     `<span class="sc-label">${esc(headerLabel(block.intent, data, fa))}</span>` +
     (urgent ? `<span class="sc-badge sc-caution">${I.alert}${fa ? 'فوری' : 'Urgent'}</span>` : '') +
+    (live && options.editable !== false
+      ? act('edit', fa ? 'ویرایش' : 'edit', I.pencil, true, 'sc-edit')
+      : '') +
     `</header><div class="sc-body">${body}</div></article>`
   );
 }
@@ -429,7 +468,7 @@ export function summarize(block: ShapeBlock, at?: Date): string {
   const label = fa ? INTENTS[block.intent].fa : INTENTS[block.intent].label;
   switch (block.intent) {
     case 'event': {
-      const d = parseShape('event', block.text, made);
+      const d = readShape('event', block.text, made, st);
       return join(
         d.title || label,
         whenOf(d.date, d.hasTime),
@@ -438,7 +477,7 @@ export function summarize(block: ShapeBlock, at?: Date): string {
       );
     }
     case 'reminder': {
-      const d = parseShape('reminder', block.text, made);
+      const d = readShape('reminder', block.text, made, st);
       return join(
         d.task || label,
         whenOf(d.when, d.hasTime),
@@ -446,50 +485,50 @@ export function summarize(block: ShapeBlock, at?: Date): string {
       );
     }
     case 'todo': {
-      const d = parseShape('todo', block.text, made);
+      const d = readShape('todo', block.text, made, st);
       return join(`${(st.done ?? []).length}/${d.items.length}`, d.items.slice(0, 5).join(', '));
     }
     case 'timer': {
-      const d = parseShape('timer', block.text, made);
+      const d = readShape('timer', block.text, made, st);
       return join(
         d.label || label,
         d.seconds ? formatClock(d.seconds) : fa ? 'کرنومتر' : 'stopwatch',
       );
     }
     case 'habit': {
-      const d = parseShape('habit', block.text, made);
+      const d = readShape('habit', block.text, made, st);
       return join(d.title || label, d.label, `${(st.log ?? []).length}×`);
     }
     case 'color': {
-      const d = parseShape('color', block.text, made);
+      const d = readShape('color', block.text, made, st);
       return d.hex ? join(d.name, d.hex.toUpperCase()) : block.text;
     }
     case 'split': {
-      const d = parseShape('split', block.text, made);
-      const total = st.total ?? d.total;
-      const people = st.people ?? d.people ?? 2;
+      const d = readShape('split', block.text, made, st);
+      const total = d.total;
+      const people = d.people ?? 2;
       return total
         ? `${formatAmount(total, d.currency)} ÷ ${people} = ${formatAmount(total / people, d.currency)}`
         : label;
     }
     case 'expense': {
-      const d = parseShape('expense', block.text, made);
+      const d = readShape('expense', block.text, made, st);
       return join(d.amount !== null && formatAmount(d.amount, d.currency), d.item) || label;
     }
     case 'convert': {
-      const d = parseShape('convert', block.text, made);
-      const to = st.to ?? d.to;
-      const r = d.value !== null && d.from && to ? convertValue(d.value, d.from, to) : null;
+      const d = readShape('convert', block.text, made, st);
+      const to = d.to;
+      const r = d.result;
       return r !== null && d.from && to
         ? `${d.value} ${UNITS[d.from]?.label ?? d.from} = ${Number(r.toFixed(3))} ${UNITS[to]?.label ?? to}`
         : block.text;
     }
     case 'calc': {
-      const d = parseShape('calc', block.text, made);
+      const d = readShape('calc', block.text, made, st);
       return d.result !== null ? `${d.expression} = ${d.result}` : block.text;
     }
     case 'travel': {
-      const d = parseShape('travel', block.text, made);
+      const d = readShape('travel', block.text, made, st);
       return join(
         d.destination ? `${d.origin ? `${d.origin} → ` : ''}${d.destination}` : label,
         whenOf(d.start, false),
@@ -498,26 +537,26 @@ export function summarize(block: ShapeBlock, at?: Date): string {
       );
     }
     case 'poll': {
-      const d = parseShape('poll', block.text, made);
+      const d = readShape('poll', block.text, made, st);
       const votes = d.options.map((o, i) => `${o} ${st.votes?.[i] ?? 0}`);
       return join(d.title, votes.join(' / '));
     }
     case 'contact': {
-      const d = parseShape('contact', block.text, made);
+      const d = readShape('contact', block.text, made, st);
       return join(d.name || label, d.phone, d.email);
     }
     case 'link': {
-      const d = parseShape('link', block.text, made);
+      const d = readShape('link', block.text, made, st);
       return join(d.domain ?? d.url, d.note);
     }
     case 'countdown': {
-      const d = parseShape('countdown', block.text, made);
+      const d = readShape('countdown', block.text, made, st);
       if (!d.date) return block.text;
       const days = daysBetween(now, d.date);
       return fa ? `${d.title}: ${days} روز` : `${d.title}: ${days} ${days === 1 ? 'day' : 'days'}`;
     }
     case 'timezone': {
-      const d = parseShape('timezone', block.text, made);
+      const d = readShape('timezone', block.text, made, st);
       const at = d.isNow ? now : (d.instant ?? now);
       const from = d.from.label === 'Local' ? localZone() : d.from;
       return join(
@@ -526,16 +565,16 @@ export function summarize(block: ShapeBlock, at?: Date): string {
       );
     }
     case 'random': {
-      const d = parseShape('random', block.text, made);
+      const d = readShape('random', block.text, made, st);
       return join(describeRandom(d, fa), st.result);
     }
     case 'goal': {
-      const d = parseShape('goal', block.text, made);
+      const d = readShape('goal', block.text, made, st);
       return d.target
-        ? join(d.title, `${st.current ?? d.current}/${d.target}${d.unit ? ` ${d.unit}` : ''}`)
+        ? join(d.title, `${d.current}/${d.target}${d.unit ? ` ${d.unit}` : ''}`)
         : d.title;
     }
     case 'note':
-      return parseShape('note', block.text, made).title;
+      return readShape('note', block.text, made, st).title;
   }
 }

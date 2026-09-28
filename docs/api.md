@@ -118,7 +118,7 @@ connected), workspace (backup, restore, the trash), about. `#<section>` in the a
 
 ## Shapes: a line of text that becomes a card
 
-On a board or a page, **/** opens one box: type a plan, a list, a colour or a sum and it becomes a
+On a board, a page or a notebook's spread, **/** opens one box: type a plan, a list, a colour or a sum and it becomes a
 card -- an event, a checklist, a timer, a colour, a split, an expense, a conversion, a sum, a
 trip, a poll, a contact, a bookmark, a countdown, a time zone, a dice roll, a goal or a note.
 **/** again in the empty box lists every kind, to choose one by hand. English and Persian both
@@ -142,6 +142,46 @@ indices), `votes` (per poll option), `people` and `total` (a split), `days` and 
 weekdays and the dates it was done), `current` (a goal), `elapsed` and `startedAt` (a timer, in
 seconds and epoch ms), `to` (the unit a conversion shows), `result` (the last roll), `closed`
 (a reminder done). Searching finds a card by its words and by its summary.
+
+**Values set by hand: `state.fields`.** Every card's values can be changed without retyping it --
+the pencil on a card, or "Details" in the bar, opens them with a date picker, a clock, a colour
+well, lists with add and remove -- and what is set by hand is kept in `state.fields`, over what the
+text says (the text stays the text; a field not set still follows it). An agent sends the same
+keys, in an `update` patch or in `POST /api/shape/place`'s `state` (checked against the kind;
+unknown keys are dropped). `GET /api/shape/kinds` lists each kind's fields with their types.
+
+| kind | `fields` |
+|---|---|
+| event | `title`, `date` (YYYY-MM-DD), `time` (HH:MM), `place`, `people` (list) |
+| reminder | `task`, `date`, `time` |
+| todo | `items` (list) |
+| timer | `label`, `duration` (seconds) |
+| habit | `title`, `label` (how often, in words), `days` (0-6, Sunday is 0) |
+| color | `hex` (#rrggbb), `name` |
+| split | `total`, `people`, `currency` (`$` `€` `£` `₹` `تومان` `ریال` or empty) |
+| expense | `amount`, `item`, `currency` |
+| convert | `value`, `from`, `to` (unit keys: `km` `mi` `m` `cm` `kg` `lb` `C` `F` `kmh` `mph` ...) |
+| calc | `expression` |
+| travel | `destination`, `origin`, `start`, `end` (dates), `mode` (`flight` `train` `bus` `car`) |
+| poll | `title`, `options` (list) |
+| contact | `name`, `phone`, `email` |
+| link | `url`, `note` |
+| countdown | `title`, `date` |
+| timezone | `from`, `to` (zone keys such as `tehran`, `london`, `pst`, or `local`), `time` (HH:MM in `from`; empty for now) |
+| random | `kind` (`dice` `coin` `number` `pick`), `count`, `sides`, `min`, `max`, `options` (list) |
+| goal | `title`, `current`, `target`, `unit` |
+| note | `text` |
+
+```sh
+curl -s -X POST $B/api/shape/place -H "x-grimstroke-token: $T" -d '{
+  "board": "workspace", "text": "tea", "intent": "timer",
+  "state": { "fields": { "label": "Tea", "duration": 240 } } }'
+```
+
+On a notebook's spread, **/** (or the "type anything" button) puts the card on the page in view --
+the right-hand page, or the one on show on a phone -- under what is on it; a full page sends it
+to the other page, then to the next empty one. Controls on a card work on the spread as they do
+on its page.
 
 ## Moving things between surfaces
 

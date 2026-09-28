@@ -19,6 +19,7 @@
 
 import { CoverEditor } from '~/app/book/cover.ts';
 import { RepoSetup } from '~/app/book/repo.ts';
+import { bookShapes } from '~/app/book/shapes.ts';
 import { toast } from '~/app/chrome.ts';
 import { go, must, onClick, typing } from '~/app/dom.ts';
 import { play } from '~/app/feel.ts';
@@ -67,6 +68,37 @@ export class BookApp {
     this.fitToScreen();
     this.showPlace();
     void this.warm();
+    this.bindShapes();
+  }
+
+  // ---------------------------------------------------------------- "/" on the spread
+
+  /** Type anything on the spread and it becomes a card on the page in view (book/shapes.ts). */
+  private bindShapes(): void {
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'ss-open';
+    open.dataset.gs = 'shape-open';
+    open.setAttribute('aria-keyshortcuts', '/');
+    open.title = 'type anything: it becomes a card on this page';
+    open.innerHTML =
+      '<svg class="ss-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6 A2.5 2.5 0 0 1 6 3.5 H18 A2.5 2.5 0 0 1 20.5 6 V18 A2.5 2.5 0 0 1 18 20.5 H6 A2.5 2.5 0 0 1 3.5 18 Z M14 7.5 L10 16.5"/></svg>' +
+      '<span>type anything</span><kbd class="gs-kbd">/</kbd>';
+    document.body.append(open);
+    bookShapes({
+      session: this.session,
+      element: this.book,
+      leafInView: () => {
+        const leaves = this.leaves;
+        const index = this.single
+          ? this.leaf + (this.side === 'recto' ? 1 : 0)
+          : leaves[this.leaf + 1]
+            ? this.leaf + 1
+            : this.leaf;
+        return leaves[Math.max(0, Math.min(index, leaves.length - 1))]?.id;
+      },
+      isOpen: () => !this.book.querySelector('[data-gs="closed"]'),
+    }).bind();
   }
 
   private get single(): boolean {

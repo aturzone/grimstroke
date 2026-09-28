@@ -1,8 +1,14 @@
 /**
- * The "/" bar: one rounded box over the board that grows into the card being typed.
+ * The "/" bar: one rounded box over the board that grows into the card being typed, and the panel
+ * that edits a card's fields by hand.
  *
  * The look is the Shapeshift demo's on purpose -- white, quiet, a 28px shell, one blue -- because
  * the point of the bar is to get out of the way of what is being written.
+ *
+ * Corners follow the workspace's --round on the same gentle curve as the cards (see
+ * draw/shape/css.ts): --ss-g is --round up to 1 and a third of each step beyond, and the shell is
+ * capped at 34px. The shell keeps ONE radius whether it is the 72px line or the grown card, so it
+ * morphs as one object; at 3 it was an 84px blob once it grew.
  */
 
 export const SHAPE_BAR = `/* ---- the shape bar ---- */
@@ -14,6 +20,8 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   --ss-tile: #f3f2ef;
   --ss-brand: #3b5bdb;
   --ss-brand-soft: #eef1fd;
+  --ss-g: calc(min(var(--round, 1), 1) + max(var(--round, 1) - 1, 0) * 0.35);
+  --ss-r: min(calc(28px * var(--ss-g)), 34px);
   position: fixed;
   inset: 0;
   z-index: 70;
@@ -31,9 +39,12 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   align-items: stretch;
 }
 .ss-shell {
-  overflow: hidden;
+  max-height: calc(100vh - clamp(64px, 16vh, 180px) - 24px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--ss-line);
-  border-radius: calc(28px * var(--round, 1));
+  border-radius: var(--ss-r);
   background: var(--ss-bg);
   box-shadow: 0 1px 2px rgba(20, 20, 18, 0.06), 0 24px 60px -24px rgba(20, 20, 18, 0.45);
   outline: 4px solid transparent;
@@ -60,7 +71,10 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
 .ss-card .sc { min-width: 0; border: 0; box-shadow: none; padding: 4px 16px 6px; }
 .ss-card.is-ghost { opacity: 0.35; filter: grayscale(0.6); pointer-events: none; transition: opacity 200ms, filter 200ms; }
 .ss-foot:empty { display: none; }
-.ss-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 52px; padding: 6px 22px 16px; }
+.ss-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; min-height: 52px; padding: 6px 22px 16px; }
+.ss-foot-end { display: inline-flex; align-items: center; gap: 8px; margin-inline-start: auto; }
+.ss-details { height: 34px; padding: 0 12px; border: 1px solid var(--ss-line); border-radius: calc(999px * var(--round, 1)); background: none; color: var(--ss-fg); font: inherit; font-size: 13px; cursor: pointer; }
+.ss-details[aria-expanded='true'] { border-color: var(--ss-brand); background: var(--ss-brand-soft); color: var(--ss-brand); }
 .ss-keys { display: inline-flex; align-items: center; gap: 6px; color: var(--ss-soft); font-size: 13px; font-weight: 500; }
 .ss-add {
   display: inline-flex;
@@ -114,7 +128,7 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   translate: -50% 0;
   overflow: hidden;
   border: 1px solid var(--ss-line);
-  border-radius: calc(20px * var(--round, 1));
+  border-radius: min(calc(20px * var(--ss-g)), 28px);
   background: var(--ss-bg);
   box-shadow: 0 24px 60px -20px rgba(20, 20, 18, 0.45);
 }
@@ -125,7 +139,7 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   height: 34px;
   padding: 0 12px;
   border: 0;
-  border-radius: calc(12px * var(--round, 1) + var(--round-up, 0px) * 0.5);
+  border-radius: min(calc(12px * var(--ss-g)), 18px);
   background: var(--ss-tile);
   color: var(--ss-fg);
   font: inherit;
@@ -133,12 +147,115 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   outline: none;
 }
 .ss-palette-list { max-height: min(420px, 56vh); margin: 0; padding: 0 8px 8px; overflow-y: auto; overscroll-behavior: contain; list-style: none; }
-.ss-option { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 8px; border-radius: calc(14px * var(--round, 1) + var(--round-up, 0px) * 0.5); color: var(--ss-fg); cursor: pointer; }
+.ss-option { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 8px; border-radius: min(calc(14px * var(--ss-g)), 20px); color: var(--ss-fg); cursor: pointer; }
 .ss-option.is-on, .ss-option:hover { background: var(--ss-tile); }
-.ss-option-tile { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border: 1px solid var(--ss-line); border-radius: calc(9px * var(--round, 1) + var(--round-up, 0px) * 0.5); background: var(--ss-bg); }
+.ss-option-tile { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border: 1px solid var(--ss-line); border-radius: min(calc(9px * var(--ss-g)), 14px); background: var(--ss-bg); }
 .ss-option b { width: 96px; flex: none; font-size: 14px; font-weight: 500; }
 .ss-option-example { min-width: 0; overflow: hidden; color: var(--ss-soft); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .ss-empty { padding: 14px 8px; color: var(--ss-soft); font-size: 13px; }
+
+/* ---- a card's fields, by hand ---- */
+.se-panel {
+  --se-g: calc(min(var(--round, 1), 1) + max(var(--round, 1) - 1, 0) * 0.35);
+  --se-r: min(calc(20px * var(--se-g)), 28px);
+  --ss-bg: #ffffff;
+  --ss-fg: #1a1a19;
+  --ss-soft: #6f6d68;
+  --ss-line: #e7e5e1;
+  --ss-tile: #f3f2ef;
+  --ss-brand: #3b5bdb;
+  --ss-brand-soft: #eef1fd;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--ss-fg);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, 'Helvetica Neue', Arial, Estedad, sans-serif;
+  font-size: 14px;
+  text-align: start;
+}
+.se-panel *, .se-panel *::before, .se-panel *::after { box-sizing: border-box; }
+.se-float {
+  position: fixed;
+  z-index: 72;
+  width: min(380px, calc(100vw - 24px));
+  max-height: min(640px, calc(100vh - 24px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px;
+  border: 1px solid var(--ss-line);
+  border-radius: var(--se-r);
+  background: var(--ss-bg);
+  box-shadow: 0 24px 60px -20px rgba(20, 20, 18, 0.45);
+  animation: ss-rise 160ms ease-out;
+}
+.se-inline { padding: 12px 22px 8px; border-block-start: 1px solid var(--ss-line); }
+.se-head { display: flex; align-items: center; gap: 10px; }
+.se-head h3 { flex: 1; min-width: 0; margin: 0; font-size: 15px; font-weight: 600; }
+.se-x { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: calc(999px * var(--round, 1)); background: none; color: var(--ss-soft); font-size: 20px; cursor: pointer; }
+.se-x:hover { background: var(--ss-tile); color: var(--ss-fg); }
+.se-form { display: grid; gap: 12px; }
+.se-field { display: grid; gap: 6px; min-width: 0; }
+.se-field > span { color: var(--ss-soft); font-size: 12px; font-weight: 500; }
+.se-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.se-input {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--ss-line);
+  border-radius: min(calc(10px * var(--se-g)), 16px);
+  background: var(--ss-bg);
+  color: var(--ss-fg);
+  font: inherit;
+  font-size: 15px;
+  outline: none;
+}
+textarea.se-input { height: auto; min-height: 96px; padding: 10px 12px; resize: vertical; line-height: 1.45; }
+.se-input:focus { border-color: var(--ss-brand); box-shadow: 0 0 0 3px var(--ss-brand-soft); }
+input[type='color'].se-input { flex: none; width: 56px; padding: 4px; }
+.se-colour { display: flex; gap: 8px; }
+.se-list { display: grid; gap: 6px; }
+.se-list-row { display: flex; gap: 6px; }
+.se-mini {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--ss-line);
+  border-radius: min(calc(10px * var(--se-g)), 16px);
+  background: var(--ss-bg);
+  color: var(--ss-fg);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.se-mini:hover { background: var(--ss-tile); }
+.se-add { justify-self: start; }
+.se-days { display: flex; gap: 6px; flex-wrap: wrap; }
+.se-day { width: 40px; height: 40px; padding: 0; border: 1px solid var(--ss-line); border-radius: calc(50% * min(1, var(--round, 1))); background: none; color: var(--ss-soft); font: inherit; font-size: 13px; cursor: pointer; }
+.se-day[aria-pressed='true'] { border-color: var(--ss-fg); background: var(--ss-fg); color: var(--ss-bg); }
+.se-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.se-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.se-reset { margin-inline-end: auto; padding: 0; border: 0; background: none; color: var(--ss-soft); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; }
+.se-save, .se-cancel { height: 38px; padding: 0 16px; border-radius: calc(999px * var(--round, 1)); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+.se-save { border: 0; background: var(--ss-fg); color: var(--ss-bg); }
+.se-cancel { border: 1px solid var(--ss-line); background: none; color: var(--ss-fg); }
+.se-save:focus-visible, .se-cancel:focus-visible, .se-mini:focus-visible, .se-day:focus-visible { outline: 2px solid var(--ss-brand); outline-offset: 2px; }
+/* On a phone the panel is a sheet from the bottom, within a thumb's reach. */
+@media (max-width: 520px) {
+  .se-float { inset: auto 0 0 0 !important; width: 100%; max-height: 82vh; border-radius: var(--se-r) var(--se-r) 0 0; }
+}
+
+/* The notebook's own way in: the spread has no tray. */
+.ss-open { position: fixed; z-index: 45; inset-block-end: 18px; inset-inline-end: 18px; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border: 1px solid #e7e5e1; border-radius: calc(999px * var(--round, 1)); background: #fff; color: #1a1a19; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, sans-serif; font-size: 13px; box-shadow: 0 8px 24px -12px rgba(20, 20, 18, 0.4); cursor: pointer; }
+.ss-open .gs-kbd { color: #1a1a19; }
+@media (max-width: 760px) {
+  .ss-open { inset-block-end: 70px; inset-inline-end: 10px; }
+  .ss-open span { display: none; }
+}
 
 @keyframes ss-fade { from { opacity: 0; } }
 @keyframes ss-rise { from { opacity: 0; transform: translateY(6px) scale(0.99); } }
