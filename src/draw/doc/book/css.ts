@@ -693,6 +693,8 @@ export const PAGES = `/* ---- every page at once ----
   cursor: grab;
 }
 .page-cell[data-selected] { outline: 3px solid var(--accent); outline-offset: 2px; }
+.page-cell[aria-current='page'] { box-shadow: 0 0 0 3px var(--accent, #d23); translate: 0 -3px; }
+.page-cell[aria-current='page'] .page-number::after { content: ' · open'; font-weight: 400; opacity: 0.6; }
 .page-cell .page-number { font-size: 15px; font-weight: 700; }
 .page-cell .page-hint { opacity: 0.55; }
 

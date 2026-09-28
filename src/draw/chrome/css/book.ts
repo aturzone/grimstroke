@@ -21,6 +21,24 @@ export const TURNER = `/* ---- the turner ---- */
   user-select: none;
 }
 :root[dir='rtl'] .gs-turner { transform: translateX(50%); }
+.gs-turner-rail {
+  position: absolute;
+  inset-inline: calc(12px + var(--round-up, 0px) * 0.6);
+  inset-block-end: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--gs-faint) 60%, transparent);
+  pointer-events: none;
+}
+.gs-turner-mark {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--at, 0) * 100%);
+  width: max(6px, calc(var(--span, 1) * 100%));
+  border-radius: 2px;
+  background: var(--accent, var(--gs-ink));
+  transition: inset-inline-start 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
 .gs-jump { display: flex; align-items: center; gap: 8px; padding-inline: 8px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .gs-jump-label { color: var(--gs-soft); font-size: var(--gs-t1); letter-spacing: 0.08em; text-transform: uppercase; }
 .gs-jump input {

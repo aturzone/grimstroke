@@ -82,6 +82,8 @@ export function bookChrome(spec: BookSpec): string {
     `<span data-gs="place" dir="ltr">1–2 of ${leaves}</span>`,
     '</label>',
     button({ gs: 'next', label: 'next page', icon: 'next', key: '→' }),
+    // Where in the book the pages in view are: a mark along the bottom of the turner.
+    `<span class="gs-turner-rail" aria-hidden="true"><span class="gs-turner-mark" data-gs="rail" style="--at:0;--span:${Math.min(1, 2 / Math.max(leaves, 1))}"></span></span>`,
     '</div>',
     searchDialog(),
     helpDialog(),

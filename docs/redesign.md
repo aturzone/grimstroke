@@ -81,7 +81,7 @@ torn edges, tape, hard shadows that never blur. What changes is everything aroun
 - [x] 4. The notebook's bar in three; the shelf counts what is in use and archived; every button
   says what it does.
 - [x] 5. A first-visit tour. (Empty states beyond the board and a connected page: not yet.)
-- [x] 6. A card sent to another page is followed there. (Current page indicator: not yet.)
+- [x] 6. A card sent to another page is followed there; a rail on the turner shows where in the book you are, and "every page" marks the open ones.
 - [ ] 7. The pet's remaining weak poses (in progress); books that wobble when set down.
 
 ## Done means

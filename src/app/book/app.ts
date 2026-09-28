@@ -407,6 +407,12 @@ export class BookApp {
         ? `of ${of}`
         : `${this.leaf + 1}–${Math.min(this.leaf + 2, of)} of ${of}`;
     }
+    const rail = document.querySelector<HTMLElement>('[data-gs="rail"]');
+    if (rail && of > 0) {
+      const span = this.single ? 1 : Math.min(2, of - this.leaf);
+      rail.style.setProperty('--at', String(shown / of));
+      rail.style.setProperty('--span', String(span / of));
+    }
     const shut = this.book.querySelector<HTMLElement>('[data-gs="closed"]');
     // Arriving from the shelf: the opening plays by itself, once. A reload lands on the pages.
     if (shut && new URLSearchParams(location.search).has('opening')) {
@@ -713,6 +719,8 @@ export class BookApp {
     grid.className = 'pages-grid';
     grid.dataset.gs = 'pages-grid';
     const chosen = new Set<string>();
+    const first = this.single ? this.leaf + (this.side === 'recto' ? 1 : 0) : this.leaf;
+    const inView = new Set(this.single ? [first] : [first, first + 1]);
 
     const draw = (): void => {
       grid.replaceChildren();
@@ -723,6 +731,7 @@ export class BookApp {
         cell.dataset.gsId = leaf.id;
         cell.dataset.gsIndex = String(index);
         if (chosen.has(leaf.id)) cell.dataset.selected = '1';
+        if (inView.has(index)) cell.setAttribute('aria-current', 'page');
         cell.draggable = true;
         const number = document.createElement('span');
         number.className = 'page-number';
@@ -782,6 +791,7 @@ export class BookApp {
     };
     draw();
     document.body.append(grid);
+    grid.querySelector('[aria-current]')?.scrollIntoView({ block: 'center' });
     // The pages come in one after another, a sheaf being fanned out.
     play('open');
     for (const [n, cell] of [...grid.querySelectorAll('.page-cell')].entries())
