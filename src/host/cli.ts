@@ -15,6 +15,7 @@ import { check as checkPalette, PALETTES, palette } from '~/draw/look/palette.ts
 import { fontDirectory, verifyFaces } from '~/draw/type/faces.ts';
 import { exportPages } from '~/host/export.ts';
 import { redactImage } from '~/host/redact.ts';
+import { hashPassword, type Login, loginFromEnv } from '~/host/serve/login.ts';
 import { serve } from '~/host/serve/server.ts';
 import { type Archive, pack, readArchive, unpack } from '~/host/store/archive.ts';
 import { Store, TRASH_DAYS } from '~/host/store/store.ts';
@@ -30,6 +31,9 @@ const USAGE = `grimstroke ${VERSION} — a notebook for agents
   grimstroke redact <in.png> <out.png> --region src:x,y,w,h ...
                                             destroy those pixels, permanently
   grimstroke serve [--port N] [--board ID]  open the workspace on a port
+                   with GRIMSTROKE_LOGIN_USER and GRIMSTROKE_LOGIN_HASH set, it asks for a
+                   name and password at /login instead of a token in the address
+  grimstroke hash-password  < password    the hash for GRIMSTROKE_LOGIN_HASH
   grimstroke save   <file.grimstroke>       write everything to one file
   grimstroke open   <file.grimstroke>       read one back in
   grimstroke search <words>                 boards, notebooks, the archive and the profile
@@ -329,6 +333,18 @@ async function main(argv: string[]): Promise<number> {
     return 0;
   }
 
+  // A password's hash, for GRIMSTROKE_LOGIN_HASH: read from stdin so it is not in the shell's history.
+  if (verb === 'hash-password') {
+    const chunks: Buffer[] = [];
+    for await (const chunk of process.stdin) chunks.push(chunk as Buffer);
+    const password = Buffer.concat(chunks)
+      .toString('utf8')
+      .replace(/\r?\n$/, '');
+    if (!password) throw new Error('give the password on stdin');
+    process.stdout.write(`${hashPassword(password)}\n`);
+    return 0;
+  }
+
   if (verb === 'serve') {
     const running = await serve({
       ...(options.port === undefined ? {} : { port: options.port }),
@@ -336,6 +352,7 @@ async function main(argv: string[]): Promise<number> {
       ...(options.dir === undefined ? {} : { dir: options.dir }),
       ...(options.board === undefined ? {} : { board: options.board }),
       ...(options.token === undefined ? {} : { token: options.token }),
+      ...(loginFromEnv() ? { login: loginFromEnv() as Login } : {}),
     });
     process.stdout.write(
       `grimstroke is on ${running.url}\n` +

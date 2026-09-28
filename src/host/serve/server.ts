@@ -32,6 +32,7 @@ import {
   TYPES,
 } from '~/host/serve/http.ts';
 import { Live } from '~/host/serve/live.ts';
+import { type Login, loginDoor } from '~/host/serve/login.ts';
 import { pages } from '~/host/serve/pages.ts';
 import { keepFresh, oauthCallback, remoteApi } from '~/host/serve/remote.ts';
 import { today } from '~/host/serve/today.ts';
@@ -45,6 +46,8 @@ export interface ServeOptions {
   /** Provided rather than generated, for a caller that wants a stable URL. */
   token?: string;
   board?: string;
+  /** A name and password to sign in with, for a workspace served beyond this computer. */
+  login?: Login;
 }
 
 export interface Serving {
@@ -88,6 +91,11 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
     }
     const supplied =
       url.searchParams.get('t') ?? header(req, 'x-grimstroke-token') ?? cookie(req, 'gs');
+    // With a login, the door is the login page; the token still works as an agent's key.
+    if (options.login) {
+      const signedIn = accepted(supplied, token);
+      if (await loginDoor(req, res, path, options.login, token, signedIn)) return;
+    }
     if (!accepted(supplied, token)) {
       send(res, 401, { error: 'bad or missing token' });
       return;
