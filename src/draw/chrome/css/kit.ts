@@ -389,4 +389,13 @@ dialog.gs-dialog[open]::backdrop { animation: gs-fade 200ms ease-out; }
 }
 :root[data-motion='none'] *, :root[data-motion='none'] *::before, :root[data-motion='none'] *::after { animation: none !important; transition: none !important; }
 :root[data-motion='calm'] .gs-menu[open] > .gs-menu-card, :root[data-motion='calm'] .gs-toasts > .gs-toast { animation-name: gs-fade; }
+
+/* ---- the first-visit tour ---- */
+.gs-welcome-spot { position: fixed; z-index: 95; border-radius: var(--gs-radius); box-shadow: 0 0 0 9999px rgb(20 17 14 / 0.45); pointer-events: none; transition: left 260ms cubic-bezier(0.2, 1.1, 0.35, 1), top 260ms cubic-bezier(0.2, 1.1, 0.35, 1), width 260ms, height 260ms; }
+.gs-welcome { position: fixed; z-index: 96; display: grid; gap: 8px; padding: 16px 18px; }
+.gs-welcome-count { margin: 0; color: var(--gs-soft); font-family: var(--ui-font); font-size: var(--gs-t1); letter-spacing: 0.08em; text-transform: uppercase; }
+.gs-welcome-title { margin: 0; font-family: var(--marker-font); font-size: 26px; font-weight: 400; line-height: 1.05; }
+.gs-welcome-body { margin: 0; font-family: var(--ui-font); font-size: var(--gs-t2); line-height: 1.55; }
+.gs-welcome-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 4px; }
+@media (prefers-reduced-motion: reduce) { .gs-welcome-spot { transition: none; } }
 `;

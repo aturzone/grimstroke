@@ -94,7 +94,8 @@ export function topBar(o: TopOptions): string {
         `<div class="gs-menu-places">${placesInMenu}${RULE}</div>` +
         (o.compact ? `<div class="gs-narrow-only">${o.compact}${RULE}</div>` : '') +
         (o.more ? `${o.more}${RULE}` : '') +
-        item({ gs: 'help-open', text: 'keyboard shortcuts', icon: 'keys', key: '?' }),
+        item({ gs: 'help-open', text: 'keyboard shortcuts', icon: 'keys', key: '?' }) +
+        item({ gs: 'tour-open', text: 'show the tour again', icon: 'help' }),
     }),
     '</div>',
     '</header>',

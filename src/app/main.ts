@@ -15,10 +15,20 @@ import { bindFeel } from '~/app/feel.ts';
 import { bootPrint } from '~/app/print.ts';
 import { bootProfile } from '~/app/profile.ts';
 import { bootShelf } from '~/app/shelf/index.ts';
+import { startWelcome } from '~/app/welcome.ts';
 
 async function boot(): Promise<void> {
   bootChrome();
   bindFeel();
+  document.addEventListener('click', (event) => {
+    if ((event.target as HTMLElement).closest('[data-gs="tour-open"]')) {
+      if (!document.querySelector('[data-gs="board"]')) {
+        window.location.href = '/?tour';
+        return;
+      }
+      startWelcome(true);
+    }
+  });
   smoothLinks();
   if (bootPrint()) return;
   if (bootShelf()) return;
@@ -32,6 +42,12 @@ async function boot(): Promise<void> {
   const app = surface.getAttribute('data-gs') === 'book' ? await bootBook() : await bootBoard();
   // Handy for an agent driving a browser, and for anyone in a console.
   (window as unknown as { grimstroke: unknown }).grimstroke = app;
+  // The first visit to the board is walked through once; ?tour asks for it again.
+  if (surface.getAttribute('data-gs') === 'board' && !location.pathname.startsWith('/page')) {
+    const asked = new URLSearchParams(location.search).has('tour');
+    // A browser driven by a script (a test, an agent) is not a first visit.
+    if (asked || !navigator.webdriver) window.setTimeout(() => startWelcome(asked), 700);
+  }
 }
 
 void boot();
