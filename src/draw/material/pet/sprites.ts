@@ -435,24 +435,9 @@ oooo
 @legXF 18 21
 @chead 0 3
 
-== cat.loaf.0
-@gsh
-@ctaillow 0 5
-@cloaf
-@chead 0 6
-@chalf 0 6
-
 == chalf x=16 y=14
 ........d..
 ........o..
-
-== cloaf x=7 y=19
-..oooooooooo.
-.ollllllllllo
-olffsffsfffffo
-offsfffsffffdo
-odffffffffffdo
-.oaaoooooaaoo.
 
 == cbow x=5 y=11
 ..ooooo............
@@ -556,16 +541,6 @@ oqpqofllwwwwwno
 oqqqoffddwwwwo.
 .oqqodffdmmmoo.
 ..ooo.ooooooo..
-
-== dsbody x=4 y=12
-..oooooooooooooo.
-.oLLLLLLLLLLLLLFo
-oLFFFFFFFFFFFFFFo
-oFFFFFFFFFFFFFFdo
-offffffffffffffdo
-odffffffffffffddo
-.oddbbbbbbbbbbddo
-..ooo.......ooo..
 
 == dstail x=0 y=4
 .oo.....
@@ -811,27 +786,6 @@ oPo..opo
 @dhead
 @dhalf
 
-== dlegXF
-olffo..
-.olffo.
-..olffo
-..olffo
-..oaaao
-..ooooo
-
-== dlegXB
-..olffo
-.olffo.
-olffo..
-olffo..
-oaaao..
-ooooo..
-
-== dlegT
-olffo
-oaaao
-ooooo
-
 == dstaillow x=0 y=10
 oo.......
 oPo......
@@ -840,89 +794,9 @@ oPo......
 ....ooppo
 ......ooo
 
-== dog.crouch.0
-@dgsh
-@dlegT~ 8 23
-@dlegT~ 16 23
-@dstaillow 0 4
-@dsbody 0 5
-@dlegT 6 23
-@dlegT 17 23
-@dshead 0 5
-
-== dog.leap.0
-@dlegXB~ 6 17
-@dlegXF~ 15 15
-@dstaillow 0 -3
-@dsbody 0 -4
-@dlegXB 4 17
-@dlegXF 17 15
-@dshead 0 -5
-
-== dog.land.0
-@dgsh
-@dlegT~ 8 23
-@dlegXF~ 15 20
-@dstaillow 0 3
-@dsbody 0 3
-@dlegT 6 23
-@dlegXF 17 20
-@dshead 0 4
-
 == dsshut x=17 y=10
 .........l....
 ........oo....
-
-== dsloaf x=4 y=19
-..oooooooooooooo.
-.oLLLLLLLLLLLLLFo
-oLFFFFFFFFFFFFFFo
-oFFFFFFFFFFFFFFdo
-odffffffffffffddo
-.oaaaoooooooaaaoo
-
-== dog.loaf.0
-@dgsh
-@dstaillow 0 8
-@dsloaf
-@dshead 0 7
-@dsshut 0 7
-
-== dlie x=2 y=16
-......oooooooooooooooo.....
-....oollllllllllllllllfoo..
-...ollllllllllllllllllfffo.
-..olfffffffffffffffffffffdo
-..olfffffffffffffffffffffdo
-.olffffffffffffffffffffffddo
-.olffffffffffffffffffffffddo
-.oldfffffffffffffffffffffddoo
-..oddffffffffffffffffffdddqqo
-...oooooooooooooooooooooooooo
-
-== dpaws x=6 y=23
-..ooooo.......ooooo...
-.oaaaaao.....oaaaaao..
-.ooooooo.....ooooooo..
-
-== dlieb x=2 y=15
-......oooooooooooooooo.....
-....oollllllllllllllllfoo..
-
-== dog.sleep.0
-@dgsh
-@dlie
-@dhead 0 9
-@dshut 0 9
-@dpaws
-
-== dog.sleep.1
-@dgsh
-@dlie
-@dlieb
-@dhead 0 9
-@dshut 0 9
-@dpaws
 
 == dbow x=3 y=10
 ..oooooo.............
@@ -1151,36 +1025,6 @@ oooo
 @legReach 21 22
 @chead 0 6
 
-# Asleep: curled round on its side, the head tucked down on the right and resting on the tail that
-# wraps along the front. The second frame is the breath: the back rises a pixel.
-
-== csleepC x=4 y=14
-..............oo..oo....
-.............otto.oto...
-.......ooooooollllllo...
-....oolllsllsllllllllo..
-...olllsllsllllllooolo..
-..olfffffffffffllllllwo.
-..olffffffffffffdlllnwo.
-.olfffffffffffffddlwwwo.
-.olffffffffffffffddwwo..
-.odfffffffffffffffddo...
-..oddppppppppppppqqqo...
-...ooooooooooooooooo....
-
-== csleepR x=4 y=15
-.......ooooooo..........
-.....oolllllll..........
-
-== cat.sleep.0
-@gsh
-@csleepC
-
-== cat.sleep.1
-@gsh
-@csleepC
-@csleepR
-
 # The dog eating and bowing, drawn as the cat's now are: the same body and legs as its walk, the
 # head lowered to the shoulder so the back runs into it, and a play bow with the forearms reaching.
 
@@ -1251,4 +1095,256 @@ offfffffaaao
 @dLP 5 20
 @dLP 16 20
 @dshead
+
+# ---------------------------------------------------------------- third pass (the loaf, the
+# dog's jump, asleep, a Siamese's mask)
+# A Siamese's heads: the same drawings with its points' mask, a soft oval over the muzzle that
+# rises round the eyes -- x its edge, y its middle -- so it reads as points and not a moustache.
+
+== fheadP x=7 y=7
+...oo........oo...
+..otto......otto..
+..otpoooooooopto..
+..ofllllllllllfo..
+..ofllllxxllllfo..
+.oflxxuxxxxuxxlfo.
+.oflxyeyyyyeyxlfo.
+.olfxyyynnyyyxfdo.
+..offxyyyyyyxfdo..
+...oddfxyyxfddo...
+
+== cheadP x=16 y=9
+..o.....o...
+.oto...oto..
+.otpoooopto.
+.ofllllllfo.
+offllllxxxlo
+offllllxuyyo
+offlllxyyeyn
+odfffllxyyyo
+.oddffxxyyo.
+..oooooooo..
+
+# The loaf, side-on: a round, compact body with its paws folded under the chest and its tail laid
+# along the front, the head up, the eyes half shut.
+
+== cloafB x=5 y=15
+.......oooooo.....
+.....oolllllloo...
+....ollsllsllllo..
+...olfsffsfffffo..
+..olffsffsffffffo.
+..offffffffffffffo
+.offffffffffffffdo
+.offffffffffffffdo
+.odfffffffffffffdo
+.oddffffffffffdddo
+..oooooooooooooooo
+
+== ctailwrap x=4 y=21
+.oo..............
+oPpo.............
+oPpooooooooooo...
+.oqpppppppppppo..
+..ooooooooooooo..
+
+== cfold x=18 y=22
+.oooooo.
+oaaoaaao
+oooooooo
+
+== cat.loaf.0
+@gsh
+@cloafB
+@ctailwrap
+@chead 0 4
+@chalf 0 4
+@cfold
+
+# A dog's loaf is a sphinx: the haunch a round bump at the back, the forelegs laid out in front,
+# the head up and looking.
+
+== dloafB x=3 y=16
+.......oooooooooooo...
+.....ooLLLLLLLLLLLLoo.
+...ooLLFFFFFFFFFFFFLLo
+..oLFFFFFFFFFFFFFFFFFo
+.oLFFFfffffffffffffffdo
+.offfdoffffffffffffffdo
+.offdfffoffffffffffffdo
+.offdfffoffffffffffffdo
+.odddfffoddfffffffffddo
+.oaaoddoooooooooooooooo
+
+== dfore x=19 y=23
+.oooooooooo.
+offfffffaaao
+oooooooooooo
+
+== dtailflat x=0 y=22
+.oo.....
+oPpoo...
+.oqppoo.
+..ooooo.
+
+== dtailflatU x=5 y=12
+..oooo..
+.oPPPpo.
+oPpooPpo
+opo..opo
+oPo..opo
+.opoopo.
+..oooo..
+
+== dog.loaf.0
+@dgsh
+@dtailflat
+@dloafB
+@dfore
+@dshead 0 5
+
+# The dog's crouch, leap and land, on the body and legs it walks with.
+
+== dLXF
+olffo..
+.olffo.
+..olffo
+..olffo
+..oaaaao
+..oooooo
+
+== dLXB
+..olffo
+.olffo.
+olffo..
+olffo..
+oaaaao.
+oooooo.
+
+== dLC
+olffo.
+oaaaao
+oooooo
+
+== dog.crouch.0
+@dgsh
+@dLC~ 8 23
+@dLC~ 18 23
+@dstaillow 0 3
+@dbody2 0 3
+@dLC 5 23
+@dLC 16 23
+@dshead 0 4
+
+== dog.leap.0
+@dLXB~ 6 16
+@dLXF~ 17 14
+@dstaillow 0 -4
+@dbody2 0 -4
+@dLXB 3 16
+@dLXF 15 14
+@dshead 0 -5
+
+== dog.land.0
+@dgsh
+@dLT~ 8 22
+@dLXF~ 18 20
+@dstaillow 0 2
+@dbody2 0 2
+@dLT 5 22
+@dLXF 16 20
+@dshead 0 3
+
+# Asleep, curled on its side: the back rounded over, the haunch drawn in, the tail wrapped round
+# the front, the head laid low on the forepaws with its eyes shut. The second frame is the breath:
+# the back rises a pixel.
+
+== csleepB x=3 y=13
+........oooooo........
+......oollllllloo.....
+.....olllllllllllo....
+....ollsllsllsllllo...
+...olffsffsffsfffffo..
+..olfffsffsffsffffffo.
+..offffffffffffffffdo.
+.offfffffffffffffffdo.
+.offfffffffffffffffdo.
+.odffffffffffffffffdo.
+.oddfffffffffffffdddo.
+..oddddffffffffddddo..
+...ooooooooooooooooo..
+
+== csleepR x=3 y=12
+........oooooo........
+......oollllllloo.....
+.....olllllllllllo....
+
+== cshut x=16 y=21
+........l...
+........oo..
+
+== cat.sleep.0
+@gsh
+@csleepB
+@csleepT
+@chead 0 7
+@cshut
+
+== cat.sleep.1
+@gsh
+@csleepB
+@csleepR
+@csleepT
+@chead 0 7
+@cshut
+
+== dsleepB x=2 y=12
+........oooooooo.......
+.....oooLLLLLLLLooo....
+....oLLLLLLLLLLLLLLo...
+...oLFFFFFFFFFFFFFFLo..
+..oLFFFFFFFFFFFFFFFFo..
+..oFFFFFFFFFFFFFFFFFFo.
+.oFFfffffffffffffffffo.
+.offfddooffffffffffffdo
+.offdffffoffffffffffffo
+.offdfffffofffffffffffo
+.offdfffffofffffffffddo
+.odddfffffoffffffffdddo
+..odddddddodddffffdddo.
+...ooooooooooooooooooo.
+
+== dsleepR x=2 y=11
+........oooooooo.......
+.....oooLLLLLLLLooo....
+....oLLLLLLLLLLLLLLo...
+
+== dsleepT x=1 y=21
+.oo..................
+oPpo.................
+oPpooooooooooooooo...
+.oqppppppppppppppppo.
+..oooooooooooooooooo.
+
+== dog.sleep.0
+@dgsh
+@dsleepB
+@dsleepT
+@dshead 0 9
+@dsshut 0 9
+
+== dog.sleep.1
+@dgsh
+@dsleepB
+@dsleepR
+@dsleepT
+@dshead 0 9
+@dsshut 0 9
+
+== csleepT x=2 y=21
+.oo...............
+oPpo..............
+oPpoooooooooooooo.
+.oqppppppppppppppo
+..oooooooooooooooo
 `;

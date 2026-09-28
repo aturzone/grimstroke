@@ -190,5 +190,66 @@ describe('the poses that used to break', () => {
     };
     expect(height(g0)).toBeLessThanOrEqual(13);
     expect(JSON.stringify(body(g0))).not.toBe(JSON.stringify(body(g1)));
+    // The dog too: curled on its side, not a bun facing you, and breathing.
+    for (const id of ['golden', 'husky']) {
+      const d0 = petFrame('dog', coat(id), 'sleep', 0);
+      const d1 = petFrame('dog', coat(id), 'sleep', 1);
+      expect(height(d0)).toBeLessThanOrEqual(15);
+      expect(JSON.stringify(body(d0))).not.toBe(JSON.stringify(body(d1)));
+    }
+  });
+
+  it('loafs, sleeps, crouches, leaps and lands as one body, in every coat', () => {
+    const bad: string[] = [];
+    for (const c of COATS) {
+      for (const pose of ['loaf', 'sleep', 'crouch', 'leap', 'land'] as const) {
+        for (let n = 0; n < PET_FRAMES[pose].count; n++) {
+          // The z's of sleep float free of the body by design.
+          const g = petFrame(c.species, c, pose, n).map((row) =>
+            row.map((k) => (k === 'z' ? '.' : k)),
+          );
+          const p = pieces(g);
+          if (p !== 1) bad.push(`${c.id} ${pose}${n}: ${p} pieces`);
+        }
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('makes a loaf a loaf: compact and rounded, not a thin strip', () => {
+    for (const [species, id] of [
+      ['cat', 'ginger'],
+      ['dog', 'golden'],
+    ] as const) {
+      const cells = filled(petFrame(species, coat(id), 'loaf', 0));
+      const ys = cells.map(([, y]) => y);
+      // The head sits up, well over the back: at least eleven rows from the ears to the paws.
+      expect(Math.max(...ys) - Math.min(...ys) + 1).toBeGreaterThanOrEqual(11);
+    }
+  });
+
+  it('gives a Siamese its mask, and no other cat one', () => {
+    const has = (id: string, pose: 'sit' | 'walk') =>
+      petFrame('cat', coat(id), pose, 0)
+        .flat()
+        .some((k) => k === 'x' || k === 'y');
+    expect(has('siamese', 'sit')).toBe(true);
+    expect(has('siamese', 'walk')).toBe(true);
+    expect(has('ginger', 'sit')).toBe(false);
+    expect(has('calico', 'walk')).toBe(false);
+  });
+
+  it("keeps a Dalmatian's spots off its face, and on its body", () => {
+    const spots = (g: string[][]) => g.flat().filter((k) => k.startsWith('X')).length;
+    for (const pose of ['sit', 'walk', 'sleep', 'loaf'] as const) {
+      // The golden is drawn the same, unmarked: where it has face fur, the Dalmatian has no spot.
+      const plain = petFrame('dog', coat('golden'), pose, 0);
+      const spotted = petFrame('dog', coat('dalmatian'), pose, 0);
+      const onFace = plain.flatMap((row, y) =>
+        row.filter((k, x) => ['1', '2', '3'].includes(k) && spotted[y]?.[x]?.startsWith('X')),
+      );
+      expect(onFace).toEqual([]);
+      expect(spots(spotted)).toBeGreaterThan(4);
+    }
   });
 });

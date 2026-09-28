@@ -283,6 +283,13 @@ const FAR: Readonly<Record<string, string>> = {
   F: 'D',
 };
 
+/**
+ * A dog's face: its fur drawn in keys of its own (1 2 3 for l f d), coloured the same, so that a
+ * Dalmatian's spots keep off it -- at this size a spotted face reads as noise, or as extra eyes.
+ */
+const FACE = new Set(['dhead', 'dheadU', 'dshead', 'dsheadU']);
+const FACE_FUR: Readonly<Record<string, string>> = { l: '1', f: '2', d: '3' };
+
 let parts: Map<string, Part> | undefined;
 
 function compose(name: string, swap: Readonly<Record<string, string>>): Grid {
@@ -302,13 +309,14 @@ function compose(name: string, swap: Readonly<Record<string, string>>): Grid {
       }
     }
   }
+  const face = FACE.has(name);
   part.rows.forEach((line, dy) => {
     const row = g[part.y + dy];
     if (!row) return;
     [...line].forEach((c, dx) => {
       const x = part.x + dx;
       if (c === '.' || x < 0 || x >= PET_W) return;
-      row[x] = c === '_' ? '.' : c;
+      row[x] = c === '_' ? '.' : face ? (FACE_FUR[c] ?? c) : c;
     });
   });
   return g;
@@ -324,16 +332,27 @@ const PRICKED: Readonly<Record<string, string>> = {
   dshut: 'dshutU',
   dhappy: 'dhappyU',
   dup: 'dupU',
+  dstaillow: 'dstailU',
+  dtailflat: 'dtailflatU',
+};
+
+/** A Siamese: the heads with a mask, the soft dark oval of its points over the muzzle and eyes. */
+const MASKED: Readonly<Record<string, string>> = {
+  fhead: 'fheadP',
+  chead: 'cheadP',
 };
 
 const drawn = new Map<string, Grid>();
 
 /** The drawing of a frame, before it is coloured for a coat. */
-function drawing(species: Species, ears: 'up' | 'flop', pose: PetPose, n: number): Grid {
-  const key = `${species}:${ears}:${pose}:${n}`;
+function drawing(species: Species, coat: Coat, pose: PetPose, n: number): Grid {
+  const ears = coat.ears ?? 'flop';
+  const masked = species === 'cat' && coat.pattern === 'points';
+  const key = `${species}:${ears}:${masked}:${pose}:${n}`;
   const made = drawn.get(key);
   if (made) return made;
-  const g = compose(`${species}.${pose}.${n}`, species === 'dog' && ears === 'up' ? PRICKED : {});
+  const swap = species === 'dog' && ears === 'up' ? PRICKED : masked ? MASKED : {};
+  const g = compose(`${species}.${pose}.${n}`, swap);
   drawn.set(key, g);
   return g;
 }
@@ -346,6 +365,9 @@ function hash(x: number, y: number, seed: number): number {
   h = Math.imul(h ^ (h >>> 13), 1274126177);
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 }
+
+/** Ears and tail, which a Dalmatian's spots mark too. */
+const EARS: Readonly<Record<string, 'l' | 'f' | 'd'>> = { P: 'l', p: 'f', q: 'd' };
 
 const TONE: Readonly<Record<string, 'l' | 'f' | 'd'>> = {
   l: 'l',
@@ -363,7 +385,8 @@ function marks(g: Grid, coat: Coat): Grid {
   if (coat.pattern !== 'patches' && coat.pattern !== 'spots') return g;
   return g.map((row, y) =>
     row.map((c, x) => {
-      const tone = TONE[c];
+      // A dog's face stays clear (see FACE); a Dalmatian's spots go on its ears and tail instead.
+      const tone = coat.pattern === 'spots' ? (TONE[c] ?? EARS[c]) : TONE[c];
       if (!tone) return c;
       if (coat.pattern === 'patches') {
         // Big patches: cells of 5x4, their edges nudged so they do not look ruled.
@@ -397,7 +420,7 @@ function glyph(g: Grid, rows: readonly string[], key: string, x: number, y: numb
 export function petFrame(species: Species, coat: Coat, pose: PetPose, n: number): Grid {
   const count = PET_FRAMES[pose].count;
   const k = ((n % count) + count) % count;
-  const g = marks(drawing(species, coat.ears ?? 'flop', pose, k), coat).map((row) => [...row]);
+  const g = marks(drawing(species, coat, pose, k), coat).map((row) => [...row]);
   if (pose === 'sleep') glyph(g, ['zzz', '..z', '.z.', 'zzz'], 'z', 27, 8 - k);
   if (pose === 'happy') glyph(g, ['.h.h.', 'hhhhh', 'hhhhD', '.hhD.', '..D..'], 'h', 25, 2 - k);
   return g;
@@ -410,6 +433,17 @@ function darker(hex: string, t: number): string {
   const n = Number.parseInt(hex.slice(1), 16);
   const ch = (s: number): string =>
     Math.round(((n >> s) & 255) * (1 - t))
+      .toString(16)
+      .padStart(2, '0');
+  return `#${ch(16)}${ch(8)}${ch(0)}`;
+}
+
+/** Two colours mixed, `t` of the way from the first to the second. */
+function mix(a: string, b: string, t: number): string {
+  const na = Number.parseInt(a.slice(1), 16);
+  const nb = Number.parseInt(b.slice(1), 16);
+  const ch = (s: number): string =>
+    Math.round(((na >> s) & 255) * (1 - t) + ((nb >> s) & 255) * t)
       .toString(16)
       .padStart(2, '0');
   return `#${ch(16)}${ch(8)}${ch(0)}`;
@@ -437,6 +471,9 @@ export function colourOf(coat: Coat, key: string): string | undefined {
     l: fl,
     f: fm,
     d: fd,
+    '1': fl,
+    '2': fm,
+    '3': fd,
     s: tabby ? second[1] : fm,
     S: tabby ? second[2] : fd,
     P: point[0],
@@ -452,6 +489,9 @@ export function colourOf(coat: Coat, key: string): string | undefined {
     c: cream[0],
     a: points ? second[1] : cream[0],
     A: points ? second[2] : cream[1],
+    // A Siamese's mask: its edge, halfway from the fur to the point, and its middle.
+    x: mix(fm, second[0], 0.5),
+    y: second[0],
     Xl: second[0],
     Xf: second[1],
     Xd: second[2],
