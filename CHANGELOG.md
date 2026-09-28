@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.3.0 — 2026-09-28
+
+The redesign's first pass (docs/redesign.md): everything that changes, moves, and says what just
+happened; small sounds for what a hand does; the tools set in one clear type.
+
+### Motion
+- What moves by anything but the hand -- undo, redo, a tidy, an agent -- slides there instead of
+  jumping; a thing picked up lifts and lands; a choice slides its highlight across.
+- A card flies from the `/` box to its place; a card sent to another page is followed there.
+- Every page fans in and folds away; a page opened to work on comes up off the spread to meet you
+  and settles back into it after.
+- Going between the board, the notebooks and the settings fades one surface into the next under a
+  top bar that stays put.
+- The bookcase reflows its books and objects; a book set down rocks once on its foot.
+
+### Sound
+- A sound per material -- a sticky note, a sticker, a picture, a card, ink -- and for opening a
+  notebook, turning a page, a menu or a dialog, a lock, a tick, a timer done, the pet.
+- Quiet hours: no sound between two hours of the day, across midnight.
+
+### Clearer
+- The tools in a clear sans on one readable scale; the notebook's bar in three groups; a first-visit
+  tour; the shelf counts what is in use and archived; empty bookcases say what goes in them.
+- Where in a notebook you are: a rail along the page turner, and the open pages marked in every
+  page.
+- The tools' inks are measured on every palette by a test: Carbon's quiet ink was 3.6:1, now 4.7:1.
+
+### The pet
+- A proper loaf; the dog's crouch, leap and landing on its walking body; sleep curled on its side;
+  a Siamese mask; a clean Dalmatian face.
+
 ## 0.2.0 — 2026-09-28
 
 The workspace grows up: notebooks you can connect to a repository, a bookcase you can make your
