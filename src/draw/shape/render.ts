@@ -141,9 +141,13 @@ type Body<K extends ShapeIntent> = (
 ) => string;
 
 const BODIES: { [K in ShapeIntent]: Body<K> } = {
-  event: (d, _s, c) =>
-    `<h3 class="sc-title">${d.title ? esc(d.title) : missing(t(c.fa, 'Untitled event', 'رویداد بی‌نام'))}</h3>` +
-    `<div class="sc-row">${when(d.date, d.hasTime, c.now, c.fa)}</div>` +
+  // Done or not, on the card itself: the day page marks an event done, and the board must be
+  // able to take it back.
+  event: (d, s, c) =>
+    `<div class="sc-reminder${s.closed ? ' is-done' : ''}">` +
+    act('close', t(c.fa, 'done', 'انجام شد'), '', c.live, `sc-check${s.closed ? ' is-on' : ''}`) +
+    `<div><h3 class="sc-title">${d.title ? esc(d.title) : missing(t(c.fa, 'Untitled event', 'رویداد بی‌نام'))}</h3>` +
+    `<div class="sc-row">${when(d.date, d.hasTime, c.now, c.fa)}</div></div></div>` +
     (d.link || d.location
       ? `<div class="sc-line">${d.link ? I.video : I.pin}<span>${esc(d.link ?? d.location ?? '')}</span></div>`
       : '') +
