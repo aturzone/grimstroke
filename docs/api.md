@@ -204,7 +204,8 @@ of a notebook in use:
 Each entry carries `address` (a board id or `book:<id>:<page>`), the item `id`, a `title` and
 `where` it lives. `POST /api/today/act { address, id, act, index? }` does what the card itself
 would: `tick` a checklist item, mark a reminder or event `done`, keep a `habit` today. It
-answers with the day page's markup, drawn again.
+answers with the day page's markup, drawn again. `POST /api/today/add { block, width? }` puts a
+card typed on the day page onto the home board, under what is already there, and answers the same.
 
 ## Moving things between surfaces
 

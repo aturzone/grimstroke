@@ -26,8 +26,8 @@ write for them.
 - [x] `GET /api/today` for agents; `POST /api/today/act`.
 - [x] The day as the phone's first screen: the first opening of the day on a phone lands on the
   day, with the board a tap away (once a day, only arriving from outside, only at `/`).
-- [ ] Type from the day: the `/` box on the day page itself, putting the card on today's page of
-  a "days" notebook (below) instead of sending the person to the board.
+- [x] Type from the day: the `/` box on the day page itself (the button, or `/`), the card going
+  onto the home board. (Onto today's page of a "days" notebook, once there is one: phase 2.)
 - [ ] Evening: "how the day went" -- what was kept, what moves to tomorrow in one tap.
 
 ### 2. A notebook of days

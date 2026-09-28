@@ -85,6 +85,8 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
       'change it { corners }; a notebook or board can override with its own corners',
     'GET /api/today':
       'the day, from every card on every board and page: now, today, habits, slipped past, open lists, this week',
+    'POST /api/today/add':
+      'a card typed on the day { block: shape, width? }, put on the home board under what is there',
     'POST /api/today/act':
       'on a card from the day { address, id, act: tick|done|habit, index? }, as the card itself would',
     'GET /api/pet': 'the pet, and every animal and coat',

@@ -66,6 +66,42 @@ export async function today(ask: Ask, live: Live, scripts: string[]): Promise<bo
     return true;
   }
 
+  // A card typed on the day page: onto the home board, under what is there, and the day again.
+  if (path === '/api/today/add' && req.method === 'POST') {
+    const body = (await readBody(req)) as { block?: ShapeBlock; width?: number };
+    const block = body.block;
+    if (!block || block.kind !== 'shape' || typeof block.text !== 'string') {
+      send(res, 400, { error: 'a shape block is needed' });
+      return true;
+    }
+    const spec = await live.board(ask.board);
+    const placed = spec.items.filter((i) => Array.isArray(i.at));
+    const left = placed.length ? Math.min(...placed.map((i) => i.at[0])) : 0;
+    const bottom = placed.length
+      ? Math.max(...placed.map((i) => i.at[1] + (i.size?.[1] ?? 240)))
+      : 0;
+    const id = `day-${Date.now().toString(36)}`;
+    const z = placed.reduce((m, i) => Math.max(m, i.z ?? 0), 0) + 1;
+    const width = Math.min(560, Math.max(280, Number(body.width) || 360));
+    await applyBoard(live, ask.board, [
+      {
+        op: 'add',
+        item: {
+          id,
+          at: [Math.round(left), Math.round(bottom + 60)],
+          z,
+          size: [width],
+          block: block as never,
+        },
+      },
+    ]);
+    const now = new Date();
+    send(res, 200, {
+      html: renderTodayMain(gatherToday(await todaySources(live, ask.board), now), now),
+    });
+    return true;
+  }
+
   if (path === '/api/today/act' && req.method === 'POST') {
     const body = (await readBody(req)) as {
       address?: string;

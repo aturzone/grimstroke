@@ -384,7 +384,10 @@ export function bootChrome(): void {
     if (typing(event.target) || open || event.ctrlKey || event.metaKey || event.altKey) return;
     // "/" is the shape bar's on a board or a page; everywhere else it still searches.
     // (The spread is `.book`; the shelf's spines are data-gs="book" too, and keep "/" for search.)
-    if (event.key === '/' && !document.querySelector('[data-gs="board"], .book[data-gs="book"]')) {
+    if (
+      event.key === '/' &&
+      !document.querySelector('[data-gs="board"], .book[data-gs="book"], [data-gs="today"]')
+    ) {
       event.preventDefault();
       search?.open();
     } else if (event.key === '?') {
