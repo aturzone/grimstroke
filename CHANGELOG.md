@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.0 — 2026-09-28
+
+Several people, and reminders that reach a shut phone.
+
+- **`grimstroke gateway`**: one login in front of a workspace for each person -- each its own
+  process, data folder and token, reachable only through the gateway; the session cookie is
+  signed, so no one can become someone else by editing it.
+- **Web Push**: a phone or computer that allows notifications is told by the server itself --
+  fifteen minutes before an event, ten before a reminder, at nine for something dated with no
+  time -- once each, with quiet hours kept and the page shut. Encryption (RFC 8291) and signing
+  (RFC 8292) with node:crypto alone.
+- **An app for the home screen**: a manifest, icons and a service worker, so grimstroke can be
+  added to a phone's home screen -- which an iPhone needs before it will notify.
+
 ## 0.5.0 — 2026-09-28
 
 A calendar, light and dark, and pages with an edge.
