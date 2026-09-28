@@ -340,6 +340,7 @@ const PRICKED: Readonly<Record<string, string>> = {
 const MASKED: Readonly<Record<string, string>> = {
   fhead: 'fheadP',
   chead: 'cheadP',
+  csleepH: 'csleepHP',
 };
 
 const drawn = new Map<string, Grid>();
@@ -503,8 +504,9 @@ export function colourOf(coat: Coat, key: string): string | undefined {
     k: '#ffffff',
     n: coat.nose ?? (coat.species === 'dog' ? '#221816' : '#e0707e'),
     m: '#5a2a22',
-    t: '#f0a0a8',
-    T: '#c47a84',
+    // The inner ear: pink, but a Siamese's ears are its points, dark to the tip.
+    t: points ? second[1] : '#f0a0a8',
+    T: points ? second[2] : '#c47a84',
     r: '#ef8a9a',
     // The contact shadow: see-through, so it darkens whatever wood the shelf is.
     g: 'rgba(20, 10, 4, 0.32)',

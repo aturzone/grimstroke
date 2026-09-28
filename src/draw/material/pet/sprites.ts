@@ -1226,15 +1226,28 @@ olffo.
 oaaaao
 oooooo
 
+== dcrouchB x=3 y=12
+..oooooo............
+.oLLLLLLoo..........
+oLFFFFFFFLoo........
+oFFFFFFFFFFLooo.....
+oFFFFFFFFFFFFLLoo...
+offfFFFFFFFFFFFFLo..
+offfffffffffffffffo.
+offfdddoffffffffffdo
+ofdfffffofffffffffdo
+ofdffffffoffffffffdo
+odffffffoddbbbbbbddo
+.oddddfoo.oooooooooo
+.oaaaaaao...........
+.oooooooo...........
+
 == dog.crouch.0
 @dgsh
-@dLC~ 8 23
-@dLC~ 18 23
-@dstaillow 0 3
-@dbody2 0 3
-@dLC 5 23
-@dLC 16 23
-@dshead 0 4
+@dstaillow 0 1
+@dcrouchB
+@dfore
+@dshead 0 7
 
 == dog.leap.0
 @dLXB~ 6 16
@@ -1279,45 +1292,62 @@ oooooo
 ......oollllllloo.....
 .....olllllllllllo....
 
-== cshut x=16 y=21
-........l...
-........oo..
+# Asleep, the ears laid flat and the head tucked low against the tail, well below the line of
+# the back: a round mound with a face in it, where the loaf holds its head up with the ears pricked.
+
+== csleepH x=14 y=18
+.ooo.........
+otppooooooo..
+.oopllllllloo
+..offllllllto
+..offlllllllo
+..offlloollwn
+..odffflwwwwo
+...oooooooooo
+
+== csleepHP x=14 y=18
+.ooo.........
+otppooooooo..
+.oopllllllloo
+..offlllxxxto
+..offllxxyyyo
+..offlxooyyyn
+..odffxyyyyyo
+...oooooooooo
 
 == cat.sleep.0
 @gsh
 @csleepB
 @csleepT
-@chead 0 7
-@cshut
+@csleepH
 
 == cat.sleep.1
 @gsh
 @csleepB
 @csleepR
 @csleepT
-@chead 0 7
-@cshut
+@csleepH
 
 == dsleepB x=2 y=12
 ........oooooooo.......
 .....oooLLLLLLLLooo....
-....oLLLLLLLLLLLLLLo...
-...oLFFFFFFFFFFFFFFLo..
+....oLLLFFFFFFFFFFFo...
+...oLFFFFFFFFFFFFFFFo..
 ..oLFFFFFFFFFFFFFFFFo..
 ..oFFFFFFFFFFFFFFFFFFo.
-.oFFfffffffffffffffffo.
-.offfddooffffffffffffdo
-.offdffffoffffffffffffo
-.offdfffffofffffffffffo
-.offdfffffofffffffffddo
-.odddfffffoffffffffdddo
-..odddddddodddffffdddo.
+.oFFffffffffffffffffdo.
+.offfffffffffffffffffdo
+.offfdddffffffffffffddo
+.offdfffdfffffffffffddo
+.offdffffdffffffffffddo
+.odddffffdfffffffffdddo
+..odddddddddddffffdddo.
 ...ooooooooooooooooooo.
 
 == dsleepR x=2 y=11
 ........oooooooo.......
 .....oooLLLLLLLLooo....
-....oLLLLLLLLLLLLLLo...
+....oLLLFFFFFFFFFFFo...
 
 == dsleepT x=1 y=21
 .oo..................
