@@ -93,3 +93,30 @@ describe('a tap on the day page', () => {
     expect(todayAct(block('poll'), { act: 'done' }, now)).toBeUndefined();
   });
 });
+
+describe('where a row goes', () => {
+  it('is the card itself, framed on its board or page', () => {
+    const made = new Date(2026, 8, 28, 8).toISOString();
+    const item = {
+      id: 'a b',
+      at: [0, 0],
+      block: { kind: 'shape', intent: 'event', text: 'dinner today 8pm', made },
+    };
+    const day = gatherToday(
+      [
+        { address: 'workspace', title: 'workspace', href: '/', items: [item as never] },
+        {
+          address: 'book:x:2',
+          title: 'x · page 2',
+          href: '/page?book=x&leaf=2',
+          items: [item as never],
+        },
+      ],
+      new Date(2026, 8, 28, 9),
+    );
+    expect(day.today.map((e) => e.where.href)).toEqual([
+      '/?focus=a%20b',
+      '/page?book=x&leaf=2&focus=a%20b',
+    ]);
+  });
+});

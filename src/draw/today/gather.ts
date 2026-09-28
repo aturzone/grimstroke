@@ -91,10 +91,13 @@ export function gatherToday(sources: readonly TodaySource[], now: Date): TodayDa
       const block = item.block as unknown as ShapeBlock;
       const s: ShapeState = block.state ?? {};
       const made = block.made ? new Date(block.made) : now;
+      // The link goes to the card itself, framed and chosen (the board's ?focus=), not just to
+      // the board it is somewhere on: "where is it?" is answered by being taken there.
+      const href = `${source.href}${source.href.includes('?') ? '&' : '?'}focus=${encodeURIComponent(item.id)}`;
       const base = {
         address: source.address,
         id: item.id,
-        where: { title: source.title, href: source.href },
+        where: { title: source.title, href },
         done: Boolean(s.closed),
       };
       switch (block.intent) {
