@@ -184,8 +184,11 @@ body.on-profile {
 .st-row a { color: inherit; }
 @media (max-width: 760px) {
   .st-layout { grid-template-columns: 1fr; padding: 64px 10px 24px; gap: 12px; }
-  .st-nav { position: static; flex-direction: row; overflow-x: auto; scrollbar-width: none; }
-  .st-tab { flex: none; }
-  .st-tab span { white-space: nowrap; }
+  /* Every section in sight, as tiles: a strip that scrolls sideways hid half of them. */
+  .st-nav { position: static; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .st-tab { flex-direction: column; justify-content: center; gap: 4px; min-height: 58px; padding: 6px 4px; text-align: center; }
+  .st-tab span { white-space: nowrap; font-size: var(--gs-t1); }
+  /* The easel is drawn on, not scrolled past: at most half the screen. */
+  .pf-frame { max-width: min(100%, calc(50vh * 0.75)); margin-inline: auto; }
 }
 `;

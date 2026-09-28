@@ -229,4 +229,9 @@ export const TOP = `/* ---- the top ----
   .gs-acts .gs-btn-text { display: none; }
   .gs-acts > .gs-menu:not([data-gs='more']) > summary { width: var(--gs-control); padding: 0; }
 }
+/* A phone on its side: little height, so the bars sit closer to the edges and take less of it. */
+@media (max-height: 460px) and (orientation: landscape) {
+  .gs-top { inset-block-start: 6px; }
+  .gs-mast, .gs-places, .gs-acts { height: 40px; }
+}
 `;
