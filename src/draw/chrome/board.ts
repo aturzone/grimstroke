@@ -302,6 +302,7 @@ export function chrome(spec: BoardSpec): string {
     '<div class="gs-empty" data-gs="empty" hidden>',
     '<p class="gs-empty-title">an empty sheet</p>',
     `<p class="gs-empty-line">Drop a screenshot anywhere, or paste one with ${kbd('mod+V')}.</p>`,
+    `<p class="gs-empty-line">${kbd('/')} and type a plan, a list or a timer: it becomes a card.</p>`,
     `<p class="gs-empty-line">${kbd('N')} for a sticky note, ${kbd('P')} for a pen, ` +
       `${kbd('?')} for everything else.</p>`,
     '</div>',

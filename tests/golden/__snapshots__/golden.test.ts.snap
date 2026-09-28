@@ -3,7 +3,7 @@
 exports[`golden > renders every surface exactly as before 1`] = `
 {
   "board": "75e45c17ea9e457f 226622",
-  "board-live": "40d599eb46a80351 301246",
+  "board-live": "287e8c2490beb54d 301358",
   "page-carbon-ltr": "7ccb7a89e479e926 228256",
   "page-carbon-rtl": "11b5ba3f2d9ce4f9 228225",
   "page-newsprint-ltr": "c6bb1a5c86ed0604 228269",
