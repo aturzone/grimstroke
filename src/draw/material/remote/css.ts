@@ -35,6 +35,8 @@ export const REMOTE = `/* ---- repository cards ---- */
 .rc-where { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #5b5a55; }
 .rc-tag { margin-inline-start: auto; font-weight: 700; }
 .rc-title-row { display: flex; align-items: flex-start; gap: 10px; margin-block-start: 4px; }
+/* The stamp is pressed over the corner, not over the words: a long title wraps before it. */
+.rc-title-row:has(+ .rc-stamp) { padding-right: 64px; }
 .rc-title {
   margin: 0;
   font-family: var(--hand-font);
