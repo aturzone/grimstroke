@@ -9,7 +9,7 @@
 
 import { confirmCard, toast } from '~/app/chrome.ts';
 import { go, onClick, typing } from '~/app/dom.ts';
-import { moving } from '~/app/feel.ts';
+import { lively, moving } from '~/app/feel.ts';
 import { Carry } from '~/app/shelf/carry.ts';
 import { Decorate } from '~/app/shelf/decorate.ts';
 import { ShelfPet } from '~/app/shelf/pet.ts';
@@ -347,7 +347,7 @@ export class ShelfApp {
         });
       }
       // The book set down rocks once on its foot as it comes to rest.
-      if (from?.id === id) {
+      if (from?.id === id && lively()) {
         spine.animate(
           [
             { transform: 'rotate(0deg)', transformOrigin: '50% 100%' },

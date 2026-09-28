@@ -75,6 +75,11 @@ export function hushed(now: number, quiet = feel.quiet): boolean {
     : now >= quiet.from || now < quiet.to;
 }
 
+/** Full motion: the flourishes -- a tilt, a wobble -- that calm leaves out. */
+export function lively(): boolean {
+  return moving() && feel.motion === 'full';
+}
+
 export function moving(): boolean {
   if (feel.motion === 'none') return false;
   return !(
@@ -342,10 +347,12 @@ export function vanish(el: Element, then: () => void): void {
   }
   (el as HTMLElement).style.pointerEvents = 'none';
   const a = el.animate(
-    [
-      { opacity: 1, transform: 'none' },
-      { opacity: 0, transform: 'translateY(-6px) scale(0.92) rotate(-2deg)' },
-    ],
+    lively()
+      ? [
+          { opacity: 1, transform: 'none' },
+          { opacity: 0, transform: 'translateY(-6px) scale(0.92) rotate(-2deg)' },
+        ]
+      : [{ opacity: 1 }, { opacity: 0 }],
     { duration: 200, easing: OUT, composite: 'add' },
   );
   a.onfinish = then;
