@@ -22,7 +22,7 @@ const PLACES: ReadonlyArray<{
   text: string;
   icon: 'today' | 'board' | 'book' | 'settings';
 }> = [
-  { place: 'today', href: '/today', text: 'today', icon: 'today' },
+  { place: 'today', href: '/today', text: 'calendar', icon: 'today' },
   { place: 'board', href: '/', text: 'board', icon: 'board' },
   { place: 'shelf', href: '/shelf', text: 'notebooks', icon: 'book' },
   { place: 'profile', href: '/settings', text: 'settings', icon: 'settings' },

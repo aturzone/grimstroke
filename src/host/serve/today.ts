@@ -10,7 +10,14 @@
 import { bookTitle, boundLeaves } from '~/draw/doc/book/model.ts';
 import { upgradeLeaf } from '~/draw/doc/legacy.ts';
 import type { ShapeBlock } from '~/draw/shape/render.ts';
-import { gatherToday, type TodayAct, type TodaySource, todayAct } from '~/draw/today/gather.ts';
+import {
+  calendarMonth,
+  dayKey,
+  gatherToday,
+  type TodayAct,
+  type TodaySource,
+  todayAct,
+} from '~/draw/today/gather.ts';
 import { renderTodayMain, renderTodayPage } from '~/draw/today/render.ts';
 import { applyBoard } from '~/host/serve/api.ts';
 import { type Ask, html, readBody, send } from '~/host/serve/http.ts';
@@ -47,12 +54,39 @@ export async function todaySources(live: Live, home: string): Promise<TodaySourc
   return out;
 }
 
+/** The day asked for (YYYY-MM-DD), at the moment it is if it is today and at noon if not. */
+function dayOf(asked: string | null | undefined): Date {
+  const now = new Date();
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(asked ?? '');
+  if (!m) return now;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12);
+  if (Number.isNaN(d.getTime())) return now;
+  return dayKey(d) === dayKey(now) ? now : d;
+}
+
+/** The day and the month it sits in, drawn: what the page shows, and what a tap draws again. */
+function drawn(sources: TodaySource[], day: Date): string {
+  const month = calendarMonth(sources, day.getFullYear(), day.getMonth(), new Date());
+  return renderTodayMain(gatherToday(sources, day), day, {
+    today: new Date(),
+    days: month.days,
+    year: day.getFullYear(),
+    month: day.getMonth(),
+  });
+}
+
 export async function today(ask: Ask, live: Live, scripts: string[]): Promise<boolean> {
-  const { path, req, res } = ask;
+  const { path, req, res, url } = ask;
+
+  if (path === '/calendar') {
+    res.writeHead(302, { location: `/today${url.search}` });
+    res.end();
+    return true;
+  }
 
   if (path === '/today') {
-    const now = new Date();
-    const rendered = renderTodayPage(gatherToday(await todaySources(live, ask.board), now), now, {
+    const day = dayOf(url.searchParams.get('date'));
+    const rendered = renderTodayPage(drawn(await todaySources(live, ask.board), day), dayKey(day), {
       live: { scripts },
     });
     live.allow(rendered.assets);
@@ -62,7 +96,11 @@ export async function today(ask: Ask, live: Live, scripts: string[]): Promise<bo
 
   // For an agent: the same day, as data -- what to remind someone of, what to plan around.
   if (path === '/api/today' && req.method === 'GET') {
-    send(res, 200, gatherToday(await todaySources(live, ask.board), new Date()));
+    send(
+      res,
+      200,
+      gatherToday(await todaySources(live, ask.board), dayOf(url.searchParams.get('date'))),
+    );
     return true;
   }
 
@@ -95,10 +133,7 @@ export async function today(ask: Ask, live: Live, scripts: string[]): Promise<bo
         },
       },
     ]);
-    const now = new Date();
-    send(res, 200, {
-      html: renderTodayMain(gatherToday(await todaySources(live, ask.board), now), now),
-    });
+    send(res, 200, { html: drawn(await todaySources(live, ask.board), new Date()) });
     return true;
   }
 
@@ -108,6 +143,8 @@ export async function today(ask: Ask, live: Live, scripts: string[]): Promise<bo
       id?: string;
       act?: string;
       index?: number;
+      /** The day the page shows: a habit kept on it is kept on that day, not today. */
+      date?: string;
     };
     const address = body.address ?? '';
     const spec = await live.board(address);
@@ -121,8 +158,8 @@ export async function today(ask: Ask, live: Live, scripts: string[]): Promise<bo
           : body.act === 'habit'
             ? { act: 'habit' }
             : undefined;
-    const now = new Date();
-    const state = block && action ? todayAct(block, action, now) : undefined;
+    const day = dayOf(body.date);
+    const state = block && action ? todayAct(block, action, day) : undefined;
     if (!item || !block || !state) {
       send(res, 404, { error: 'no such card, or it cannot do that' });
       return true;
@@ -130,9 +167,7 @@ export async function today(ask: Ask, live: Live, scripts: string[]): Promise<bo
     await applyBoard(live, address, [
       { op: 'update', id: item.id, patch: { block: { ...block, state } as never } },
     ]);
-    send(res, 200, {
-      html: renderTodayMain(gatherToday(await todaySources(live, ask.board), now), now),
-    });
+    send(res, 200, { html: drawn(await todaySources(live, ask.board), day) });
     return true;
   }
 

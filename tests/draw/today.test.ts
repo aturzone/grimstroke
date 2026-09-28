@@ -153,3 +153,42 @@ describe('yesterday', () => {
     ]);
   });
 });
+
+describe('the calendar', () => {
+  it('lays a month out in weeks from Saturday, and counts plans and kept habits', async () => {
+    const { calendarMonth } = await import('~/draw/today/gather.ts');
+    const now = new Date(2026, 8, 28, 9);
+    const made = new Date(2026, 8, 1, 9).toISOString();
+    const items = [
+      {
+        id: 'e',
+        at: [0, 0],
+        block: { kind: 'shape', intent: 'event', text: 'dinner on 2026-09-30 8pm', made },
+      },
+      {
+        id: 'h',
+        at: [0, 0],
+        block: {
+          kind: 'shape',
+          intent: 'habit',
+          text: 'walk every day',
+          made,
+          state: { log: ['2026-09-27'] },
+        },
+      },
+    ];
+    const m = calendarMonth(
+      [{ address: 'w', title: 'w', href: '/', items: items as never }],
+      2026,
+      8,
+      now,
+    );
+    expect(m.days[0]?.date).toBe('2026-08-29'); // the Saturday before the 1st
+    expect(m.days.length % 7).toBe(0);
+    const day = (key: string) => m.days.find((d) => d.date === key);
+    expect(day('2026-09-27')).toMatchObject({ habits: 1, kept: 1 });
+    expect(day('2026-09-26')).toMatchObject({ habits: 1, kept: 0 });
+    // Days to come show plans, not habits.
+    expect(day('2026-09-30')?.habits).toBe(0);
+  });
+});

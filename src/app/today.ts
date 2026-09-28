@@ -59,6 +59,7 @@ export function bootToday(): boolean {
           id: button.dataset.id,
           act: button.dataset.tdAct,
           index: button.dataset.index === undefined ? undefined : Number(button.dataset.index),
+          date: main.dataset.date,
         }),
       });
       if (!res.ok) throw new Error(String(res.status));

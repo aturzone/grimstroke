@@ -171,7 +171,8 @@ export function gatherToday(sources: readonly TodaySource[], now: Date): TodayDa
             });
           }
           const due = d.days.length === 0 || d.days.includes(now.getDay());
-          if (!due) break;
+          // Not before it was made: a habit started today was not missed last month.
+          if (!due || made.getTime() >= startOfDay(now) + DAY) break;
           out.habits.push({
             ...base,
             kind: 'habit',
@@ -237,4 +238,51 @@ export function todayAct(block: ShapeBlock, action: TodayAct, now: Date): ShapeS
     return s;
   }
   return undefined;
+}
+
+/** One day of a month as the calendar shows it: how full it was, and how much of it was done. */
+export interface CalendarDay {
+  date: string;
+  /** Events, reminders and countdowns falling on it, and how many of those are done. */
+  things: number;
+  done: number;
+  /** Habits due that day, and how many were kept. */
+  habits: number;
+  kept: number;
+}
+
+/**
+ * The days shown for a month: whole weeks from the Saturday on or before the 1st to the Friday
+ * on or after the last -- the week as it runs where this notebook's owner lives.
+ */
+export function calendarMonth(
+  sources: readonly TodaySource[],
+  year: number,
+  month: number,
+  /** The real moment now, handed in: nothing in draw/ reads a clock. */
+  now: Date,
+): { days: CalendarDay[]; first: string; last: string } {
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month + 1, 0);
+  const start = new Date(first);
+  start.setDate(first.getDate() - ((first.getDay() + 1) % 7));
+  const end = new Date(last);
+  end.setDate(last.getDate() + (6 - ((last.getDay() + 1) % 7)));
+  const days: CalendarDay[] = [];
+  for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const noon = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12);
+    const day = gatherToday(sources, noon);
+    const things = day.today.length;
+    // A habit is a record of days gone by; on days still to come it would put a dot on every
+    // one of them and hide the plans.
+    const future = startOfDay(noon) > startOfDay(now);
+    days.push({
+      date: dayKey(noon),
+      things,
+      done: day.today.filter((e) => e.done).length,
+      habits: future ? 0 : day.habits.length,
+      kept: future ? 0 : day.habits.filter((e) => e.done).length,
+    });
+  }
+  return { days, first: dayKey(first), last: dayKey(last) };
 }

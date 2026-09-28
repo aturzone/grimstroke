@@ -67,6 +67,37 @@ body.on-today { margin: 0; min-height: 100vh; background: color-mix(in oklab, va
 .td-mark .gs-icon { width: 18px; height: 18px; }
 .td-remind { justify-self: start; margin-block-start: 8px; }
 .td-remind[hidden] { display: none; }
+/* The month: a week to a row, each day a tap that opens it. */
+.td-cal { padding: 10px 12px 12px; }
+.td-cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-block-end: 6px; }
+.td-cal-title { display: grid; justify-items: center; line-height: 1.2; }
+.td-cal-title b { font-size: var(--gs-t3); }
+.td-cal-title small { color: var(--gs-soft); font-size: var(--gs-t1); }
+.td-week, .td-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.td-week span { color: var(--gs-soft); font-size: 11px; text-align: center; letter-spacing: 0.04em; padding-block-end: 2px; }
+.td-day {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 0;
+  min-height: 54px;
+  padding: 5px 2px 12px;
+  border-radius: calc(4px * var(--round, 1) + var(--round-up, 0px));
+  color: var(--gs-ink);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+.td-day b { font-size: var(--gs-t2); font-weight: 600; }
+.td-day small { color: var(--gs-soft); font-size: 10px; }
+.td-day:hover { background: var(--gs-wash); }
+.td-day.is-out { opacity: 0.4; }
+.td-day.is-today b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--gs-hot); color: var(--gs-on-hot); }
+.td-day.is-chosen { box-shadow: inset 0 0 0 2px var(--gs-ink); }
+.td-dots { position: absolute; inset-block-end: 2px; font-style: normal; font-size: 10px; line-height: 1; letter-spacing: 1px; color: var(--gs-soft); }
+.td-day.is-full .td-dots { color: color-mix(in oklab, #2b8a3e 80%, var(--gs-ink)); }
+.td-day.is-open .td-dots { color: var(--gs-hot); }
+.td-back { display: flex; justify-content: center; margin: 8px 0 0; }
 .td-empty p { margin: 4px 0 8px; color: var(--gs-soft); line-height: 1.55; }
 .td-add { display: flex; justify-content: center; margin: 6px 0 0; }
 .td-add .gs-btn { height: 48px; padding: 0 18px; }
