@@ -68,6 +68,22 @@ torn edges, tape, hard shadows that never blur. What changes is everything aroun
   crouch/leap/land, Siamese mask, Dalmatian face).
 - Books that lean and settle with a small physical wobble when set down.
 
+## Where it stands (2026-09-28, morning)
+
+- [x] 1. Things moved by anything but the hand slide there; picked-up things lift; choices slide
+  their highlight; the selection bar grows in; a card flies from the island to its place; a page
+  grows off the spread to be worked on and settles back into it; every page fans in; the bookcase
+  reflows its books and objects.
+- [x] 2. A sound per material (note, sticker, picture, card, ink), notebook opening, repository
+  tick, undo; settings for sound, volume and motion. (Quiet hours: not yet.)
+- [x] 3. The tools in a clear sans on a readable scale; faces per section in settings. (A full
+  spacing pass and contrast table: not yet.)
+- [x] 4. The notebook's bar in three; the shelf counts what is in use and archived; every button
+  says what it does.
+- [x] 5. A first-visit tour. (Empty states beyond the board and a connected page: not yet.)
+- [x] 6. A card sent to another page is followed there. (Current page indicator: not yet.)
+- [ ] 7. The pet's remaining weak poses (in progress); books that wobble when set down.
+
 ## Done means
 - `pnpm check` green (types, lint, 390+ tests, build, the layout audit at six sizes and two
   corner settings).
