@@ -4,8 +4,8 @@ exports[`golden > renders every surface exactly as before 1`] = `
 {
   "board": "61be87c3492023cc 224895",
   "board-live": "e3e00af50b3838ea 298779",
-  "page-carbon-ltr": "7217a119a35fa07b 226529",
-  "page-carbon-rtl": "f1cd8a13ad13e667 226498",
+  "page-carbon-ltr": "3268f4cbcda7595a 226529",
+  "page-carbon-rtl": "3f656a31faeabbc7 226498",
   "page-newsprint-ltr": "ed714afc7bb77688 226542",
   "page-newsprint-rtl": "c97c816909ef4451 226496",
   "page-studio-ltr": "00a646c63cbc983d 226548",

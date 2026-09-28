@@ -29,6 +29,18 @@ export interface HeadOptions {
 }
 
 /** A corners value as a document may carry it, clamped to what the look can draw. */
+/**
+ * What the chrome's photo paper and its ink each pick up from the palette. The ink takes the
+ * palette's ink, except on a dark paper: there the palette's ink is the light one, and a trace of
+ * it greyed the chrome's quiet ink to 3.6:1 on Carbon. It takes the dark paper instead.
+ */
+export function photoTint(pal: { paper: string; ink: string; dark: boolean }): {
+  paper: string;
+  ink: string;
+} {
+  return { paper: pal.paper, ink: pal.dark ? pal.paper : pal.ink };
+}
+
 export function cornersOf(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value)
     ? Math.min(3, Math.max(0, value))
@@ -68,6 +80,7 @@ export function styleVars(
   const rule = ruling(options.paper ?? 'blank', { colour: pal.ink });
   const dirt = options.grain === true ? 1 : typeof options.grain === 'number' ? options.grain : 0;
 
+  const photo = photoTint(pal);
   const dots = pal.dark
     ? 'radial-gradient(var(--paper) 0.8px, transparent 0.9px)'
     : 'radial-gradient(var(--ink) 0.8px, transparent 0.9px)';
@@ -111,8 +124,8 @@ export function styleVars(
     // Photo paper is photo paper, whatever the document is printed on -- but it
     // picks up a trace of the palette so a mount never reads as a foreign white
     // rectangle dropped onto a coloured sheet.
-    '--mat-paper': `color-mix(in oklab, #fdfbf6 86%, ${pal.paper})`,
-    '--mat-ink': `color-mix(in oklab, #14110e 86%, ${pal.ink})`,
+    '--mat-paper': `color-mix(in oklab, #fdfbf6 86%, ${photo.paper})`,
+    '--mat-ink': `color-mix(in oklab, #14110e 86%, ${photo.ink})`,
     // The desk the sheet lies on. Dark enough that the paper reads as lit, and
     // derived from the palette so it is the same room in every one of them.
     '--desk': 'color-mix(in oklab, var(--ink) 78%, var(--paper))',
