@@ -253,6 +253,14 @@ input[type='color'].se-input { flex: none; width: 56px; padding: 4px; }
 /* One of the tools' cards, like the turner beside it. */
 .ss-open { position: fixed; z-index: 45; inset-block-end: 18px; inset-inline-end: 18px; display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border: 1.5px solid var(--gs-line); border-radius: var(--gs-radius); background: var(--gs-paper); color: var(--gs-ink); font-family: var(--ui-font); font-size: var(--gs-t2); box-shadow: var(--gs-shadow); cursor: pointer; }
 .ss-open .gs-kbd { color: var(--gs-ink); }
+.ss-keep { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border-radius: var(--ss-r); color: var(--ss-soft); font-size: 13px; cursor: pointer; }
+.ss-keep:hover, .ss-keep:focus-visible { background: var(--ss-tile); color: var(--ss-fg); }
+/* No keyboard, no key caps: the hint to clear says nothing to a thumb, and "keep as" is a
+   button whose words are enough. */
+@media (hover: none), (max-width: 520px) {
+  .ss-keys:not(.ss-keep) { display: none; }
+  .ss-keep .gs-kbd { display: none; }
+}
 @media (max-width: 760px) {
   /* Beside the page turner, in the corner it leaves free, the same height as it. */
   .ss-open { inset-block-end: 8px; inset-inline-end: 8px; width: 48px; height: 48px; padding: 0; justify-content: center; }

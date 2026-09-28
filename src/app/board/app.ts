@@ -326,6 +326,13 @@ export class BoardApp implements BoardContext {
      */
     this.editNext = id;
     this.session.run([{ op: 'add', item }], '');
+    // On a phone a board is usually looked at from far out, and a note made there is a yellow
+    // speck nobody can write in: the camera comes in to it first, at a size to read.
+    if (window.innerWidth <= 760 && this.view.zoom < 0.8) {
+      const [w, h] = kind === 'sticky' ? [NOTE_WIDTH, NOTE_HEIGHT] : [160, 40];
+      this.view.zoomTo(1, this.view.toScreen(at));
+      this.view.centre({ x: at.x + w / 2, y: at.y + h / 2 });
+    }
   }
 
   private stickersPlaced = 0;

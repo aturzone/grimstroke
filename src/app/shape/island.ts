@@ -245,10 +245,17 @@ export class ShapeIsland {
       const label = (fa ? INTENTS[intent].fa : INTENTS[intent].label).toLowerCase();
       foot.innerHTML = '';
       if (ghost) {
-        const keys = el('span', 'ss-keys');
+        // A button as well as a key: a phone has no Tab, and this is the only way to keep a guess.
+        const keys = el('button', 'ss-keys ss-keep');
+        (keys as HTMLButtonElement).type = 'button';
         keys.innerHTML = fa
           ? `<kbd class="gs-kbd">Tab</kbd> برای نگه‌داشتن به‌عنوان ${label}`
           : `<kbd class="gs-kbd">Tab</kbd> to keep as ${label}`;
+        keys.addEventListener('click', () => {
+          this.mem = promote(this.mem);
+          this.draw();
+          this.input?.focus();
+        });
         foot.append(keys);
       } else {
         const keys = el('span', 'ss-keys');
