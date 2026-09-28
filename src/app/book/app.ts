@@ -22,7 +22,7 @@ import { RepoSetup } from '~/app/book/repo.ts';
 import { bookShapes } from '~/app/book/shapes.ts';
 import { toast } from '~/app/chrome.ts';
 import { go, must, onClick, typing } from '~/app/dom.ts';
-import { appear, play, vanish } from '~/app/feel.ts';
+import { appear, moving, play, vanish } from '~/app/feel.ts';
 import { letterOf } from '~/app/keys.ts';
 import { Session } from '~/app/net.ts';
 import type { BookSpec, Leaf } from '~/draw/doc/book/model.ts';
@@ -510,10 +510,30 @@ export class BookApp {
      */
     const edit = (leaf: HTMLElement | null): void => {
       const leafId = leaf?.dataset.gsId;
-      if (!leafId) return;
-      go(
-        `/page?book=${encodeURIComponent(this.session.spec.id)}&leaf=${encodeURIComponent(leafId)}`,
-      );
+      if (!leafId || !leaf) return;
+      const href = `/page?book=${encodeURIComponent(this.session.spec.id)}&leaf=${encodeURIComponent(leafId)}`;
+      // The page comes up off the spread to meet you, and the page view takes over from it.
+      if (moving()) {
+        const r = leaf.getBoundingClientRect();
+        const s = Math.min(
+          (window.innerHeight * 0.92) / r.height,
+          (window.innerWidth * 0.92) / r.width,
+        );
+        // The spread is scaled to the window; a translate inside it moves by its units, not pixels.
+        const k = r.width / (leaf.offsetWidth || r.width) || 1;
+        const dx = (window.innerWidth / 2 - (r.left + r.width / 2)) / k;
+        const dy = (window.innerHeight / 2 - (r.top + r.height / 2)) / k;
+        leaf.style.position = 'relative';
+        leaf.style.zIndex = '80';
+        play('lift');
+        leaf.animate(
+          [{ transform: 'none' }, { transform: `translate(${dx}px, ${dy}px) scale(${s})` }],
+          { duration: 260, easing: 'cubic-bezier(0.3, 0.7, 0.2, 1)', fill: 'forwards' },
+        );
+        window.setTimeout(() => go(href), 200);
+        return;
+      }
+      go(href);
     };
     this.book.addEventListener('dblclick', (event) => {
       edit((event.target as HTMLElement).closest<HTMLElement>('[data-gs="leaf"]'));
