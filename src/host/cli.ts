@@ -6,8 +6,11 @@
  * the page format is the API, and this only feeds it.
  */
 
+import { randomBytes } from 'node:crypto';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { NotebookSpec, PageSpec } from '~/draw/doc/page/model.ts';
 import { renderPage } from '~/draw/doc/page/render.ts';
 import { search } from '~/draw/doc/search.ts';
@@ -15,6 +18,7 @@ import { check as checkPalette, PALETTES, palette } from '~/draw/look/palette.ts
 import { fontDirectory, verifyFaces } from '~/draw/type/faces.ts';
 import { exportPages } from '~/host/export.ts';
 import { redactImage } from '~/host/redact.ts';
+import { gateway, readUsers } from '~/host/serve/gateway.ts';
 import { hashPassword, type Login, loginFromEnv } from '~/host/serve/login.ts';
 import { serve } from '~/host/serve/server.ts';
 import { type Archive, pack, readArchive, unpack } from '~/host/store/archive.ts';
@@ -34,6 +38,8 @@ const USAGE = `grimstroke ${VERSION} — a notebook for agents
                    with GRIMSTROKE_LOGIN_USER and GRIMSTROKE_LOGIN_HASH set, it asks for a
                    name and password at /login instead of a token in the address
   grimstroke hash-password  < password    the hash for GRIMSTROKE_LOGIN_HASH
+  grimstroke gateway --users FILE --dir DIR [--port N] [--host ADDR]
+                   several people behind one login, each with a workspace in DIR/<name>
   grimstroke save   <file.grimstroke>       write everything to one file
   grimstroke open   <file.grimstroke>       read one back in
   grimstroke search <words>                 boards, notebooks, the archive and the profile
@@ -330,6 +336,40 @@ async function main(argv: string[]): Promise<number> {
         `  pictures:  ${restored.assets}\n` +
         '  anything already here that the file did not mention was left alone\n',
     );
+    return 0;
+  }
+
+  // Several people, each with a workspace of their own, behind one login (host/serve/gateway.ts).
+  if (verb === 'gateway') {
+    const flag = (name: string): string | undefined => {
+      const i = argv.indexOf(name);
+      return i >= 0 ? argv[i + 1] : undefined;
+    };
+    const usersFile = flag('--users');
+    const dir = flag('--dir');
+    if (!usersFile || !dir) throw new Error('gateway needs --users FILE and --dir DIR');
+    const secretFile = join(dir, '.gateway-secret');
+    let secret: string;
+    try {
+      secret = readFileSync(secretFile, 'utf8').trim();
+    } catch {
+      secret = randomBytes(32).toString('base64url');
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(secretFile, secret, { mode: 0o600 });
+    }
+    const users = readUsers(usersFile);
+    gateway({
+      users,
+      dir,
+      port: Number(flag('--port') ?? 7777),
+      host: flag('--host') ?? '127.0.0.1',
+      cli: fileURLToPath(import.meta.url),
+      secret,
+    });
+    process.stdout.write(
+      `grimstroke gateway on ${flag('--port') ?? 7777} for ${users.map((u) => u.user).join(', ')}\n`,
+    );
+    await new Promise(() => {});
     return 0;
   }
 

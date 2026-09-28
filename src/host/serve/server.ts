@@ -29,6 +29,7 @@ import {
   cookie,
   header,
   listen,
+  readBody,
   send,
   TYPES,
 } from '~/host/serve/http.ts';
@@ -36,8 +37,10 @@ import { Live } from '~/host/serve/live.ts';
 import { type Login, loginDoor } from '~/host/serve/login.ts';
 import { lookOf, THEME_PALETTE } from '~/host/serve/look.ts';
 import { pages } from '~/host/serve/pages.ts';
+import { Push } from '~/host/serve/push.ts';
 import { keepFresh, oauthCallback, remoteApi } from '~/host/serve/remote.ts';
-import { today } from '~/host/serve/today.ts';
+import { publicFile } from '~/host/serve/shell.ts';
+import { today, todaySources } from '~/host/serve/today.ts';
 import { Store } from '~/host/store/store.ts';
 
 export interface ServeOptions {
@@ -71,6 +74,23 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
   const live = new Live(store);
   // Cards on open pages are asked about again every minute.
   const stopFresh = keepFresh(live);
+  // Reminders to this workspace's owner's devices, looked at once a minute (host/serve/push.ts).
+  const push = new Push(store.dir);
+  const board = options.board ?? 'workspace';
+  const remind = setInterval(() => {
+    void (async () => {
+      const look = await lookOf(store);
+      const q = look.feel.quiet;
+      const h = new Date().getHours();
+      const hushed = q
+        ? q.from < q.to
+          ? h >= q.from && h < q.to
+          : h >= q.from || h < q.to
+        : false;
+      await push.tick(await todaySources(live, board), new Date(), hushed);
+    })().catch(() => {});
+  }, 60_000);
+  remind.unref();
 
   const server = createServer((req, res) => {
     handle(req, res).catch((error) => {
@@ -87,6 +107,13 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
     // fonts and images -- carries it without it being in the address bar.
     // The one path a service sends a browser back to, without the workspace token: it proves
     // itself with a single-use state instead (see oauthCallback).
+    // The app's own files -- manifest, icons, service worker -- hold nobody's data.
+    const shell = publicFile(path);
+    if (shell) {
+      res.writeHead(200, { 'content-type': shell.type, 'cache-control': 'no-cache' });
+      res.end(shell.body);
+      return;
+    }
     if (path === '/api/remote/oauth/callback') {
       await oauthCallback({ req, res, url, path, board: options.board ?? 'workspace' }, live);
       return;
@@ -131,6 +158,7 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
     usePalettes(look.palettes);
     useDefaultPalette(THEME_PALETTE[look.theme]);
     const ask: Ask = { req, res, url, path, board: options.board ?? 'workspace' };
+    if (await pushApi(ask, push, live)) return;
     if (await pages(ask, live)) return;
     if (await today(ask, live, ['/app.js'])) return;
     if (await remoteApi(ask, live)) return;
@@ -147,6 +175,7 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
     close: () =>
       new Promise<void>((done) => {
         stopFresh();
+        clearInterval(remind);
         live.close();
         server.close(() => done());
       }),
@@ -174,4 +203,43 @@ function serveApp(res: ServerResponse): void {
     etag: `W/"${stamp.size.toString(16)}-${stamp.mtimeMs.toString(16)}"`,
   });
   createReadStream(file).pipe(res);
+}
+
+/** A device asks to be told, stops being told, or asks for a first one to see it works. */
+async function pushApi(ask: Ask, push: Push, live: Live): Promise<boolean> {
+  const { path, req, res } = ask;
+  if (path === '/api/push/key' && req.method === 'GET') {
+    send(res, 200, { publicKey: await push.publicKey() });
+    return true;
+  }
+  if (path === '/api/push/subscribe' && req.method === 'POST') {
+    let fresh: boolean;
+    try {
+      fresh = await push.subscribe((await readBody(req)) as never);
+    } catch (error) {
+      send(res, 400, { error: error instanceof Error ? error.message : String(error) });
+      return true;
+    }
+    if (!fresh) {
+      send(res, 200, { reached: 0 });
+      return true;
+    }
+    // A first one at once, for a new device: it sees that it reaches it, and how it looks.
+    const reached = await push.send({
+      title: 'Reminders are on',
+      body: 'This device will be told before what you plan, even with grimstroke shut.',
+      url: '/today',
+      tag: 'hello',
+    });
+    send(res, 200, { reached });
+    return true;
+  }
+  if (path === '/api/push/unsubscribe' && req.method === 'POST') {
+    const { endpoint } = (await readBody(req)) as { endpoint?: string };
+    if (endpoint) await push.unsubscribe(endpoint);
+    send(res, 200, {});
+    return true;
+  }
+  void live;
+  return false;
 }

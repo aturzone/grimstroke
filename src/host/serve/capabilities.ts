@@ -89,6 +89,10 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
       'a card typed on the day { block: shape, width? }, put on the home board under what is there',
     'POST /api/today/act':
       'on a card from the day { address, id, act: tick|done|habit, index? }, as the card itself would',
+    'GET /api/push/key': "the workspace's public key, for a device to subscribe to reminders",
+    'POST /api/push/subscribe':
+      'a device to tell before what is planned, with the page shut (a PushSubscription)',
+    'POST /api/push/unsubscribe': 'stop telling a device { endpoint }',
     'GET /api/pet': 'the pet, and every animal and coat',
     'POST /api/pet': 'change the pet { species?, coat?, name?, on? }',
     'GET /api/archive': 'a backup of everything, as one file',

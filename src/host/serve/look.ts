@@ -226,7 +226,14 @@ export function sectionOf(path: string): Section {
 export function withLook(html: string, look: Look, section: Section, ownFonts = false): string {
   const l = look[section];
   // How it feels travels with every page, for the app to read before it makes a sound.
-  const meta = `<meta name="gs-feel" content="${JSON.stringify(look.feel).replace(/"/g, '&quot;')}">`;
+  // The page is an app a phone can keep on its home screen, and be reminded by.
+  const meta =
+    `<meta name="gs-feel" content="${JSON.stringify(look.feel).replace(/"/g, '&quot;')}">` +
+    '<link rel="manifest" href="/manifest.webmanifest">' +
+    '<link rel="apple-touch-icon" href="/apple-touch-icon.png">' +
+    '<meta name="apple-mobile-web-app-capable" content="yes">' +
+    '<meta name="apple-mobile-web-app-title" content="grimstroke">' +
+    '<meta name="theme-color" content="#1f3fd0">';
   const vars: string[] = [];
   if (l.corners !== 1) vars.push(`--gs-round:${l.corners}`);
   if (l.ui) vars.push(`--ui-font:${FONT_CHOICES[l.ui]}`);

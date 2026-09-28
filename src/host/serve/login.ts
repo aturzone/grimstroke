@@ -40,19 +40,19 @@ export function loginFromEnv(env: NodeJS.ProcessEnv = process.env): Login | unde
   return user && hash ? { user, hash } : undefined;
 }
 
-const failures = new Map<string, { count: number; until: number }>();
+export const failures = new Map<string, { count: number; until: number }>();
 
-function place(req: IncomingMessage): string {
+export function place(req: IncomingMessage): string {
   const forwarded = req.headers['x-forwarded-for'];
   const first = (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0]?.trim();
   return first || req.socket.remoteAddress || 'unknown';
 }
 
-function secure(req: IncomingMessage): boolean {
+export function secure(req: IncomingMessage): boolean {
   return req.headers['x-forwarded-proto'] === 'https';
 }
 
-function page(message = ''): string {
+export function loginPage(message = ''): string {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>grimstroke</title>
@@ -80,7 +80,7 @@ function page(message = ''): string {
 </form></body></html>`;
 }
 
-async function form(req: IncomingMessage): Promise<URLSearchParams> {
+export async function form(req: IncomingMessage): Promise<URLSearchParams> {
   const chunks: Buffer[] = [];
   let size = 0;
   for await (const chunk of req) {
@@ -116,7 +116,7 @@ export async function loginDoor(
     const record = failures.get(where);
     if (record && record.until > Date.now()) {
       res.writeHead(429, { 'content-type': 'text/html; charset=utf-8' });
-      res.end(page('Too many tries. Wait a minute, then try again.'));
+      res.end(loginPage('Too many tries. Wait a minute, then try again.'));
       return true;
     }
     const body = await form(req);
@@ -128,7 +128,7 @@ export async function loginDoor(
       failures.set(where, { count, until: count >= 5 ? Date.now() + 60_000 : 0 });
       await new Promise((done) => setTimeout(done, 700));
       res.writeHead(401, { 'content-type': 'text/html; charset=utf-8' });
-      res.end(page('That name and password do not match.'));
+      res.end(loginPage('That name and password do not match.'));
       return true;
     }
     failures.delete(where);
@@ -144,7 +144,7 @@ export async function loginDoor(
       return true;
     }
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
-    res.end(page());
+    res.end(loginPage());
     return true;
   }
 

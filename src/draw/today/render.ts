@@ -218,7 +218,7 @@ function renderDay(data: TodayData, now: Date, isToday: boolean, greet?: string)
   return (
     `<header class="td-hello"><p class="td-greet">${esc(greet ?? hello)}</p><h1 class="td-date">${esc(date)}</h1>` +
     // Shown by app/remind.ts only while the browser has not been asked yet.
-    '<button type="button" class="gs-btn gs-chip-btn td-remind" data-gs="remind-on" hidden>remind me on this computer</button></header>' +
+    '<button type="button" class="gs-btn gs-chip-btn td-remind" data-gs="remind-on" hidden>remind me on this device</button></header>' +
     // Another day shows what belongs to that day; what is running, what slipped and the open
     // lists are today's business.
     (isToday ? section('now', running, 'td-now') : '') +
