@@ -229,7 +229,9 @@ export const NOTE = `/* The sticky note.
   opacity: .5;
   background-image: radial-gradient(var(--cn-ink) 1px, transparent 1.2px);
   background-size: 5px 5px;
+  transition: opacity 120ms ease-out;
 }
+.item:not([data-selected]) > .note:not(:hover, :focus-within) .grip-dots { opacity: .28; }
 
 /* The note name, on its own line under the toolbar. It was in the header first, beside the
    toolbar, and a real name did not fit: "Tuesday shopping" came out as "Tuesda..." in the
@@ -248,7 +250,14 @@ export const NOTE = `/* The sticky note.
 }
 .note-name[hidden] { display: none; }
 
-.note .actions { display: flex; gap: 1px; flex: 0 0 auto; }
+.note .actions { display: flex; gap: 1px; flex: 0 0 auto; transition: opacity 120ms ease-out; }
+/* Quiet until wanted. A board of notes each wearing six buttons read as a control panel, not as
+   paper: the toolbar comes up under the pointer, with the keyboard, when the note is chosen, and
+   while one of its tools is on. On a touch screen, a tap chooses the note and brings it up. */
+.item:not([data-selected]) > .note:not(:hover, :focus-within, :has(.act.is-on)) .actions {
+  opacity: 0;
+  pointer-events: none;
+}
 /* 24px targets. The first version used 18px glyphs at 55% opacity and the first person to try
    the build simply could not hit them -- notably, could not delete a note at all. */
 .note .act {

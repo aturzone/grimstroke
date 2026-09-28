@@ -1,13 +1,11 @@
 /**
- * The shape card's look: quiet, white, rounded, one blue -- the calm of the Shapeshift demo, kept
- * apart from the zine look of the rest of the page on purpose. A card is a small tool laid on the
- * paper, and it reads as one.
+ * The shape card's look: quiet, white, one blue -- a small tool laid on the paper. It is one of
+ * the tools' cards: the same keyline, the same hard shadow and the same corners as the bars
+ * around it, so a board of notes and cards reads as one set rather than two design languages.
  *
- * Corners. The card follows the workspace's --round (0 square, 1 as designed, 3 very round), but a
- * large box must not turn into a blob, so its radius grows by a gentler factor above 1 and is
- * capped: --sc-g is --round up to 1, then a third of each step beyond (1.7 at 3), and the card's
- * radius is min(20px x g, 32px). What is inside nests: a tile or a swatch is never rounder than
- * the card around it less the padding between them.
+ * Corners. The card's radius is the tools' own, calc(4px x --round + --round-up), capped so a
+ * large box never turns into a blob. What is inside nests: a tile or a swatch is never rounder
+ * than the card around it less the padding between them. --sc-g scales the parts inside.
  *
  * Size. A card is as wide as its item and only grows downward -- nothing in it may push it wider,
  * so the selection outline on the board is the card's own edge. Below 300px it lays itself out
@@ -26,8 +24,8 @@ export const SHAPE = `/* ---- shape cards ---- */
   --sc-brand-soft: #eef1fd;
   --sc-good: #2b8a3e;
   --sc-caution: #c2410c;
-  --sc-g: calc(min(var(--round, 1), 1) + max(var(--round, 1) - 1, 0) * 0.35);
-  --sc-r: min(calc(20px * var(--sc-g)), 32px);
+  --sc-g: calc(var(--round, 1) * 0.4);
+  --sc-r: min(calc(4px * var(--round, 1) + var(--round-up, 0px)), 26px);
   --sc-pad: 16px;
   box-sizing: border-box;
   width: 100%;
@@ -36,7 +34,7 @@ export const SHAPE = `/* ---- shape cards ---- */
   padding: 14px var(--sc-pad) var(--sc-pad);
   overflow: hidden;
   container-type: inline-size;
-  border: 1px solid var(--sc-line);
+  border: 1.5px solid color-mix(in oklab, var(--sc-fg) 80%, var(--sc-bg));
   border-radius: var(--sc-r);
   background: var(--sc-bg);
   color: var(--sc-fg);
@@ -44,7 +42,7 @@ export const SHAPE = `/* ---- shape cards ---- */
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, 'Helvetica Neue', Arial, Estedad, sans-serif;
   font-size: 15px;
   line-height: 1.45;
-  box-shadow: 0 1px 2px rgba(20, 20, 18, 0.06), 0 8px 24px -12px rgba(20, 20, 18, 0.18);
+  box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.3);
   text-align: start;
 }
 .sc *, .sc *::before, .sc *::after { box-sizing: border-box; }

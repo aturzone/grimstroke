@@ -101,12 +101,14 @@ export function styleVars(
     '--hand-font': fontFamily('hand', fonts, direction),
     '--marker-font': fontFamily('marker', fonts, direction),
     // Corners: the document's own, or the workspace's (--gs-round, written by the server), or as
-    // designed. --round-up is 0 up to 1, then grows, rounding what is drawn square.
+    // designed. --round-up is 0 up to 1, then grows, rounding what is drawn square. It is small
+    // on purpose: at 12px a step, "soft" made every 34px button a pill while a big card barely
+    // changed, and a board -- all small parts -- looked far rounder than settings at one value.
     '--round':
       cornersOf(options.round) !== undefined
         ? String(cornersOf(options.round))
         : 'var(--gs-round, 1)',
-    '--round-up': 'calc(max(0, var(--round) - 1) * 12px)',
+    '--round-up': 'calc(max(0, var(--round) - 1) * 5px)',
     '--body-size': '15px',
     '--body-leading': '1.5',
     '--title-size': '22px',

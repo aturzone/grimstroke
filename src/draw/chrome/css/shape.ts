@@ -2,13 +2,12 @@
  * The "/" bar: one rounded box over the board that grows into the card being typed, and the panel
  * that edits a card's fields by hand.
  *
- * The look is the Shapeshift demo's on purpose -- white, quiet, a 28px shell, one blue -- because
- * the point of the bar is to get out of the way of what is being written.
+ * White, quiet, one blue -- the point of the bar is to get out of the way of what is being
+ * written -- but framed as the tools' other dialogs are: their keyline, their hard shadow, their
+ * corners (see draw/shape/css.ts), so it is one of the set and not a widget from somewhere else.
  *
- * Corners follow the workspace's --round on the same gentle curve as the cards (see
- * draw/shape/css.ts): --ss-g is --round up to 1 and a third of each step beyond, and the shell is
- * capped at 34px. The shell keeps ONE radius whether it is the 72px line or the grown card, so it
- * morphs as one object; at 3 it was an 84px blob once it grew.
+ * The shell keeps ONE radius whether it is the 72px line or the grown card, so it morphs as one
+ * object, capped so it never becomes a blob. --ss-g scales the parts inside, which nest.
  */
 
 export const SHAPE_BAR = `/* ---- the shape bar ---- */
@@ -20,8 +19,9 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   --ss-tile: #f3f2ef;
   --ss-brand: #3b5bdb;
   --ss-brand-soft: #eef1fd;
-  --ss-g: calc(min(var(--round, 1), 1) + max(var(--round, 1) - 1, 0) * 0.35);
-  --ss-r: min(calc(28px * var(--ss-g)), 34px);
+  --ss-g: calc(var(--round, 1) * 0.4);
+  /* The tools' corners, as every dialog has them (see draw/shape/css.ts). */
+  --ss-r: min(calc(4px * var(--round, 1) + var(--round-up, 0px)), 26px);
   position: fixed;
   inset: 0;
   z-index: 70;
@@ -43,10 +43,10 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  border: 1px solid var(--ss-line);
+  border: 1.5px solid color-mix(in oklab, var(--ss-fg) 80%, var(--ss-bg));
   border-radius: var(--ss-r);
   background: var(--ss-bg);
-  box-shadow: 0 1px 2px rgba(20, 20, 18, 0.06), 0 24px 60px -24px rgba(20, 20, 18, 0.45);
+  box-shadow: 8px 10px 0 rgba(0, 0, 0, 0.35);
   outline: 4px solid transparent;
   transition: border-color 150ms ease-out, outline-color 150ms ease-out;
   animation: ss-rise 180ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
@@ -127,10 +127,10 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   width: min(480px, 100%);
   translate: -50% 0;
   overflow: hidden;
-  border: 1px solid var(--ss-line);
-  border-radius: min(calc(20px * var(--ss-g)), 28px);
+  border: 1.5px solid color-mix(in oklab, var(--ss-fg) 80%, var(--ss-bg));
+  border-radius: var(--ss-r);
   background: var(--ss-bg);
-  box-shadow: 0 24px 60px -20px rgba(20, 20, 18, 0.45);
+  box-shadow: 8px 10px 0 rgba(0, 0, 0, 0.35);
 }
 .ss-palette-head { padding: 8px; }
 .ss-palette-search {
@@ -156,8 +156,8 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
 
 /* ---- a card's fields, by hand ---- */
 .se-panel {
-  --se-g: calc(min(var(--round, 1), 1) + max(var(--round, 1) - 1, 0) * 0.35);
-  --se-r: min(calc(20px * var(--se-g)), 28px);
+  --se-g: calc(var(--round, 1) * 0.4);
+  --se-r: min(calc(4px * var(--round, 1) + var(--round-up, 0px)), 26px);
   --ss-bg: #ffffff;
   --ss-fg: #1a1a19;
   --ss-soft: #6f6d68;
@@ -183,10 +183,10 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 16px;
-  border: 1px solid var(--ss-line);
+  border: 1.5px solid color-mix(in oklab, var(--ss-fg) 80%, var(--ss-bg));
   border-radius: var(--se-r);
   background: var(--ss-bg);
-  box-shadow: 0 24px 60px -20px rgba(20, 20, 18, 0.45);
+  box-shadow: 8px 10px 0 rgba(0, 0, 0, 0.35);
   animation: ss-rise 160ms ease-out;
 }
 .se-inline { padding: 12px 22px 8px; border-block-start: 1px solid var(--ss-line); }
@@ -250,8 +250,9 @@ input[type='color'].se-input { flex: none; width: 56px; padding: 4px; }
 }
 
 /* The notebook's own way in: the spread has no tray. */
-.ss-open { position: fixed; z-index: 45; inset-block-end: 18px; inset-inline-end: 18px; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border: 1px solid #e7e5e1; border-radius: calc(999px * var(--round, 1)); background: #fff; color: #1a1a19; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, sans-serif; font-size: 13px; box-shadow: 0 8px 24px -12px rgba(20, 20, 18, 0.4); cursor: pointer; }
-.ss-open .gs-kbd { color: #1a1a19; }
+/* One of the tools' cards, like the turner beside it. */
+.ss-open { position: fixed; z-index: 45; inset-block-end: 18px; inset-inline-end: 18px; display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border: 1.5px solid var(--gs-line); border-radius: var(--gs-radius); background: var(--gs-paper); color: var(--gs-ink); font-family: var(--ui-font); font-size: var(--gs-t2); box-shadow: var(--gs-shadow); cursor: pointer; }
+.ss-open .gs-kbd { color: var(--gs-ink); }
 @media (max-width: 760px) {
   .ss-open { inset-block-end: 70px; inset-inline-end: 10px; }
   .ss-open span { display: none; }
