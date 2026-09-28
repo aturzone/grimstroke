@@ -1,0 +1,43 @@
+# Changelog
+
+## 0.2.0 — 2026-09-28
+
+The workspace grows up: notebooks you can connect to a repository, a bookcase you can make your
+own, a pet that lives on it, cards you type into being, and a settings page for all of it.
+
+### Writing and pages
+- **Type anything, and it becomes a card.** `/` on a board, a page or a notebook's spread opens one
+  box; a line becomes an event, checklist, timer, habit, colour, split, expense, conversion, sum,
+  trip, poll, contact, bookmark, countdown, time zone, dice roll, goal or note -- in English or
+  Persian. A small classifier that ships inside the page decides which (no network, no
+  dependency); every value on a card is computed, never guessed. Every card can be changed by hand
+  after it is made.
+- Notebooks: a page turn that shows only what a real one shows, a smooth opening, turning back
+  fixed, the whole notebook as one PDF (in the browser or made on the server), page sizes and
+  templates, two-column writing with numbered figures and page references for agents.
+- A page can move apart what overlaps on it; a Kanban page can be a tracker of a repository's
+  issues.
+
+### Repositories
+- Connect a notebook to GitHub, GitLab or Gitea, step by step; issue, merge request, commit and
+  pipeline cards that stay up to date; tick to close, reply to comment, an issue's whole
+  conversation beside the page, live lists and trackers.
+
+### The bookcase and the pet
+- A bookcase you carry books around, in nine woods and eight backs, with objects and stickers.
+- A cat or a dog in thirteen coats that walks the shelves, sleeps, washes, stretches, eats from a
+  bowl you put down and purrs when you stroke it.
+
+### Settings and the look
+- One settings page: profile, pet, look and fonts, sound and motion, connections, workspace
+  (backup, restore, trash), about.
+- Corners from square to very round, and faces for buttons and text, for each part -- the board,
+  notebooks, settings -- with notebooks and boards able to keep their own.
+- Things arrive, settle and leave; small synthesised sounds when a hand does something. Both can
+  be turned down or off.
+- Every button says what it is for; every surface checked at phone to desktop sizes, and the
+  check runs on every build.
+
+### For agents
+- Everything a person can do has an endpoint; `GET /api/capabilities` lists them all with every
+  vocabulary. See docs/api.md.
