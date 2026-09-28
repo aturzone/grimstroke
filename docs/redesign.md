@@ -80,7 +80,7 @@ torn edges, tape, hard shadows that never blur. What changes is everything aroun
   spacing pass and contrast table: not yet.)
 - [x] 4. The notebook's bar in three; the shelf counts what is in use and archived; every button
   says what it does.
-- [x] 5. A first-visit tour. (Empty states beyond the board and a connected page: not yet.)
+- [x] 5. A first-visit tour; empty places say what goes in them (the board, the bookcase, a bookcase with everything put away, the archive, connections, the trash).
 - [x] 6. A card sent to another page is followed there; a rail on the turner shows where in the book you are, and "every page" marks the open ones.
 - [ ] 7. The pet's remaining weak poses (in progress); books that wobble when set down.
 

@@ -174,6 +174,20 @@ function renderRow(
   );
 }
 
+/**
+ * What an empty bookcase is for, chalked on its back: an empty shelf with nothing to say read as
+ * a page that had not finished loading.
+ */
+function emptyHint(kind: 'use' | 'archive', here: number, all: number): string {
+  // With no notebooks at all, the card above the bookcase already says what one is.
+  if (here > 0 || all === 0) return '';
+  const text =
+    kind === 'archive'
+      ? 'Notebooks you are done with rest here. Drag one down to put it away.'
+      : 'Every notebook is put away. Drag one up from the archive to use it again.';
+  return `<p class="case-empty" data-gs="case-empty">${escapeHtml(text)}</p>`;
+}
+
 /** The room: the bookcase of notebooks in use, and the archive's below it. */
 function renderRoom(books: readonly BookSpec[], ctx: Surface, options: ShelfOptions): string {
   const open = books.filter((b) => !b.archived);
@@ -189,7 +203,9 @@ function renderRoom(books: readonly BookSpec[], ctx: Surface, options: ShelfOpti
     `<div class="bookcase bookcase-${kind}" data-gs="bookcase" data-case="${kind}" style="${vars}">` +
     `<h2 class="case-name"><span>${label(name, ctx.uppercase)}</span></h2>` +
     '<div class="case-top" aria-hidden="true"></div>' +
-    `<div class="case-body">${list.map((row, i) => renderRow(row, i, byId, ctx, options, kind)).join('')}</div>` +
+    `<div class="case-body">${list.map((row, i) => renderRow(row, i, byId, ctx, options, kind)).join('')}` +
+    emptyHint(kind, kind === 'use' ? open.length : put.length, books.length) +
+    '</div>' +
     '<div class="case-plinth" aria-hidden="true"></div>' +
     (kind === 'use' ? renderDecals(options.layout?.decals ?? []) : '') +
     '</div>';

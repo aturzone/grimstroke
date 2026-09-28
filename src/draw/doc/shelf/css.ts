@@ -58,10 +58,26 @@ export const BOOKCASE = `/* ---- the bookcase ---- */
 }
 /* The back: vertical boards, darker where the walls and each plank shade it. */
 .case-body {
+  position: relative;
   background:
     linear-gradient(to right, rgba(0, 0, 0, 0.55), transparent 40px, transparent calc(100% - 40px), rgba(0, 0, 0, 0.55)),
     repeating-linear-gradient(to right, transparent 0 128px, rgba(0, 0, 0, 0.35) 128px 130px, rgba(255, 255, 255, 0.04) 130px 131px),
     linear-gradient(var(--wood-back), color-mix(in oklab, var(--wood-back) 80%, #000));
+}
+.case-empty {
+  position: absolute;
+  inset-inline: 12%;
+  top: calc(var(--shelf-clear) * 0.34);
+  z-index: 1;
+  margin: 0;
+  color: rgba(255, 244, 222, 0.62);
+  font-family: var(--ui-font, system-ui, sans-serif);
+  font-size: 17px;
+  line-height: 1.45;
+  text-align: center;
+  text-wrap: balance;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+  pointer-events: none;
 }
 .case-shelf {
   position: relative;

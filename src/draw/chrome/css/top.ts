@@ -76,6 +76,8 @@ export const TOP = `/* ---- the top ----
   max-width: clamp(120px, 18vw, 420px);
   overflow: hidden;
   padding-inline-start: 11px;
+  /* The hand leans past its own advance: without room at the end, a last d or k is cut. */
+  padding-inline-end: 4px;
   border-inline-start: 1.5px solid var(--gs-faint);
   font-family: var(--hand-font);
   font-size: 22px;

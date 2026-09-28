@@ -13,6 +13,7 @@ import { Carry } from '~/app/shelf/carry.ts';
 import { Decorate } from '~/app/shelf/decorate.ts';
 import { ShelfPet } from '~/app/shelf/pet.ts';
 import { Preview } from '~/app/shelf/preview.ts';
+import { shelfTitle } from '~/draw/chrome/shelf-title.ts';
 
 export interface BookInfo {
   id: string;
@@ -369,14 +370,7 @@ export class ShelfApp {
     const title = document.querySelector<HTMLElement>('[data-gs="title"]');
     const all = next.querySelectorAll('.spine').length;
     const archived = next.querySelectorAll('.spine[data-archived]').length;
-    if (title) {
-      title.textContent =
-        archived && archived < all
-          ? `${all - archived} in use · ${archived} archived`
-          : all === 1
-            ? 'one notebook'
-            : `${all} notebooks`;
-    }
+    if (title) title.textContent = shelfTitle(all, archived);
   }
 
   async refresh(): Promise<void> {
