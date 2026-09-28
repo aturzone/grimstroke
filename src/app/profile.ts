@@ -456,7 +456,7 @@ class ProfileEditor {
    * own card shows its corners as they change; saved when the hand settles.
    */
   private async bindLook(): Promise<void> {
-    type SectionLook = { corners: number; ui?: string; text?: string };
+    type SectionLook = { corners: number; ui?: string | undefined; text?: string | undefined };
     let look: Record<string, SectionLook> = {};
     try {
       look = ((await (await fetch('/api/look')).json()) as { look: Record<string, SectionLook> })
@@ -472,8 +472,22 @@ class ProfileEditor {
       });
     };
     const waits = new Map<string, number>();
+    const PARTS = ['board', 'notebook', 'settings'];
+    // "Everywhere" shows one value when the parts agree, and the board's when they do not.
+    const agreed = (field: 'corners' | 'ui' | 'text'): SectionLook[typeof field] => {
+      const values = PARTS.map((p) => look[p]?.[field]);
+      return values.every((v) => v === values[0]) ? values[0] : look.board?.[field];
+    };
+    look.all = {
+      corners: Number(agreed('corners') ?? 1),
+      ui: agreed('ui') as string | undefined,
+      text: agreed('text') as string | undefined,
+    };
+    const shows = new Map<string, (persist: boolean) => void>();
+    const ranges = new Map<string, HTMLInputElement>();
     for (const range of document.querySelectorAll<HTMLInputElement>('input[data-gs="corners"]')) {
       const section = range.dataset.section ?? 'settings';
+      ranges.set(section, range);
       const card = range.closest<HTMLElement>('[data-look]');
       const out = document.querySelector<HTMLOutputElement>(
         `output[data-gs="corners-value"][data-section="${section}"]`,
@@ -482,7 +496,7 @@ class ProfileEditor {
       const show = (persist: boolean): void => {
         const corners = Number(range.value) / 100;
         card?.style.setProperty('--round', String(corners));
-        if (section === 'settings')
+        if (section === 'settings' || section === 'all')
           document.documentElement.style.setProperty('--gs-round', String(corners));
         if (out) out.value = `${range.value}%`;
         for (const b of document.querySelectorAll<HTMLElement>(
@@ -491,12 +505,29 @@ class ProfileEditor {
           b.setAttribute('aria-pressed', String(Number(b.dataset.gsValue) === corners));
         }
         if (!persist) return;
+        if (section === 'all') {
+          // Every part follows, and its own card shows it.
+          for (const part of PARTS) {
+            const own = ranges.get(part);
+            if (own) own.value = range.value;
+            shows.get(part)?.(false);
+          }
+        }
         window.clearTimeout(waits.get(section));
         waits.set(
           section,
-          window.setTimeout(() => save({ [section]: { corners } }), 250),
+          window.setTimeout(
+            () =>
+              save(
+                section === 'all'
+                  ? Object.fromEntries(PARTS.map((p) => [p, { corners }]))
+                  : { [section]: { corners } },
+              ),
+            250,
+          ),
         );
       };
+      shows.set(section, show);
       range.addEventListener('input', () => show(true));
       for (const b of document.querySelectorAll<HTMLElement>(
         `[data-gs="corners-stop"][data-section="${section}"]`,
@@ -516,7 +547,18 @@ class ProfileEditor {
       const field = (select.dataset.field ?? 'ui') as 'ui' | 'text';
       select.value = look[section]?.[field] ?? '';
       select.addEventListener('change', () => {
-        save({ [section]: { [field]: select.value || null } });
+        const value = select.value || null;
+        if (section === 'all') {
+          save(Object.fromEntries(PARTS.map((p) => [p, { [field]: value }])));
+          for (const own of document.querySelectorAll<HTMLSelectElement>(
+            `select[data-gs="look-face"][data-field="${field}"]`,
+          )) {
+            if (own.dataset.section !== 'settings' || field === 'ui') own.value = select.value;
+          }
+          toast(select.value ? `everywhere: ${select.value}` : 'everywhere: as designed');
+          return;
+        }
+        save({ [section]: { [field]: value } });
         toast(select.value ? `${section}: ${select.value}` : `${section}: as designed`);
       });
     }

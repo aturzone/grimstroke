@@ -163,6 +163,10 @@ body.on-profile {
 .st-panels { min-width: 0; }
 .st-panel { display: grid; gap: 16px; }
 .st-panel[hidden] { display: none; }
+/* Each part on its own, folded away under the one set of choices for everything. */
+.st-more > summary { width: fit-content; list-style: none; cursor: pointer; font-family: var(--ui-font); }
+.st-more > summary::-webkit-details-marker { display: none; }
+.st-more > .st-card { margin-block-start: 16px; }
 /* The portrait's undo, redo and 'put on board' belong to the profile section only. */
 :root:has(.st-panel[data-st='profile'][hidden]) :is([data-gs='undo'], [data-gs='redo'], [data-gs='profile-place']) { display: none; }
 .st-panel[data-st='profile'] { max-width: none; }

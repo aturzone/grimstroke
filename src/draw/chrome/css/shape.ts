@@ -254,8 +254,9 @@ input[type='color'].se-input { flex: none; width: 56px; padding: 4px; }
 .ss-open { position: fixed; z-index: 45; inset-block-end: 18px; inset-inline-end: 18px; display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border: 1.5px solid var(--gs-line); border-radius: var(--gs-radius); background: var(--gs-paper); color: var(--gs-ink); font-family: var(--ui-font); font-size: var(--gs-t2); box-shadow: var(--gs-shadow); cursor: pointer; }
 .ss-open .gs-kbd { color: var(--gs-ink); }
 @media (max-width: 760px) {
-  .ss-open { inset-block-end: 70px; inset-inline-end: 10px; }
-  .ss-open span { display: none; }
+  /* Beside the page turner, in the corner it leaves free, the same height as it. */
+  .ss-open { inset-block-end: 8px; inset-inline-end: 8px; width: 48px; height: 48px; padding: 0; justify-content: center; }
+  .ss-open span, .ss-open .gs-kbd { display: none; }
 }
 
 @keyframes ss-fade { from { opacity: 0; } }

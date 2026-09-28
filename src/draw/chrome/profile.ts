@@ -281,25 +281,28 @@ function lookSection(): string {
         `<option value="${escapeHtml(f)}" style="font-family:'${escapeHtml(f)}'">${escapeHtml(f)}</option>`,
     ).join('') +
     '</select></label>';
+  const card = (id: string, title: string, what: string): string =>
+    `<section class="st-card gs-card" data-look="${id}" aria-label="${title}">` +
+    heading(title) +
+    `<p class="pf-note">${what}.</p>` +
+    '<div class="pf-corners-row"><span class="st-sub">corners</span>' +
+    `<input type="range" min="0" max="300" step="5" value="100" data-gs="corners" data-section="${id}" ` +
+    `aria-label="how round the corners of ${title} are" class="pf-corners-range">` +
+    `<output data-gs="corners-value" data-section="${id}" class="pf-corners-value">100%</output></div>` +
+    `<div class="gs-chip-row" role="group" aria-label="corner stops">${stops
+      .map(
+        ([label, v]) =>
+          `<button type="button" class="gs-btn gs-chip-btn" data-gs="corners-stop" data-section="${id}" data-gs-value="${v}">${label}</button>`,
+      )
+      .join('')}</div>` +
+    `<div class="st-faces">${faceSelect(id, 'ui', 'buttons and menus')}${id === 'settings' ? '' : faceSelect(id, 'text', 'text, where a document names none')}</div>` +
+    '</section>';
   return (
-    LOOK_SECTIONS.map(
-      ([id, title, what]) =>
-        `<section class="st-card gs-card" data-look="${id}" aria-label="${title}">` +
-        heading(title) +
-        `<p class="pf-note">${what}.</p>` +
-        '<div class="pf-corners-row"><span class="st-sub">corners</span>' +
-        `<input type="range" min="0" max="300" step="5" value="100" data-gs="corners" data-section="${id}" ` +
-        `aria-label="how round the corners of ${title} are" class="pf-corners-range">` +
-        `<output data-gs="corners-value" data-section="${id}" class="pf-corners-value">100%</output></div>` +
-        `<div class="gs-chip-row" role="group" aria-label="corner stops">${stops
-          .map(
-            ([label, v]) =>
-              `<button type="button" class="gs-btn gs-chip-btn" data-gs="corners-stop" data-section="${id}" data-gs-value="${v}">${label}</button>`,
-          )
-          .join('')}</div>` +
-        `<div class="st-faces">${faceSelect(id, 'ui', 'buttons and menus')}${id === 'settings' ? '' : faceSelect(id, 'text', 'text, where a document names none')}</div>` +
-        '</section>',
-    ).join('') +
+    // One set of choices for everything first; each part on its own only for whoever asks.
+    card('all', 'everywhere', 'corners and faces for the whole workspace') +
+    '<details class="st-more"><summary class="gs-btn gs-chip-btn">set each part on its own</summary>' +
+    LOOK_SECTIONS.map(([id, title, what]) => card(id, title, what)).join('') +
+    '</details>' +
     '<section class="st-card gs-card" data-feel aria-label="sound and motion">' +
     heading('sound and motion') +
     '<p class="pf-note">Small sounds when a hand does something -- paper lifted and set down, a page turned, a card placed, a timer done -- and things that arrive, settle and leave.</p>' +
