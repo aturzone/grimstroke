@@ -107,3 +107,14 @@ export function mixOklab(a: string, share: number, b: string): string {
   );
   return `#${out.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
 }
+
+/**
+ * CSS's oklch(from colour min(l, cap) c h): the same hue and chroma, no lighter than cap. The
+ * tools' blue is the palette's accent held down this way, so it reads on the paper whatever the
+ * accent is -- and the contrast test measures exactly this.
+ */
+export function capLightness(colour: string, cap: number): string {
+  const [L, a, b] = toOklab(rgb(colour));
+  const out = fromOklab([Math.min(L, cap), a, b]);
+  return `#${out.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+}

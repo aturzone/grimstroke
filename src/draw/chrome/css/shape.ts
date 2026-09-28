@@ -12,13 +12,16 @@
 
 export const SHAPE_BAR = `/* ---- the shape bar ---- */
 .ss-layer {
-  --ss-bg: #ffffff;
-  --ss-fg: #1a1a19;
-  --ss-soft: #6f6d68;
-  --ss-line: #e7e5e1;
-  --ss-tile: #f3f2ef;
-  --ss-brand: #3b5bdb;
-  --ss-brand-soft: #eef1fd;
+  /* The palette's own paper, ink and accent, as the tools mix them (draw/chrome/css/kit.ts): the
+     card and the box change with the theme. The accent is held no lighter than 0.42 so it reads
+     on the paper whatever it is -- measured for every palette in tests/draw/look. */
+  --ss-bg: var(--gs-paper, #ffffff);
+  --ss-fg: var(--gs-ink, #1a1a19);
+  --ss-soft: var(--gs-soft, #6f6d68);
+  --ss-line: color-mix(in oklab, var(--ss-fg) 12%, var(--ss-bg));
+  --ss-tile: color-mix(in oklab, var(--ss-fg) 6%, var(--ss-bg));
+  --ss-brand: oklch(from var(--accent, #3b5bdb) min(l, 0.42) c h);
+  --ss-brand-soft: color-mix(in oklab, var(--ss-brand) 12%, var(--ss-bg));
   --ss-g: calc(var(--round, 1) * 0.4);
   /* The tools' corners, as every dialog has them (see draw/shape/css.ts). */
   --ss-r: min(calc(4px * var(--round, 1) + var(--round-up, 0px)), 26px);
@@ -65,7 +68,7 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
   caret-color: var(--ss-brand);
   outline: none;
 }
-.ss-input::placeholder { color: #b3b1ab; }
+.ss-input::placeholder { color: color-mix(in oklab, var(--ss-fg) 40%, var(--ss-bg)); }
 .ss-card:empty { display: none; }
 .ss-card { padding: 0 6px; animation: ss-card 220ms ease-out; }
 .ss-card .sc { min-width: 0; border: 0; box-shadow: none; padding: 4px 16px 6px; }
@@ -158,13 +161,16 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
 .se-panel {
   --se-g: calc(var(--round, 1) * 0.4);
   --se-r: min(calc(4px * var(--round, 1) + var(--round-up, 0px)), 26px);
-  --ss-bg: #ffffff;
-  --ss-fg: #1a1a19;
-  --ss-soft: #6f6d68;
-  --ss-line: #e7e5e1;
-  --ss-tile: #f3f2ef;
-  --ss-brand: #3b5bdb;
-  --ss-brand-soft: #eef1fd;
+  /* The palette's own paper, ink and accent, as the tools mix them (draw/chrome/css/kit.ts): the
+     card and the box change with the theme. The accent is held no lighter than 0.42 so it reads
+     on the paper whatever it is -- measured for every palette in tests/draw/look. */
+  --ss-bg: var(--gs-paper, #ffffff);
+  --ss-fg: var(--gs-ink, #1a1a19);
+  --ss-soft: var(--gs-soft, #6f6d68);
+  --ss-line: color-mix(in oklab, var(--ss-fg) 12%, var(--ss-bg));
+  --ss-tile: color-mix(in oklab, var(--ss-fg) 6%, var(--ss-bg));
+  --ss-brand: oklch(from var(--accent, #3b5bdb) min(l, 0.42) c h);
+  --ss-brand-soft: color-mix(in oklab, var(--ss-brand) 12%, var(--ss-bg));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;

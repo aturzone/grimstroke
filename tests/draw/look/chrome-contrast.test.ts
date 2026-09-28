@@ -9,7 +9,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { photoTint } from '~/draw/doc/head.ts';
-import { contrast, mixOklab, textOn } from '~/draw/look/colour.ts';
+import { capLightness, contrast, mixOklab, textOn } from '~/draw/look/colour.ts';
 import { BODY_FLOOR, CHIP_FLOOR, PALETTES } from '~/draw/look/palette.ts';
 
 function chromeOf(p: (typeof PALETTES)[number]) {
@@ -41,6 +41,12 @@ describe('the chrome on every palette', () => {
       line: contrast(c.line, c.paper),
       soft: contrast(c.soft, c.paper),
       hot: contrast(p.accent, chipText),
+      // The / cards' and box's accent: the palette's, held at 0.42 lightness, as text on its
+      // own pale tint (draw/shape/css.ts).
+      brand: (() => {
+        const b = capLightness(p.accent, 0.42);
+        return contrast(b, mixOklab(b, 0.12, c.paper));
+      })(),
     };
   });
 
@@ -49,5 +55,6 @@ describe('the chrome on every palette', () => {
     expect(row.line).toBeGreaterThanOrEqual(3);
     expect(row.soft).toBeGreaterThanOrEqual(BODY_FLOOR);
     expect(row.hot).toBeGreaterThanOrEqual(CHIP_FLOOR);
+    expect(row.brand).toBeGreaterThanOrEqual(BODY_FLOOR);
   });
 });

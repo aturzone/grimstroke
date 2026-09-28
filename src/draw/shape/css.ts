@@ -1,5 +1,6 @@
 /**
- * The shape card's look: quiet, white, one blue -- a small tool laid on the paper. It is one of
+ * The shape card's look: quiet, on the palette's photo paper, one accent -- a small tool laid on
+ * the paper, changing with the theme like everything else the tools draw. It is one of
  * the tools' cards: the same keyline, the same hard shadow and the same corners as the bars
  * around it, so a board of notes and cards reads as one set rather than two design languages.
  *
@@ -14,14 +15,17 @@
 
 export const SHAPE = `/* ---- shape cards ---- */
 .sc {
-  --sc-bg: #ffffff;
-  --sc-fg: #1a1a19;
-  --sc-soft: #6f6d68;
-  --sc-faint: #a3a19b;
-  --sc-line: #e7e5e1;
-  --sc-tile: #f3f2ef;
-  --sc-brand: #3b5bdb;
-  --sc-brand-soft: #eef1fd;
+  /* The palette's own paper, ink and accent, as the tools mix them (draw/chrome/css/kit.ts): the
+     card and the box change with the theme. The accent is held no lighter than 0.42 so it reads
+     on the paper whatever it is -- measured for every palette in tests/draw/look. */
+  --sc-bg: var(--gs-paper, #ffffff);
+  --sc-fg: var(--gs-ink, #1a1a19);
+  --sc-soft: var(--gs-soft, #6f6d68);
+  --sc-faint: color-mix(in oklab, var(--sc-fg) 38%, var(--sc-bg));
+  --sc-line: color-mix(in oklab, var(--sc-fg) 12%, var(--sc-bg));
+  --sc-tile: color-mix(in oklab, var(--sc-fg) 6%, var(--sc-bg));
+  --sc-brand: oklch(from var(--accent, #3b5bdb) min(l, 0.42) c h);
+  --sc-brand-soft: color-mix(in oklab, var(--sc-brand) 12%, var(--sc-bg));
   --sc-good: #2b8a3e;
   --sc-caution: #c2410c;
   --sc-g: calc(var(--round, 1) * 0.4);
