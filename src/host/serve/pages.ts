@@ -105,7 +105,10 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
       edited,
       trash,
       pet,
-      live: { chrome: shelfChrome(all.length, pet), scripts: APP },
+      live: {
+        chrome: shelfChrome(all.length, pet, all.filter((b) => b.archived).length),
+        scripts: APP,
+      },
     });
     live.allow(rendered.assets);
     html(res, withLook(rendered.html, await lookOf(live.store), sectionOf(path), false));

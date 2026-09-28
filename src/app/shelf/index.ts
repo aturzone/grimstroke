@@ -305,7 +305,7 @@ export class ShelfApp {
     const room = this.room;
     if (!room) return;
     const before = new Map<string, { rect: DOMRect; flat: boolean }>();
-    for (const spine of room.querySelectorAll<HTMLElement>('.spine')) {
+    for (const spine of room.querySelectorAll<HTMLElement>('.spine, .decor')) {
       before.set(spine.dataset.gsId ?? '', {
         rect: spine.getBoundingClientRect(),
         flat: spine.hasAttribute('data-flat'),
@@ -321,7 +321,7 @@ export class ShelfApp {
     next.style.setProperty('--case-scale', scale);
     room.replaceWith(next);
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    for (const spine of next.querySelectorAll<HTMLElement>('.spine')) {
+    for (const spine of next.querySelectorAll<HTMLElement>('.spine, .decor')) {
       const id = spine.dataset.gsId ?? '';
       const was = before.get(id);
       if (!was || reduced) continue;

@@ -263,9 +263,36 @@ export const SETTLE = 'cubic-bezier(0.2, 1.3, 0.35, 1)';
 export const OUT = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
 
 /** Something arrives: it drops onto the paper from a little above, and settles. */
+let origin: { rect: DOMRect; at: number } | undefined;
+
+/** The next thing to arrive comes from here -- the / island's preview, say -- if it is soon. */
+export function comingFrom(rect: DOMRect): void {
+  origin = { rect, at: performance.now() };
+}
+
 export function appear(el: Element, delay = 0): void {
   if (!moving()) return;
   const calm = feel.motion === 'calm';
+  if (origin && !calm && performance.now() - origin.at < 1500) {
+    const from = origin.rect;
+    origin = undefined;
+    const to = el.getBoundingClientRect();
+    if (to.width && to.height) {
+      const s = Math.max(0.3, Math.min(3, from.width / to.width));
+      el.animate(
+        [
+          {
+            transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${s})`,
+            transformOrigin: '0 0',
+            opacity: 0.85,
+          },
+          { transform: 'none', transformOrigin: '0 0', opacity: 1 },
+        ],
+        { duration: 420, easing: SETTLE, composite: 'add' },
+      );
+      return;
+    }
+  }
   el.animate(
     calm
       ? [{ opacity: 0 }, { opacity: 1 }]

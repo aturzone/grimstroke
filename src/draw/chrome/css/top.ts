@@ -159,6 +159,10 @@ export const TOP = `/* ---- the top ----
   .gs-acts-own:has(> .gs-btn:nth-of-type(4)) > .gs-btn:not(.gs-btn-primary) { padding-inline: 8px; }
 }
 @media (max-width: 1366px) {
+  /* Three or more things to do give up their words on a laptop -- each still says what it is
+     on hover -- before the three cards can meet. */
+  .gs-acts-own:has(> :nth-child(3)) > .gs-btn:not(.gs-btn-primary) .gs-btn-text,
+  .gs-acts-own:has(> :nth-child(3)) > .gs-menu > summary .gs-btn-text { display: none; }
   /* The places give up their words, all but the one you are in, before anything overlaps: a
      right-to-left notebook's longer name met them at 1024px. */
   .gs-place:not([aria-current]) > span { display: none; }

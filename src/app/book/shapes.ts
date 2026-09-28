@@ -9,6 +9,7 @@
  */
 
 import { toast } from '~/app/chrome.ts';
+import { appear, play } from '~/app/feel.ts';
 import type { Session } from '~/app/net.ts';
 import { ShapeIsland } from '~/app/shape/island.ts';
 import { type BookSpec, boundLeaves, leafSize } from '~/draw/doc/book/model.ts';
@@ -116,6 +117,17 @@ export function bookShapes(book: BookShapeSource): ShapeIsland {
         toast(`this page is full: the card went on page ${place.page}`);
       const [w] = leafSize(book.session.spec);
       const size = Math.min(width, w - 80);
+      const cardId = `card-${Date.now().toString(36)}`;
+      // The spread repaints the leaf from the server; when the card is on it, it lands.
+      const started = performance.now();
+      const land = (): void => {
+        const el = book.element.querySelector(`[data-gs-id="${cardId}"]`);
+        if (el) {
+          appear(el);
+          play('pop');
+        } else if (performance.now() - started < 2000) requestAnimationFrame(land);
+      };
+      requestAnimationFrame(land);
       book.session.run(
         [
           {
@@ -125,7 +137,7 @@ export function bookShapes(book: BookShapeSource): ShapeIsland {
               {
                 op: 'add',
                 item: {
-                  id: `card-${Date.now().toString(36)}`,
+                  id: cardId,
                   at,
                   size: [size],
                   z: topOf(leaf) + 1,

@@ -6,7 +6,7 @@
  * is the top -- the same masthead, the same places, the same "saved" in the same place.
  */
 
-import { button, item } from '~/draw/chrome/parts.ts';
+import { button, heading, item, menu, RULE } from '~/draw/chrome/parts.ts';
 import { helpDialog, searchDialog, topBar } from '~/draw/chrome/top.ts';
 import { type BookSpec, bookTitle } from '~/draw/doc/book/model.ts';
 import { renderStickerFace } from '~/draw/material/sticker/render.ts';
@@ -14,28 +14,32 @@ import { escapeHtml } from '~/draw/type/text.ts';
 
 export function bookChrome(spec: BookSpec): string {
   const leaves = Math.max(spec.leaves.length, spec.minLeaves ?? 0);
+  // Three things on the bar, not seven: the pages, the notebook itself (a menu), its repository.
   const actions =
-    button({ gs: 'pages', label: 'every page', icon: 'pages', text: 'pages' }) +
-    button({ gs: 'add-leaf', label: 'add a leaf', icon: 'leaf', text: 'leaf' }) +
-    button({ gs: 'cover-open', label: 'the cover', icon: 'cover', text: 'cover' }) +
-    button({ gs: 'page-setup', label: 'page size and template', icon: 'leaf', text: 'page' }) +
-    button({
-      gs: 'book-pdf',
-      label: 'the whole notebook as a PDF',
-      icon: 'export',
-      text: 'PDF',
+    button({ gs: 'pages', label: 'every page, to rearrange', icon: 'pages', text: 'pages' }) +
+    menu({
+      gs: 'book-menu',
+      label: 'the notebook: leaves, cover, page setup, PDF, archive',
+      icon: 'book',
+      text: 'notebook',
+      body:
+        heading('this notebook') +
+        item({ gs: 'add-leaf', text: 'add a leaf', icon: 'leaf' }) +
+        item({ gs: 'cover-open', text: 'the cover', icon: 'cover' }) +
+        item({ gs: 'page-setup', text: 'page size, template and corners', icon: 'leaf' }) +
+        RULE +
+        item({ gs: 'book-pdf', text: 'the whole notebook as a PDF', icon: 'export' }) +
+        item({
+          gs: 'archive',
+          text: spec.archived ? 'take it out of the archive' : 'put it in the archive',
+          icon: 'archive',
+        }),
     }) +
     button({
       gs: 'repo-open',
       label: spec.remote ? `connected to ${spec.remote.repo}` : 'connect a repository',
       icon: 'branch',
       text: spec.remote ? 'repository' : 'connect',
-    }) +
-    button({
-      gs: 'archive',
-      label: spec.archived ? 'take it out of the archive' : 'put it in the archive',
-      icon: 'archive',
-      text: spec.archived ? 'take out' : 'archive',
     });
   const compact =
     item({ gs: 'pages', text: 'every page', icon: 'pages' }) +

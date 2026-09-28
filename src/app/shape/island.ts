@@ -17,7 +17,7 @@
 
 import { toast } from '~/app/chrome.ts';
 import { typing } from '~/app/dom.ts';
-import { play } from '~/app/feel.ts';
+import { comingFrom, play } from '~/app/feel.ts';
 import { fieldEditor, openFieldEditor } from '~/app/shape/editor.ts';
 import { classify, type ShapeResult } from '~/draw/shape/classify.ts';
 import { activeIntent, decide, force, type Memory, promote, START } from '~/draw/shape/decide.ts';
@@ -386,6 +386,9 @@ export class ShapeIsland {
       this.close();
       return;
     }
+    // The card flies from the island to where it lands (feel.appear picks this up).
+    const preview = this.card?.querySelector('.sc')?.getBoundingClientRect();
+    if (preview) comingFrom(preview);
     this.host.add(
       {
         kind: 'shape',
