@@ -38,33 +38,149 @@ export type PetPose =
   | 'eat'
   | 'crouch'
   | 'leap'
-  | 'land';
+  | 'land'
+  | 'stand'
+  | 'sitdown'
+  | 'standup'
+  | 'liedown'
+  | 'getup'
+  | 'curl'
+  | 'wake';
+
+interface Frames {
+  count: number;
+  /** How long each frame is held, in milliseconds: timing is per frame, not one speed a pose. */
+  ms: readonly number[];
+  /** Played through once and held on its last frame, rather than looped. */
+  once?: true;
+}
 
 /**
- * Frames per pose, and how many a second they play at. A four-frame walk, as Stardew's pets walk;
- * a sit that breathes, slowly.
+ * Frames per pose and how long each is held. The walk is eight frames -- contact, down, passing,
+ * up, for each pair of legs -- the gallop six; a blink is quick on the way down and quicker on
+ * the way up; the in-betweens (standup, sitdown, liedown, getup, curl, wake) join the poses so
+ * nothing pops from one to the next.
  */
-export const PET_FRAMES: Readonly<Record<PetPose, { count: number; fps: number }>> = {
-  walk: { count: 4, fps: 7 },
-  run: { count: 4, fps: 11 },
-  sit: { count: 2, fps: 1 },
-  blink: { count: 3, fps: 12 },
-  flick: { count: 4, fps: 8 },
-  happy: { count: 2, fps: 3 },
-  look: { count: 1, fps: 1 },
-  yawn: { count: 4, fps: 5 },
-  wash: { count: 4, fps: 5 },
-  lick: { count: 4, fps: 4 },
-  loaf: { count: 1, fps: 1 },
-  sleep: { count: 2, fps: 1 },
-  stretch: { count: 3, fps: 4 },
-  eat: { count: 2, fps: 4 },
-  crouch: { count: 1, fps: 1 },
-  leap: { count: 1, fps: 1 },
-  land: { count: 1, fps: 1 },
+export const PET_FRAMES: Readonly<Record<PetPose, Frames>> = {
+  walk: { count: 8, ms: [110, 110, 110, 110, 110, 110, 110, 110] },
+  run: { count: 6, ms: [70, 60, 70, 90, 60, 70] },
+  sit: { count: 2, ms: [1600, 1200] },
+  blink: { count: 3, ms: [60, 110, 70] },
+  flick: { count: 4, ms: [120, 110, 120, 320] },
+  happy: { count: 2, ms: [320, 320] },
+  look: { count: 1, ms: [1000] },
+  yawn: { count: 4, ms: [220, 260, 700, 300], once: true },
+  wash: { count: 4, ms: [200, 200, 220, 200] },
+  lick: { count: 4, ms: [260, 220, 260, 220] },
+  loaf: { count: 1, ms: [1000] },
+  sleep: { count: 2, ms: [1700, 1400] },
+  stretch: { count: 4, ms: [160, 300, 900, 260], once: true },
+  eat: { count: 2, ms: [260, 260] },
+  crouch: { count: 2, ms: [160, 220], once: true },
+  leap: { count: 2, ms: [220, 400], once: true },
+  land: { count: 2, ms: [110, 170], once: true },
+  stand: { count: 3, ms: [900, 600, 500] },
+  sitdown: { count: 3, ms: [90, 220, 160], once: true },
+  standup: { count: 3, ms: [150, 190, 110], once: true },
+  liedown: { count: 2, ms: [150, 220], once: true },
+  getup: { count: 3, ms: [200, 150, 110], once: true },
+  curl: { count: 2, ms: [500, 420], once: true },
+  wake: { count: 2, ms: [350, 480], once: true },
 };
 
 export const POSES = Object.keys(PET_FRAMES) as PetPose[];
+
+/** How long a pose takes to play through once. */
+export function poseLength(pose: PetPose): number {
+  return PET_FRAMES[pose].ms.reduce((a, b) => a + b, 0);
+}
+
+/**
+ * The frame showing `elapsed` milliseconds into a pose: looped, or held on its last frame if the
+ * pose plays once.
+ */
+export function frameAt(pose: PetPose, elapsed: number): number {
+  const { ms, once } = PET_FRAMES[pose];
+  const total = poseLength(pose);
+  let t = once ? Math.min(Math.max(0, elapsed), total - 1) : ((elapsed % total) + total) % total;
+  for (let n = 0; n < ms.length; n++) {
+    t -= ms[n] as number;
+    if (t < 0) return n;
+  }
+  return ms.length - 1;
+}
+
+/** How long until the frame after the one showing `elapsed` into a pose; Infinity if none. */
+export function nextFrameIn(pose: PetPose, elapsed: number): number {
+  const { ms, once, count } = PET_FRAMES[pose];
+  const total = poseLength(pose);
+  if (count < 2 || (once && elapsed >= total)) return Number.POSITIVE_INFINITY;
+  let t = once ? Math.max(0, elapsed) : ((elapsed % total) + total) % total;
+  for (const d of ms) {
+    if (t < d) return d - t;
+    t -= d;
+  }
+  return 1;
+}
+
+// ---------------------------------------------------------------- joining one pose to the next
+
+/**
+ * Which way up the body is in a pose: facing you (sitting), side-on on its feet, lying (the
+ * loaf), or curled asleep. Moving between two families goes through the in-betweens, so a walking
+ * cat sits down side-on and turns to face you instead of jumping from one drawing to the other.
+ * An in-between belongs to the family it ends in.
+ */
+export type PetFamily = 'front' | 'side' | 'lying' | 'asleep';
+
+export const FAMILY: Readonly<Record<PetPose, PetFamily>> = {
+  sit: 'front',
+  blink: 'front',
+  flick: 'front',
+  happy: 'front',
+  look: 'front',
+  yawn: 'front',
+  wash: 'front',
+  lick: 'front',
+  sitdown: 'front',
+  walk: 'side',
+  run: 'side',
+  stand: 'side',
+  eat: 'side',
+  stretch: 'side',
+  crouch: 'side',
+  leap: 'side',
+  land: 'side',
+  standup: 'side',
+  getup: 'side',
+  loaf: 'lying',
+  liedown: 'lying',
+  wake: 'lying',
+  sleep: 'asleep',
+  curl: 'asleep',
+};
+
+/** One step toward another family: side from lying, lying from asleep... */
+const STEP: Readonly<Record<PetFamily, Partial<Record<PetFamily, PetPose>>>> = {
+  front: { side: 'standup', lying: 'standup', asleep: 'standup' },
+  side: { front: 'sitdown', lying: 'liedown', asleep: 'liedown' },
+  lying: { side: 'getup', front: 'getup', asleep: 'curl' },
+  asleep: { lying: 'wake', side: 'wake', front: 'wake' },
+};
+
+/** The in-betweens, in order, from one pose to another: none if they are of one family. */
+export function between(from: PetPose, to: PetPose): PetPose[] {
+  const route: PetPose[] = [];
+  let at = FAMILY[from];
+  const goal = FAMILY[to];
+  while (at !== goal && route.length < 4) {
+    const step = STEP[at][goal];
+    if (!step) break;
+    route.push(step);
+    at = FAMILY[step];
+  }
+  return route;
+}
 
 // ---------------------------------------------------------------- coats
 
@@ -326,14 +442,17 @@ function compose(name: string, swap: Readonly<Record<string, string>>): Grid {
 const PRICKED: Readonly<Record<string, string>> = {
   dhead: 'dheadU',
   dshead: 'dsheadU',
-  dstail: 'dstailU',
-  dstailw: 'dstailwU',
   dhalf: 'dhalfU',
   dshut: 'dshutU',
   dhappy: 'dhappyU',
   dup: 'dupU',
-  dstaillow: 'dstailU',
   dtailflat: 'dtailflatU',
+  // Walking, running, bowing and eating, the tail stays curled over the back; sitting, on the haunch.
+  dtw0: 'dstailU',
+  dtw1: 'dstailU',
+  dtw2: 'dstailU',
+  drtail: 'dstailU',
+  dsitT: 'dsitTU',
 };
 
 /** A Siamese: the heads with a mask, the soft dark oval of its points over the muzzle and eyes. */
@@ -341,6 +460,7 @@ const MASKED: Readonly<Record<string, string>> = {
   fhead: 'fheadP',
   chead: 'cheadP',
   csleepH: 'csleepHP',
+  cshut: 'cshutP',
 };
 
 const drawn = new Map<string, Grid>();

@@ -1,13 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import {
+  between,
   COATS,
   colourOf,
+  FAMILY,
+  frameAt,
+  nextFrameIn,
   PET_FRAMES,
   PET_GROUND,
   PET_H,
   PET_W,
   POSES,
   petFrame,
+  poseLength,
 } from '~/draw/material/pet/art.ts';
 import { readPet, readProfile } from '~/draw/material/profile/model.ts';
 
@@ -54,18 +59,73 @@ describe('the pets, drawn', () => {
     expect(bad).toEqual([]);
   });
 
-  it('draws the walk and the run in four frames, each different', () => {
-    for (const pose of ['walk', 'run'] as const) {
-      const coat = COATS[0];
+  it('walks in eight frames and gallops in six, every frame different, cat and dog', () => {
+    for (const id of ['ginger', 'golden']) {
+      const coat = COATS.find((c) => c.id === id);
       if (!coat) continue;
-      const frames = Array.from({ length: PET_FRAMES[pose].count }, (_, n) =>
-        petFrame('cat', coat, pose, n)
-          .map((r) => r.join(''))
-          .join('\n'),
-      );
-      expect(frames.length).toBe(4);
-      expect(new Set(frames).size).toBe(4);
+      for (const [pose, count] of [
+        ['walk', 8],
+        ['run', 6],
+      ] as const) {
+        const frames = Array.from({ length: PET_FRAMES[pose].count }, (_, n) =>
+          petFrame(coat.species, coat, pose, n)
+            .map((r) => r.join(''))
+            .join('\n'),
+        );
+        expect(frames.length).toBe(count);
+        expect(new Set(frames).size).toBe(count);
+      }
     }
+  });
+
+  it('times every frame of every pose, and plays once or loops as the pose asks', () => {
+    for (const pose of POSES) {
+      const spec = PET_FRAMES[pose];
+      expect(spec.ms.length).toBe(spec.count);
+      expect(spec.ms.every((ms) => ms > 0)).toBe(true);
+    }
+    // A blink: down quickly, held shut, up.
+    expect(frameAt('blink', 0)).toBe(0);
+    expect(frameAt('blink', 70)).toBe(1);
+    expect(frameAt('blink', 200)).toBe(2);
+    // Played once, it holds its last frame; looped, it comes round again.
+    expect(frameAt('sitdown', 10_000)).toBe(PET_FRAMES.sitdown.count - 1);
+    expect(frameAt('walk', poseLength('walk'))).toBe(0);
+    expect(nextFrameIn('blink', 0)).toBe(PET_FRAMES.blink.ms[0]);
+    expect(nextFrameIn('sitdown', 10_000)).toBe(Number.POSITIVE_INFINITY);
+  });
+
+  it('joins the poses through their in-betweens, never straight from one to the other', () => {
+    expect(between('walk', 'sit')).toEqual(['sitdown']);
+    expect(between('sit', 'walk')).toEqual(['standup']);
+    expect(between('sit', 'sleep')).toEqual(['standup', 'liedown', 'curl']);
+    expect(between('sleep', 'stretch')).toEqual(['wake', 'getup']);
+    expect(between('sleep', 'sit')).toEqual(['wake', 'getup', 'sitdown']);
+    expect(between('loaf', 'sleep')).toEqual(['curl']);
+    expect(between('blink', 'yawn')).toEqual([]);
+    // Every route ends in the family it was going to.
+    for (const from of POSES) {
+      for (const to of POSES) {
+        const route = between(from, to);
+        const end = route.length
+          ? FAMILY[route[route.length - 1] as (typeof POSES)[number]]
+          : FAMILY[from];
+        expect(end).toBe(FAMILY[to]);
+      }
+    }
+  });
+
+  it('begins and ends its in-betweens on the drawings either side of them', () => {
+    const coat = COATS.find((c) => c.id === 'ginger');
+    if (!coat) return;
+    const draw = (pose: (typeof POSES)[number], n: number) =>
+      petFrame('cat', coat, pose, n)
+        .map((r) => r.join(''))
+        .join('\n');
+    expect(draw('sitdown', 0)).toBe(draw('stand', 0));
+    expect(draw('standup', PET_FRAMES.standup.count - 1)).toBe(draw('stand', 0));
+    expect(draw('getup', PET_FRAMES.getup.count - 1)).toBe(draw('stand', 0));
+    expect(draw('stretch', 0)).toBe(draw('stand', 0));
   });
 
   it('faces you when it sits: the head is a mirror of itself', () => {
@@ -155,15 +215,21 @@ describe('the poses that used to break', () => {
         )
         .filter(Boolean)
         .join(' ');
-    // The two contact frames put different feet down in different places.
-    expect(paws(0)).not.toBe(paws(2));
-    // A contact frame dips the body a pixel below a passing frame.
-    // The back, over the middle of the body: the tail moves on its own and is not counted.
-    const top = (n: number) =>
-      filled(petFrame('dog', coat('golden'), 'walk', n))
-        .filter(([x]) => x >= 9 && x <= 15)
-        .reduce((m, [, y]) => Math.min(m, y), 99);
-    expect(top(1)).toBeLessThan(top(0));
+    // The two contact frames, half a cycle apart, put different feet down in different places.
+    expect(paws(0)).not.toBe(paws(4));
+    // The body sinks onto the legs after each contact and rises over the passing legs: the back
+    // (over the middle of the body; the tail moves on its own) is higher at 3 than at 1.
+    for (const [species, id] of [
+      ['dog', 'golden'],
+      ['cat', 'ginger'],
+    ] as const) {
+      const top = (n: number) =>
+        filled(petFrame(species, coat(id), 'walk', n))
+          .filter(([x]) => x >= 9 && x <= 15)
+          .reduce((m, [, y]) => Math.min(m, y), 99);
+      expect(top(3)).toBeLessThan(top(1));
+      expect(top(7)).toBeLessThan(top(5));
+    }
   });
 
   it('eats and stretches as one body, cat and dog, in every coat', () => {
@@ -202,7 +268,22 @@ describe('the poses that used to break', () => {
   it('loafs, sleeps, crouches, leaps and lands as one body, in every coat', () => {
     const bad: string[] = [];
     for (const c of COATS) {
-      for (const pose of ['loaf', 'sleep', 'crouch', 'leap', 'land'] as const) {
+      for (const pose of [
+        'loaf',
+        'sleep',
+        'crouch',
+        'leap',
+        'land',
+        'walk',
+        'run',
+        'stand',
+        'sitdown',
+        'standup',
+        'liedown',
+        'getup',
+        'curl',
+        'wake',
+      ] as const) {
         for (let n = 0; n < PET_FRAMES[pose].count; n++) {
           // The z's of sleep float free of the body by design.
           const g = petFrame(c.species, c, pose, n).map((row) =>
@@ -270,22 +351,28 @@ describe('the poses that used to break', () => {
     expect(colourOf(coat('ginger'), 't')).toBe('#f0a0a8');
   });
 
-  it('crouches to spring: rump up, head down low, belly off the ground', () => {
-    for (const id of ['golden', 'husky']) {
-      const walk = petFrame('dog', coat(id), 'walk', 0);
-      const crouch = petFrame('dog', coat(id), 'crouch', 0);
-      const topOf = (g: string[][], x0: number, x1: number) =>
+  it('gathers itself before it springs: low, then lower, the paws still on the ground', () => {
+    for (const [species, id] of [
+      ['cat', 'ginger'],
+      ['dog', 'golden'],
+      ['dog', 'husky'],
+    ] as const) {
+      // The back, over the middle of the body: clear of a curled tail and of the head.
+      const back = (g: string[][]) =>
         Math.min(
           ...filled(g)
-            .filter(([x]) => x >= x0 && x <= x1)
+            .filter(([x]) => x >= 12 && x <= 15)
             .map(([, y]) => y),
         );
-      // The head, seven rows lower than it walks.
-      expect(topOf(crouch, 24, 30) - topOf(walk, 24, 30)).toBeGreaterThanOrEqual(6);
-      // The rump, higher than the head: the back slopes down to it.
-      expect(topOf(crouch, 3, 10)).toBeLessThan(topOf(crouch, 24, 30));
-      // A gap under the belly, between the hind paw and the forepaws.
-      expect(crouch[24]?.slice(13, 18).every((k) => k === '.')).toBe(true);
+      const stand = petFrame(species, coat(id), 'stand', 0);
+      const low = petFrame(species, coat(id), 'crouch', 0);
+      const lower = petFrame(species, coat(id), 'crouch', 1);
+      expect(back(low) - back(stand)).toBeGreaterThanOrEqual(3);
+      expect(back(lower)).toBeGreaterThan(back(low));
+      // And it lands on its forepaws first: the landing's first frame is lower than its second.
+      expect(back(petFrame(species, coat(id), 'land', 0))).toBeGreaterThan(
+        back(petFrame(species, coat(id), 'land', 1)),
+      );
     }
   });
 

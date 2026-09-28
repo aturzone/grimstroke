@@ -22,9 +22,13 @@
 
 import { moving, play } from '~/app/feel.ts';
 import {
+  between,
   COATS,
   type Coat,
   colourOf,
+  FAMILY,
+  frameAt,
+  nextFrameIn,
   PET_FRAMES,
   PET_GROUND,
   PET_H,
@@ -32,9 +36,20 @@ import {
   type PetPose,
   POSES,
   petFrame,
+  poseLength,
   type Species,
 } from '~/draw/material/pet/art.ts';
 import type { Pet } from '~/draw/material/profile/model.ts';
+
+/** The poses that join two others. */
+const IN_BETWEEN: ReadonlySet<PetPose> = new Set<PetPose>([
+  'sitdown',
+  'standup',
+  'liedown',
+  'getup',
+  'curl',
+  'wake',
+]);
 
 /** Screen pixels per art pixel at full size; the zoom scales it, rounded to whole pixels. */
 const PX = 3;
@@ -316,7 +331,9 @@ export class ShelfPet {
     if (r < 0.28)
       return [
         { kind: 'go', to: somewhere(), pose: 'walk' },
-        this.hold('sit', 1800 + Math.random() * 2400),
+        Math.random() < 0.35
+          ? this.hold('stand', 1500 + Math.random() * 1800)
+          : this.hold('sit', 1800 + Math.random() * 2400),
       ];
     if (r < 0.36)
       return [{ kind: 'go', to: somewhere(), pose: 'run' }, this.hold(dog ? 'happy' : 'sit', 1400)];
@@ -350,12 +367,27 @@ export class ShelfPet {
   }
 
   private begin(act: Act, now: number): void {
+    // From one way up to another -- walking to sitting, sitting to lying -- through the
+    // in-betweens, one at a time: the act waits in the queue until they have played.
+    const goal = act.kind === 'jump' ? 'leap' : act.pose;
+    const route = between(this.pose, goal);
+    if (route.length) {
+      if (act.kind === 'go') this.facing = act.to >= this.at.x ? 1 : -1;
+      if (act.kind === 'jump') this.facing = act.to[0] >= this.at.x ? 1 : -1;
+      // Lying down where it will sleep, not lying down here and then jumping onto the book.
+      if (FAMILY[goal] === 'lying' || FAMILY[goal] === 'asleep') {
+        if (FAMILY[this.pose] !== 'lying' && FAMILY[this.pose] !== 'asleep') this.bed();
+      }
+      const step = route[0] as PetPose;
+      this.queue.unshift(act);
+      act = { kind: 'hold', pose: step, ms: poseLength(step) };
+    }
     if (act.kind === 'hold') {
       act.until = now + act.ms;
       if (act.pose === 'eat' && this.faceBowl) this.facing = this.faceBowl;
       if (act.pose === 'eat') play('crunch');
-      if (act.pose === 'sleep' || act.pose === 'loaf') this.bed();
-      else if (this.ledge) this.at.y = this.ledge.y;
+      const lying = FAMILY[act.pose] === 'lying' || FAMILY[act.pose] === 'asleep';
+      if (!lying && this.ledge) this.at.y = this.ledge.y;
       this.set(act.pose);
     } else if (act.kind === 'go') {
       if (this.ledge) this.at.y = this.ledge.y;
@@ -402,8 +434,7 @@ export class ShelfPet {
       return;
     }
     // Standing still: wake when the next frame is due, or the current act ends, whichever first.
-    const spec = PET_FRAMES[this.pose];
-    const frameIn = spec.count > 1 ? 1000 / spec.fps : 1e9;
+    const frameIn = Math.min(1e9, nextFrameIn(this.pose, now - this.since));
     const actIn = this.act?.kind === 'hold' ? Math.max(0, (this.act.until ?? now) - now) : 0;
     const wait = Math.max(16, Math.min(frameIn, actIn || frameIn, 1000));
     this.timer = window.setTimeout(() => this.tick(performance.now()), wait);
@@ -412,11 +443,11 @@ export class ShelfPet {
   private step(now: number, dt: number): void {
     if (this.watching !== undefined && this.act?.kind !== 'jump') {
       this.facing = this.watching >= this.at.x + this.span / 2 ? 1 : -1;
-      this.set('look');
+      this.enter('look', now);
       return;
     }
     if (now < this.petting.until) {
-      this.set('happy');
+      if (this.enter('happy', now)) return;
       // A cat purrs for as long as it is stroked: one purr a breath, not one per pointer move.
       if (this.config.species === 'cat' && now - this.purred > 850) {
         this.purred = now;
@@ -431,7 +462,9 @@ export class ShelfPet {
     }
     const act = this.act;
     if (act?.kind === 'go') {
-      const speed = act.pose === 'run' ? 90 : 36;
+      // Matched to the cycles, so the feet do not skate: a walk's eight frames carry it about
+      // one stride, a gallop's six a longer one.
+      const speed = act.pose === 'run' ? 90 : 30;
       const d = act.to - this.at.x;
       if (Math.abs(d) <= speed * dt) {
         this.at.x = act.to;
@@ -454,10 +487,7 @@ export class ShelfPet {
         const age = now - this.since;
         if (this.pose === 'sit' && age > 1200 && Math.random() < 0.25)
           this.set(Math.random() < 0.6 ? 'blink' : 'flick');
-        else if (
-          (this.pose === 'blink' || this.pose === 'flick') &&
-          age > (1000 * PET_FRAMES[this.pose].count) / PET_FRAMES[this.pose].fps
-        )
+        else if ((this.pose === 'blink' || this.pose === 'flick') && age > poseLength(this.pose))
           this.set('sit');
       }
       if (now >= (act.until ?? 0)) {
@@ -467,19 +497,23 @@ export class ShelfPet {
     }
   }
 
+  /**
+   * Show a pose that is not an act -- looking up, being stroked -- going through the in-betweens
+   * first. True while an in-between is still playing.
+   */
+  private enter(pose: PetPose, now: number): boolean {
+    if (this.pose === pose) return false;
+    // An in-between already under way plays out: cut short, it is the pop it exists to hide.
+    if (IN_BETWEEN.has(this.pose) && now - this.since < poseLength(this.pose)) return true;
+    const route = between(this.pose, pose);
+    this.set((route[0] as PetPose | undefined) ?? pose);
+    return route.length > 0;
+  }
+
   private paint(now: number): void {
     const el = this.el;
     if (!el) return;
-    const spec = PET_FRAMES[this.pose];
-    const elapsed = ((now - this.since) / 1000) * spec.fps;
-    const once =
-      this.pose === 'stretch' ||
-      this.pose === 'yawn' ||
-      this.pose === 'crouch' ||
-      this.pose === 'land';
-    const n = once
-      ? Math.min(spec.count - 1, Math.floor(elapsed))
-      : Math.floor(elapsed) % spec.count;
+    const n = frameAt(this.pose, now - this.since);
     const row = POSES.indexOf(this.pose);
     // Room coordinates to the layer's, rounded to device pixels so no art pixel is split.
     const dpr = window.devicePixelRatio || 1;
