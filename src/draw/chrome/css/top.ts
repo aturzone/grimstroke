@@ -119,6 +119,7 @@ export const TOP = `/* ---- the top ----
 .gs-places { justify-self: center; display: flex; gap: 2px; padding: 5px calc(5px + var(--round-up, 0px) * 0.6); }
 /* A surface's own actions fold into the menu when there is no room for them on the bar. */
 .gs-narrow-only { display: none; }
+.gs-phone-only { display: none; }
 .gs-place {
   display: flex;
   align-items: center;
@@ -202,8 +203,24 @@ export const TOP = `/* ---- the top ----
 }
 @media (max-width: 520px) {
   .gs-top { inset-block-start: 8px; inset-inline: 8px; gap: 6px; }
+  .gs-phone-only { display: block; }
+  /* The mark gives its room to the name: on a phone the places, the board among them, are in
+     the menu already, and inside a notebook the way back says where you are. */
+  .gs-brand { display: none; }
+  .gs-name { border-inline-start: 0; }
+  .gs-mast:not(:has(.gs-back)) .gs-name { padding-inline-start: 4px; }
+  /* The short title already says which page; the turner keeps only its arrows. */
+  .gs-page-no { display: none; }
+  /* Saved is the quiet state: on a phone it gives its room to the name, and comes back the
+     moment something is on its way or the workspace cannot be reached. */
+  .gs-saved[data-state='saved'] { display: none; }
+  /* The name takes whatever the actions leave, not a fixed share of a tiny screen. */
+  .gs-mast { flex: 1 1 auto; min-width: 0; }
+  .gs-acts { flex: none; }
+  .gs-name { flex: 1 1 auto; max-width: none; }
+  .gs-acts [data-gs='export-menu'] { display: none; }
   .gs-mast { height: 44px; padding-inline-end: calc(10px + var(--round-up, 0px) * 0.7); gap: 6px; }
-  .gs-name { font-size: 19px; padding-inline-start: 8px; }
+  .gs-name { font-size: 18px; padding-inline-start: 8px; }
   /* The whole title stays for a screen reader; the eye gets the short one. */
   .gs-name-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .gs-name-short { display: inline; }

@@ -240,8 +240,19 @@ export class BoardApp implements BoardContext {
     this.viewport.dataset.tool = tool;
     // On a phone the inks only come up while something that draws is in hand.
     document.querySelector('[data-gs="tray"]')?.toggleAttribute('data-inking', DRAWING.has(tool));
+    // On a phone the marker and highlighter are folded away from the tray (width 0).
+    const folded =
+      (document.querySelector<HTMLElement>('.gs-tray-tools [data-gs-tool="marker"]')?.offsetWidth ??
+        1) === 0;
     for (const button of document.querySelectorAll<HTMLElement>('[data-gs="tool"]')) {
-      button.setAttribute('aria-pressed', String(button.dataset.gsTool === tool));
+      // The tray's pen stands for all three inks where the other two are folded into it.
+      const inHand =
+        button.dataset.gsTool === tool ||
+        (folded &&
+          button.dataset.gsTool === 'pen' &&
+          DRAWING.has(tool) &&
+          Boolean(button.closest('.gs-tray-tools')));
+      button.setAttribute('aria-pressed', String(inHand));
     }
     // Every tool put down the note's pen except the one it most looked like it should: Select.
     this.notes.stopDrawing();

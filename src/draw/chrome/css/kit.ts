@@ -46,6 +46,8 @@ export const TOKENS = `/* ---- the chrome's tokens ----
   --gs-mid: 160ms;
   --gs-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+/* A finger, not a pointer: every control on a phone is a comfortable target. */
+@media (max-width: 520px) { :root { --gs-control: 40px; } }
 `;
 
 /** Card, button, tooltip, key cap, rule. */

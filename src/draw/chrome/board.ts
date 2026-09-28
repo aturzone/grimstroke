@@ -205,9 +205,21 @@ export function chrome(spec: BoardSpec): string {
     item({ gs: 'restore', text: 'restore from a backup', icon: 'restore' }) +
     '</div></details>';
 
+  // On a phone the bar has no room for an export menu beside the page turner, so its rows are in
+  // the menu instead (the same data-gs, so the same handlers).
+  const exportRows =
+    '<div class="gs-phone-only">' +
+    heading('export') +
+    item({ gs: 'pdf', text: 'PDF, for printing', icon: 'export' }) +
+    item({ gs: 'png', text: 'PNG, a picture', icon: 'image' }) +
+    item({ gs: 'svg', text: 'SVG, sharp at any size', icon: 'pen' }) +
+    RULE +
+    '</div>';
+
   const sheet = spec.sheet;
   // A page takes its palette from its notebook, so only its ruling is its own to choose.
   const more =
+    exportRows +
     (sheet
       ? ''
       : heading('palette') +
@@ -250,6 +262,7 @@ export function chrome(spec: BoardSpec): string {
     ? topBar({
         place: 'shelf',
         title: spec.title ?? spec.id,
+        short: `${sheet.index + 1} / ${sheet.count}`,
         back: {
           href: `/book?id=${encodeURIComponent(sheet.book)}&leaf=${sheet.index - (sheet.index % 2)}`,
           label: sheet.bookTitle,
@@ -271,7 +284,14 @@ export function chrome(spec: BoardSpec): string {
 
     '<div class="gs-tray gs-card" data-gs="tray" role="toolbar" aria-label="tools">',
     `<div class="gs-tray-tools">${tools}</div>`,
-    `<div class="gs-tray-inks" data-gs="inks" role="group" aria-label="ink">${inks}</div>`,
+    // On a phone the three kinds of ink share the pen's place in the tray and come up here, with
+    // the inks, while one is in hand (see the tray's stylesheet).
+    `<div class="gs-tray-inks" data-gs="inks" role="group" aria-label="ink">` +
+      `<div class="gs-tray-kinds">${TOOLS.filter((t) =>
+        ['pen', 'marker', 'highlighter'].includes(t.id),
+      )
+        .map((t) => toolButton(t, false))
+        .join('')}</div>${inks}</div>`,
     stickerSheet(),
     // Type anything and it becomes a card: "/" from the keyboard, this from a finger.
     `<button type="button" class="gs-btn gs-btn-icon" data-gs="shape-open" aria-keyshortcuts="/" ` +

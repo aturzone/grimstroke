@@ -26,6 +26,7 @@ export const TRAY = `/* ---- the tray ---- */
    answer to a small screen is never a smaller button. */
 .gs-tool { width: 38px; height: 38px; min-width: 38px; }
 .gs-tool .gs-icon { width: 21px; height: 21px; }
+.gs-tray-kinds { display: none; }
 .gs-tray-inks {
   display: flex;
   align-items: center;
@@ -124,6 +125,11 @@ export const TRAY = `/* ---- the tray ---- */
     box-shadow: var(--gs-shadow);
   }
   .gs-tray:not([data-inking]) .gs-tray-inks { display: none; }
+  /* Fewer, bigger targets: the marker and the highlighter wait above the tray beside the inks,
+     with the pen, whenever one of the three is in hand. */
+  .gs-tray-tools [data-gs-tool='marker'], .gs-tray-tools [data-gs-tool='highlighter'] { display: none; }
+  .gs-tray-kinds { display: flex; gap: 2px; margin-inline-end: 6px; padding-inline-end: 8px; border-inline-end: 1.5px solid var(--gs-faint); }
+  .gs-tray-kinds .gs-tool { flex: none; width: 40px; height: 40px; max-width: none; }
   .gs-swatch { width: 26px; height: 26px; }
   .gs-desk { inset-block-end: auto; inset-block-start: 62px; inset-inline-start: auto; inset-inline-end: 8px; flex-direction: column; }
   .gs-desk .gs-sep { width: 20px; height: 1.5px; margin: 3px 0; }
