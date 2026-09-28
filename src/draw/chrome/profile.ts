@@ -348,8 +348,8 @@ function workspaceSection(): string {
     '<section class="st-card gs-card" aria-label="backup">' +
     heading('backup') +
     '<p class="pf-note">Everything -- boards, notebooks, pictures, the profile, the bookcase -- in one file.</p>' +
-    '<div class="gs-chip-row"><a class="gs-btn" href="/api/archive" data-gs="st-backup" download>download a backup</a>' +
-    '<button type="button" class="gs-btn" data-gs="st-restore">restore from a backup</button>' +
+    '<div class="gs-chip-row"><a class="gs-btn gs-chip-btn" href="/api/archive" data-gs="st-backup" download>download a backup</a>' +
+    '<button type="button" class="gs-btn gs-chip-btn" data-gs="st-restore">restore from a backup</button>' +
     '<input type="file" accept=".grimstroke,application/json" hidden data-gs="st-restore-file"></div>' +
     '</section>' +
     '<section class="st-card gs-card" aria-label="trash">' +
@@ -360,14 +360,18 @@ function workspaceSection(): string {
   );
 }
 
+// The build's own version (tools/build.ts defines it); absent in a test, which then says none.
+declare const __VERSION__: string | undefined;
+const VERSION = typeof __VERSION__ === 'string' ? __VERSION__ : '';
+
 function aboutSection(): string {
   return (
     '<section class="st-card gs-card" aria-label="about grimstroke">' +
     heading('grimstroke') +
     '<p>A notebook for agents, and for the people working with them: boards, notebooks, cards typed into being, all drawn on this computer.</p>' +
-    '<p class="pf-note">Made by Atur Dana. Open source, under the Mozilla Public License 2.0.</p>' +
-    '<div class="gs-chip-row"><a class="gs-btn" href="https://github.com/aturzone/grimstroke" target="_blank" rel="noopener">source code</a>' +
-    '<button type="button" class="gs-btn" data-gs="help-open">keyboard shortcuts</button></div>' +
+    `<p class="pf-note">${VERSION ? `Version ${escapeHtml(VERSION)}. ` : ''}Made by Atur Dana. Open source, under the Mozilla Public License 2.0.</p>` +
+    '<div class="gs-chip-row"><a class="gs-btn gs-chip-btn" href="https://github.com/aturzone/grimstroke" target="_blank" rel="noopener">source code</a>' +
+    '<button type="button" class="gs-btn gs-chip-btn" data-gs="help-open">keyboard shortcuts</button></div>' +
     '</section>'
   );
 }
