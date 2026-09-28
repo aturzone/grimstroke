@@ -17,6 +17,7 @@
 
 import { toast } from '~/app/chrome.ts';
 import { typing } from '~/app/dom.ts';
+import { play } from '~/app/feel.ts';
 import { fieldEditor, openFieldEditor } from '~/app/shape/editor.ts';
 import { classify, type ShapeResult } from '~/draw/shape/classify.ts';
 import { activeIntent, decide, force, type Memory, promote, START } from '~/draw/shape/decide.ts';
@@ -151,6 +152,7 @@ export class ShapeIsland {
     wrap.append(shell, chips, help);
     root.append(scrim, wrap);
     document.body.append(root);
+    play('open');
     Object.assign(this, { root, input, card, chips, foot });
     input.addEventListener('input', () => this.update());
     input.addEventListener('keydown', (event) => this.key(event));
@@ -512,9 +514,11 @@ export class ShapeIsland {
       }
       case 'todo':
         s.done = toggle(s.done, Number(arg));
+        play(s.done.includes(Number(arg)) ? 'tick' : 'untick');
         break;
       case 'close':
         s.closed = !s.closed;
+        play(s.closed ? 'tick' : 'untick');
         break;
       case 'timer': {
         if (arg === 'reset') {
@@ -564,6 +568,7 @@ export class ShapeIsland {
         const votes = [...(s.votes ?? [])];
         votes[Number(arg)] = (votes[Number(arg)] ?? 0) + 1;
         s.votes = Array.from(votes, (v) => v ?? 0);
+        play('pop', 0.6);
         break;
       }
       case 'roll':
@@ -598,6 +603,7 @@ export class ShapeIsland {
       }
       if (total && ran >= total && !timer.dataset.scRang) {
         timer.dataset.scRang = '1';
+        play('chime');
         toast('time is up');
       }
     }
