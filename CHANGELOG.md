@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.1 — 2026-09-29
+
+The phone, for real this time.
+
+- Every page now tells a phone to lay it out for its own screen. Without it, a phone drew each
+  page 980 pixels wide and shrank it: the desktop, tiny, with none of the phone layout reached.
+- The app script is kept by the browser until the next release instead of being sent in full on
+  every page; with compression a phone downloads 191 KB once instead of 474 KB each time.
+- On a touch screen, notes leave out the blended texture layers and blurred shadows that cost a
+  phone's graphics most; the bars keep clear of a notch and the home bar.
+
 ## 0.6.0 — 2026-09-28
 
 Several people, and reminders that reach a shut phone.
