@@ -71,6 +71,15 @@ body.live {
 .board[data-far] .note .grip-dots { display: none; }
 .board[data-far] .note .actions,
 .board[data-far] .note .grips { visibility: hidden; }
+/* A phone draws three device pixels to each one, on a graphics chip a fraction of a desk's:
+   the layers blended into every note -- grain, halftone, curl -- and a blurred shadow cost more
+   there than they give. The paper keeps its colour, tear, tape and hard shadow. */
+@media (pointer: coarse) {
+  .board .note .grain,
+  .board .note .paper-halftone,
+  .board .note .curl { display: none; }
+  .note[data-shadow='soft'] .shadow { filter: none; }
+}
 
 /* The paper, under everything, as far as the window goes. The board element itself is
    transparent: it only carries the items, and its extent is a coordinate origin now, not

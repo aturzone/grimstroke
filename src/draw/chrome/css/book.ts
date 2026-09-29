@@ -57,7 +57,7 @@ export const TURNER = `/* ---- the turner ---- */
 .gs-jump input::-webkit-inner-spin-button { display: none; }
 .gs-jump input:focus-visible { outline: 2.5px solid var(--gs-ink); outline-offset: 1px; }
 @media (max-width: 760px) {
-  .gs-turner { inset-block-end: 8px; }
+  .gs-turner { inset-block-end: calc(8px + env(safe-area-inset-bottom, 0px)); }
   .gs-jump-label { display: none; }
 }
 

@@ -26,6 +26,7 @@ import {
   type Ask,
   accepted,
   appBundle,
+  appUrl,
   cookie,
   header,
   listen,
@@ -134,7 +135,7 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
     }
 
     if (path === '/app.js') {
-      serveApp(res);
+      serveApp(req, res, url.searchParams.has('v'));
       return;
     }
 
@@ -160,7 +161,7 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
     const ask: Ask = { req, res, url, path, board: options.board ?? 'workspace' };
     if (await pushApi(ask, push, live)) return;
     if (await pages(ask, live)) return;
-    if (await today(ask, live, ['/app.js'])) return;
+    if (await today(ask, live, [appUrl()])) return;
     if (await remoteApi(ask, live)) return;
     if (await api(ask, live)) return;
     send(res, 404, { error: 'no such thing here' });
@@ -182,7 +183,7 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
   };
 }
 
-function serveApp(res: ServerResponse): void {
+function serveApp(req: IncomingMessage, res: ServerResponse, versioned: boolean): void {
   const file = appBundle();
   if (!file) {
     send(res, 500, { error: 'dist/app.js is missing. Run `pnpm build` first.' });
@@ -197,11 +198,16 @@ function serveApp(res: ServerResponse): void {
    * The board's HTML is generated per request anyway; the script must follow it.
    */
   const stamp = statSync(file);
-  res.writeHead(200, {
-    'content-type': TYPES['.js'] as string,
-    'cache-control': 'no-cache',
-    etag: `W/"${stamp.size.toString(16)}-${stamp.mtimeMs.toString(16)}"`,
-  });
+  const etag = `W/"${stamp.size.toString(16)}-${stamp.mtimeMs.toString(16)}"`;
+  // The address with its version in it never changes what it holds: kept a year. The bare one
+  // is asked about each time -- and answered "not changed" when it has not, which it never was.
+  const cache = versioned ? 'public, max-age=31536000, immutable' : 'no-cache';
+  if (!versioned && req.headers['if-none-match'] === etag) {
+    res.writeHead(304, { etag, 'cache-control': cache });
+    res.end();
+    return;
+  }
+  res.writeHead(200, { 'content-type': TYPES['.js'] as string, 'cache-control': cache, etag });
   createReadStream(file).pipe(res);
 }
 

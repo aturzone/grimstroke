@@ -87,7 +87,12 @@ async function main(): Promise<void> {
   const { firefox } = await import('playwright');
   const browser = await firefox.launch({ headless: !headed });
   const page = await (
-    await browser.newContext({ viewport: { width: 1440, height: 900 } })
+    await browser.newContext(
+      // --phone: a phone's screen as it draws it -- small, at three device pixels to each one.
+      process.argv.includes('--phone')
+        ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 }
+        : { viewport: { width: 1440, height: 900 } },
+    )
   ).newPage();
   await page.goto(`http://127.0.0.1:${serving.port}/?t=perf`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(800);

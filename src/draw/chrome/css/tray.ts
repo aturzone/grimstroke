@@ -103,7 +103,7 @@ export const TRAY = `/* ---- the tray ---- */
 @media (max-width: 760px) {
   .gs-tray {
     inset-inline: 8px;
-    inset-block-end: 8px;
+    inset-block-end: calc(8px + env(safe-area-inset-bottom, 0px));
     transform: none;
     gap: 0;
     padding: 4px calc(4px + var(--round-up, 0px) * 0.4);

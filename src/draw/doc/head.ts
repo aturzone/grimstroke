@@ -175,6 +175,9 @@ export function renderHead(ctx: Surface, direction: Direction, options: HeadOpti
   return [
     '<head>',
     '<meta charset="utf-8">',
+    // Without this a phone lays every page out 980px wide and shrinks it: the desktop, tiny,
+    // with none of the phone layout reached. viewport-fit lets the bars keep clear of a notch.
+    '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
     '<style>',
     faceRules(ctx).join('\n'),
     root,

@@ -7,7 +7,7 @@
  */
 
 import { timingSafeEqual } from 'node:crypto';
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import type { IncomingMessage, Server, ServerResponse } from 'node:http';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -119,6 +119,17 @@ export function appBundle(): string | undefined {
     dir = dirname(dir);
   }
   return undefined;
+}
+
+/**
+ * The app script's address, with its version in it: a phone keeps it until the next build
+ * instead of fetching half a megabyte again on every page it opens.
+ */
+export function appUrl(): string {
+  const file = appBundle();
+  if (!file) return '/app.js';
+  const stamp = statSync(file);
+  return `/app.js?v=${stamp.size.toString(36)}${Math.round(stamp.mtimeMs).toString(36)}`;
 }
 
 /** One request, with everything a route needs to answer it. */

@@ -14,7 +14,7 @@ export const TOP = `/* ---- the top ----
    gaps between the cards is still the board. */
 .gs-top {
   position: fixed;
-  inset-block-start: 14px;
+  inset-block-start: calc(14px + env(safe-area-inset-top, 0px));
   inset-inline: 14px;
   /* Above the other chrome cards, because its menus hang down over them. */
   z-index: 55;
@@ -202,7 +202,7 @@ export const TOP = `/* ---- the top ----
   :root:has(.gs-acts-own > .gs-btn:nth-of-type(6)) .gs-search-open .gs-kbd { display: none; }
 }
 @media (max-width: 520px) {
-  .gs-top { inset-block-start: 8px; inset-inline: 8px; gap: 6px; }
+  .gs-top { inset-block-start: calc(8px + env(safe-area-inset-top, 0px)); inset-inline: calc(8px + env(safe-area-inset-left, 0px)) calc(8px + env(safe-area-inset-right, 0px)); gap: 6px; }
   .gs-phone-only { display: block; }
   /* The mark gives its room to the name: on a phone the places, the board among them, are in
      the menu already, and inside a notebook the way back says where you are. */

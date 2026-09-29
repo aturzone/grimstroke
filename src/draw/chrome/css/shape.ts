@@ -269,7 +269,7 @@ input[type='color'].se-input { flex: none; width: 56px; padding: 4px; }
 }
 @media (max-width: 760px) {
   /* Beside the page turner, in the corner it leaves free, the same height as it. */
-  .ss-open { inset-block-end: 8px; inset-inline-end: 8px; width: 48px; height: 48px; padding: 0; justify-content: center; }
+  .ss-open { inset-block-end: calc(8px + env(safe-area-inset-bottom, 0px)); inset-inline-end: 8px; width: 48px; height: 48px; padding: 0; justify-content: center; }
   .ss-open span, .ss-open .gs-kbd { display: none; }
 }
 

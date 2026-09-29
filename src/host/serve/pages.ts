@@ -14,11 +14,12 @@ import { renderBoard } from '~/draw/doc/board/render.ts';
 import { renderPrint } from '~/draw/doc/book/print.ts';
 import { renderSpread } from '~/draw/doc/book/render.ts';
 import { renderShelf } from '~/draw/doc/shelf/render.ts';
-import { type Ask, html } from '~/host/serve/http.ts';
+import { type Ask, appUrl, html } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
 import { lookOf, sectionOf, THEME_PALETTE, withLook } from '~/host/serve/look.ts';
 
-const APP = ['/app.js'];
+/** The app script, at its versioned address (see appUrl). */
+const app = (): string[] => [appUrl()];
 
 export async function pages(ask: Ask, live: Live): Promise<boolean> {
   const { url, path, res } = ask;
@@ -30,7 +31,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
 
   if (path === '/' || path === '/index.html') {
     const spec = own(await live.board(url.searchParams.get('board') ?? ask.board));
-    const rendered = renderBoard(spec, { live: { chrome: chrome(spec), scripts: APP } });
+    const rendered = renderBoard(spec, { live: { chrome: chrome(spec), scripts: app() } });
     live.allow(rendered.assets);
     html(
       res,
@@ -46,7 +47,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
   if (path === '/page') {
     const book = url.searchParams.get('book') ?? 'notebook';
     const spec = own(await live.board(`book:${book}:${url.searchParams.get('leaf') ?? '1'}`));
-    const rendered = renderBoard(spec, { live: { chrome: chrome(spec), scripts: APP } });
+    const rendered = renderBoard(spec, { live: { chrome: chrome(spec), scripts: app() } });
     live.allow(rendered.assets);
     html(
       res,
@@ -64,7 +65,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
       // notebook visited directly opens straight onto its pages: the shut state lives on the
       // shelf, not in the place where the pages are written.
       closed: url.searchParams.has('opening') && !url.searchParams.has('leaf'),
-      live: { chrome: bookChrome(spec), scripts: APP },
+      live: { chrome: bookChrome(spec), scripts: app() },
     });
     live.allow(rendered.assets);
     html(
@@ -77,7 +78,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
   // A notebook printed whole: the cover, the contents, every written page. Saved as a PDF.
   if (path === '/print') {
     const spec = await live.book(url.searchParams.get('book') ?? 'notebook');
-    const rendered = renderPrint(spec, { scripts: APP });
+    const rendered = renderPrint(spec, { scripts: app() });
     live.allow(rendered.assets);
     html(
       res,
@@ -97,7 +98,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
   if (path === '/profile' || path === '/settings') {
     const rendered = renderProfilePage(await live.store.readProfile(), {
       palette: themed,
-      live: { scripts: APP },
+      live: { scripts: app() },
     });
     live.allow(rendered.assets);
     html(res, withLook(rendered.html, look, sectionOf(path), false));
@@ -114,7 +115,7 @@ export async function pages(ask: Ask, live: Live): Promise<boolean> {
       pet,
       live: {
         chrome: shelfChrome(all.length, pet, all.filter((b) => b.archived).length),
-        scripts: APP,
+        scripts: app(),
       },
     });
     live.allow(rendered.assets);

@@ -220,7 +220,15 @@ describe('the server', () => {
     const page = await (await ask('/?board=work')).text();
     expect(page).toContain('data-gs="viewport"');
     expect(page).toContain('data-gs="tray"');
-    expect(page).toContain('src="/app.js"');
+    // At an address with its version in it, so a phone keeps it until the next build.
+    const src = /src="(\/app\.js\?v=[0-9a-z]+)"/.exec(page)?.[1];
+    expect(src).toBeDefined();
+    const kept = await ask(src as string);
+    expect(kept.headers.get('cache-control')).toContain('immutable');
+    // The bare address is asked about, and a copy that has not changed is not sent again.
+    const bare = await ask('/app.js');
+    const etag = bare.headers.get('etag') ?? '';
+    expect((await ask('/app.js', { headers: { 'if-none-match': etag } })).status).toBe(304);
     // Nothing from anywhere else: the product is a URL, and that only stays
     // true if the page it serves needs nothing from the network.
     expect(page).not.toMatch(/https?:\/\/(?!www\.w3\.org)/);
