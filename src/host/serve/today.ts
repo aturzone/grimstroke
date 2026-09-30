@@ -9,6 +9,7 @@
 
 import { bookTitle, boundLeaves } from '~/draw/doc/book/model.ts';
 import { upgradeLeaf } from '~/draw/doc/legacy.ts';
+import { NOTE_HEIGHT, NOTE_WIDTH } from '~/draw/material/note/model.ts';
 import type { ShapeBlock } from '~/draw/shape/render.ts';
 import {
   calendarMonth,
@@ -108,10 +109,17 @@ export async function today(ask: Ask, live: Live, scripts: string[]): Promise<bo
 
   // A card typed on the day page: onto the home board, under what is there, and the day again.
   if (path === '/api/today/add' && req.method === 'POST') {
-    const body = (await readBody(req)) as { block?: ShapeBlock; width?: number };
+    const body = (await readBody(req)) as {
+      block?: ShapeBlock | { kind: 'note'; text: string };
+      width?: number;
+    };
     const block = body.block;
-    if (!block || block.kind !== 'shape' || typeof block.text !== 'string') {
-      send(res, 400, { error: 'a shape block is needed' });
+    if (
+      !block ||
+      (block.kind !== 'shape' && block.kind !== 'note') ||
+      typeof block.text !== 'string'
+    ) {
+      send(res, 400, { error: 'a shape block or a note is needed' });
       return true;
     }
     const spec = await live.board(ask.board);
@@ -130,7 +138,7 @@ export async function today(ask: Ask, live: Live, scripts: string[]): Promise<bo
           id,
           at: [Math.round(left), Math.round(bottom + 60)],
           z,
-          size: [width],
+          size: block.kind === 'note' ? [NOTE_WIDTH, NOTE_HEIGHT] : [width],
           block: block as never,
         },
       },

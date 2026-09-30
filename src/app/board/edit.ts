@@ -154,6 +154,7 @@ export class Editor {
       if (this.area !== area && !area.isConnected) return;
       area.remove();
       target.style.visibility = '';
+      target.style.minHeight = '';
       host?.toggleAttribute('data-editing', false);
       document.body.toggleAttribute('data-gs-editing', false);
       if (this.area === area) this.area = undefined;
@@ -165,6 +166,19 @@ export class Editor {
       );
     };
     this.finish = () => done(true);
+    /*
+     * The note grows with the words. The box was the body's height when it opened and stayed
+     * there, so a new line went under the bottom edge, scrolled out of sight inside the box.
+     */
+    const base = target.offsetHeight;
+    const grow = (): void => {
+      area.style.height = 'auto';
+      const tall = Math.max(base, area.scrollHeight);
+      area.style.height = `${tall}px`;
+      target.style.minHeight = `${tall}px`;
+    };
+    area.addEventListener('input', grow);
+    grow();
     area.addEventListener('blur', () => done(true));
     area.addEventListener('keydown', (event) => {
       event.stopPropagation();

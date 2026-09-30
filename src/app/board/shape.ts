@@ -6,7 +6,7 @@
  */
 
 import type { BoardContext } from '~/app/board/context.ts';
-import { ShapeIsland } from '~/app/shape/island.ts';
+import { placedSize, ShapeIsland } from '~/app/shape/island.ts';
 import type { BoardItem } from '~/draw/doc/board/model.ts';
 import { topZ } from '~/draw/doc/board/patch.ts';
 import type { ShapeBlock } from '~/draw/shape/render.ts';
@@ -38,7 +38,7 @@ export class ShapeBar {
           id,
           at: this.freeSpot(width, 240),
           z: topZ(ctx.session.spec) + 1,
-          size: [width],
+          size: placedSize(block, width),
           block,
         };
         ctx.session.run([{ op: 'add', item }], 'shape');

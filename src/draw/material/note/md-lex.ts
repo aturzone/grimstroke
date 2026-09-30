@@ -84,7 +84,18 @@ function lexLines(lines: string[]): Block[] {
     const line = lines[i] as string;
 
     if (!line.trim()) {
-      i++;
+      /*
+       * One blank line ends a paragraph; each one after it is an empty line the writer asked
+       * for, and is kept. Markdown folds them all into one gap, which in a note reads as the
+       * Enter key not working: press it three times, save, and the space is gone.
+       */
+      let run = 0;
+      while (i < lines.length && !(lines[i] as string).trim()) {
+        run++;
+        i++;
+      }
+      if (blocks.length && i < lines.length)
+        for (let k = 1; k < run; k++) blocks.push({ type: 'paragraph', kids: [{ type: 'br' }] });
       continue;
     }
 

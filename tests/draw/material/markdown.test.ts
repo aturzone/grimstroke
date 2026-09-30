@@ -11,6 +11,14 @@ describe('a note in markdown', () => {
     expect(html).toContain('<ul class="md-list"><li><span class="md-item">one</span></li>');
   });
 
+  it('keeps every empty line the writer typed, and a single Enter is a new line', () => {
+    expect(renderMarkdown('one\ntwo')).toBe('<p>one<br>two</p>');
+    expect(renderMarkdown('one\n\ntwo')).toBe('<p>one</p><p>two</p>');
+    expect(renderMarkdown('one\n\n\n\ntwo')).toBe('<p>one</p><p><br></p><p><br></p><p>two</p>');
+    // Leading and trailing blank lines make no empty space.
+    expect(renderMarkdown('\n\none\n\n\n')).toBe('<p>one</p>');
+  });
+
   it('never lets what a note says become markup', () => {
     const html = renderMarkdown('<img src=x onerror=alert(1)> **<b>x</b>**');
     expect(html).not.toContain('<img');

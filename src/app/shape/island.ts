@@ -19,6 +19,7 @@ import { toast } from '~/app/chrome.ts';
 import { typing } from '~/app/dom.ts';
 import { comingFrom, moving, play } from '~/app/feel.ts';
 import { fieldEditor, openFieldEditor } from '~/app/shape/editor.ts';
+import { NOTE_HEIGHT, NOTE_WIDTH } from '~/draw/material/note/model.ts';
 import { classify, type ShapeResult } from '~/draw/shape/classify.ts';
 import { activeIntent, decide, force, type Memory, promote, START } from '~/draw/shape/decide.ts';
 import { type Fields, readShape } from '~/draw/shape/fields.ts';
@@ -49,6 +50,17 @@ const PLACEHOLDERS = [
   '۵ مایل به کیلومتر',
 ];
 
+/**
+ * What the box puts down. A note typed in it is a sticky note, the same thing the tray's note
+ * makes -- not a second, lesser kind of note that looks and edits differently.
+ */
+export type PlacedBlock = ShapeBlock | { kind: 'note'; text: string };
+
+/** The box a placed block is given: a sticky note is cut to its size, a card flows. */
+export function placedSize(block: PlacedBlock, width: number): [number] | [number, number] {
+  return block.kind === 'note' ? [NOTE_WIDTH, NOTE_HEIGHT] : [width];
+}
+
 /** Where the bar's cards live: a board, a page, a notebook's spread. */
 export interface ShapeHost {
   /** The element placed cards are drawn in: their controls are listened for here. */
@@ -57,8 +69,8 @@ export interface ShapeHost {
   find(inside: HTMLElement): { id: string; block: ShapeBlock } | undefined;
   /** Keep a changed card. */
   save(id: string, block: ShapeBlock): void;
-  /** Put a new card down; the host decides where. */
-  add(block: ShapeBlock, width: number): void;
+  /** Put a new card down; the host decides where. A note is put down as a sticky note. */
+  add(block: PlacedBlock, width: number): void;
   /** False where there is nowhere to put one right now (a shut notebook). */
   ready?(): boolean;
 }
@@ -417,20 +429,26 @@ export class ShapeIsland {
     const preview = this.card?.querySelector('.sc')?.getBoundingClientRect();
     if (preview) comingFrom(preview);
     this.host.add(
-      {
-        kind: 'shape',
-        intent,
-        text,
-        made: new Date().toISOString(),
-        ...(fields ? { state: { fields } } : {}),
-      },
+      intent === 'note'
+        ? { kind: 'note', text }
+        : {
+            kind: 'shape',
+            intent,
+            text,
+            made: new Date().toISOString(),
+            ...(fields ? { state: { fields } } : {}),
+          },
       intent === 'timer' ? 400 : 360,
     );
     this.close();
     toast(
       isPersian(text)
-        ? `${INTENTS[intent].fa} روی صفحه است · مداد روی کارت ویرایشش می‌کند`
-        : `${INTENTS[intent].label} on the page · the pencil on it changes it`,
+        ? intent === 'note'
+          ? 'یادداشت روی صفحه است · دو بار بزنید تا در آن بنویسید'
+          : `${INTENTS[intent].fa} روی صفحه است · مداد روی کارت ویرایشش می‌کند`
+        : intent === 'note'
+          ? 'Note on the page · tap it twice to write in it'
+          : `${INTENTS[intent].label} on the page · the pencil on it changes it`,
     );
   }
 

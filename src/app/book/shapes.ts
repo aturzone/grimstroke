@@ -11,7 +11,7 @@
 import { toast } from '~/app/chrome.ts';
 import { appear, play } from '~/app/feel.ts';
 import type { Session } from '~/app/net.ts';
-import { ShapeIsland } from '~/app/shape/island.ts';
+import { placedSize, ShapeIsland } from '~/app/shape/island.ts';
 import { type BookSpec, boundLeaves, leafSize } from '~/draw/doc/book/model.ts';
 import type { BookOp } from '~/draw/doc/book/patch.ts';
 import { upgradeLeaf } from '~/draw/doc/legacy.ts';
@@ -144,7 +144,7 @@ export function bookShapes(book: BookShapeSource): ShapeIsland {
                 item: {
                   id: cardId,
                   at,
-                  size: [size],
+                  size: placedSize(block, size),
                   z: topOf(leaf) + 1,
                   block,
                 },
