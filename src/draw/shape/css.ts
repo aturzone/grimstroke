@@ -72,6 +72,12 @@ export const SHAPE = `/* ---- shape cards ---- */
 .sc-line { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; color: var(--sc-soft); overflow-wrap: anywhere; }
 .sc-line a { min-width: 0; color: inherit; overflow-wrap: anywhere; }
 .sc-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; max-width: 100%; padding: 2px 10px; border-radius: calc(999px * var(--round, 1)); background: var(--sc-tile); font-size: 13px; font-weight: 500; }
+.sc-chips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.sc-issue-kind[data-kind="bug"] { background: color-mix(in oklab, #d1242f 16%, var(--sc-tile)); }
+.sc-issue-kind[data-kind="feature"] { background: color-mix(in oklab, #1a7f37 16%, var(--sc-tile)); }
+.sc-labels { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.sc-labels li { padding: 1px 8px; border: 1px solid var(--sc-line); border-radius: calc(999px * var(--round, 1)); color: var(--sc-soft); font-size: 12px; }
+.sc-issue-body { white-space: pre-line; overflow-wrap: anywhere; }
 .sc-missing { display: inline-flex; align-items: center; min-height: 28px; max-width: 100%; padding: 2px 10px; border: 1px dashed var(--sc-line); border-radius: calc(999px * var(--round, 1)); color: var(--sc-faint); font-size: 13px; }
 .sc-avatar { display: inline-grid; place-items: center; width: 26px; height: 26px; flex: none; border: 2px solid var(--sc-bg); border-radius: calc(50% * min(1, var(--round, 1))); background: var(--sc-tile); color: var(--sc-soft); font-size: 11px; font-weight: 700; }
 .sc-people .sc-avatar + .sc-avatar { margin-inline-start: -10px; }

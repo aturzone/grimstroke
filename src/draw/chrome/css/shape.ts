@@ -71,6 +71,11 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
 .ss-input::placeholder { color: color-mix(in oklab, var(--ss-fg) 40%, var(--ss-bg)); }
 .ss-card:empty { display: none; }
 .ss-card { padding: 0 6px; animation: ss-card 220ms ease-out; }
+/* Pictures pasted in for an issue, in a strip that scrolls rather than grows the box. */
+.ss-pictures { display: flex; gap: 8px; padding: 8px 6px 2px; overflow-x: auto; scrollbar-width: thin; }
+.ss-pictures figure { position: relative; flex: none; margin: 0; }
+.ss-pictures img { display: block; width: 72px; height: 56px; object-fit: cover; border: 1px solid var(--gs-line, #c9c5bc); border-radius: calc(6px * var(--round, 1)); }
+.ss-picture-out { position: absolute; inset-block-start: -6px; inset-inline-end: -6px; display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: var(--gs-ink); color: var(--gs-paper); font: inherit; font-size: 15px; line-height: 1; cursor: pointer; }
 .ss-card .sc { min-width: 0; border: 0; box-shadow: none; padding: 4px 16px 6px; }
 .ss-card.is-ghost { opacity: 0.35; filter: grayscale(0.6); pointer-events: none; transition: opacity 200ms, filter 200ms; }
 .ss-foot:empty { display: none; }

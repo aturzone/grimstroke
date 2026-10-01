@@ -34,6 +34,7 @@ import {
   send,
   TYPES,
 } from '~/host/serve/http.ts';
+import { issueApi } from '~/host/serve/issue.ts';
 import { Live } from '~/host/serve/live.ts';
 import { type Login, loginDoor } from '~/host/serve/login.ts';
 import { lookOf, THEME_PALETTE } from '~/host/serve/look.ts';
@@ -164,6 +165,7 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
     if (await pages(ask, live)) return;
     if (await today(ask, live, [appUrl()])) return;
     if (await slash(ask, live, [appUrl()])) return;
+    if (await issueApi(ask, live)) return;
     if (await remoteApi(ask, live)) return;
     if (await api(ask, live)) return;
     send(res, 404, { error: 'no such thing here' });

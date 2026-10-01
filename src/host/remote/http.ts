@@ -50,7 +50,9 @@ export async function call<T>(
   const key = `${headers.authorization ?? headers['private-token'] ?? ''}|${url}`;
   const old = method === 'GET' ? cache.get(key) : undefined;
   if (old) headers['if-none-match'] = old.etag;
-  if (init.body !== undefined) headers['content-type'] = 'application/json';
+  // A form (a file being uploaded) sets its own type, with its boundary.
+  const form = init.body instanceof FormData;
+  if (init.body !== undefined && !form) headers['content-type'] = 'application/json';
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), init.timeout ?? 15000);
   let res: Response;
@@ -58,7 +60,9 @@ export async function call<T>(
     res = await fetch(url, {
       method,
       headers,
-      ...(init.body !== undefined ? { body: JSON.stringify(init.body) } : {}),
+      ...(init.body !== undefined
+        ? { body: form ? (init.body as FormData) : JSON.stringify(init.body) }
+        : {}),
       signal: controller.signal,
     });
   } catch (error) {

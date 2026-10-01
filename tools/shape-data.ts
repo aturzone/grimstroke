@@ -350,6 +350,76 @@ const FA_THOUGHTS = [
 
 type Gen = (r: () => number) => string;
 
+const FAULTS = [
+  'login button does nothing on safari',
+  'the app crashes when I open settings',
+  'save fails with a 500 error',
+  'dark mode text is unreadable on the calendar',
+  'search returns nothing for persian words',
+  'notifications arrive twice',
+  'export to png is blank',
+  'the page is laggy on android',
+  'cannot upload images larger than 5mb',
+  'the date picker shows the wrong month',
+  'sidebar overlaps the content on small screens',
+  'password reset email never arrives',
+  'memory leak after an hour open',
+  'the build is broken on main',
+  'typo in the readme install section',
+];
+const WANTS = [
+  'add dark mode to the settings page',
+  'support russian in the date parser',
+  'export a notebook as pdf',
+  'let people pin a board',
+  'show labels on the issue card',
+  'add keyboard shortcuts to the toolbar',
+];
+const FA_FAULTS = [
+  'دکمه ورود در سافاری کار نمیکنه',
+  'برنامه موقع باز کردن تنظیمات کرش میکنه',
+  'ذخیره کردن ارور ۵۰۰ میده',
+  'متن در حالت تاریک خوانا نیست',
+  'جستجو برای کلمات فارسی چیزی پیدا نمیکنه',
+  'نوتیفیکیشن ها دو بار میان',
+  'صفحه روی گوشی خیلی کنده',
+  'آپلود عکس بزرگ خطا میده',
+  'تقویم ماه اشتباه رو نشون میده',
+];
+const FA_WANTS = [
+  'حالت تاریک به تنظیمات اضافه بشه',
+  'پشتیبانی از زبان روسی',
+  'خروجی پی دی اف از دفتر',
+  'نمایش لیبل ها روی کارت',
+];
+const RU_FAULTS = [
+  'кнопка входа не работает в safari',
+  'приложение падает при открытии настроек',
+  'сохранение выдаёт ошибку 500',
+  'поиск не находит русские слова',
+  'уведомления приходят дважды',
+  'страница тормозит на телефоне',
+];
+const REPOS = [
+  'aturzone/grimstroke',
+  'acme/web',
+  'team/api',
+  'grimstroke',
+  'the web repo',
+  'mobile-app',
+];
+const LABEL_WORDS = [
+  'ui',
+  'bug',
+  'frontend',
+  'backend',
+  'mobile',
+  'urgent',
+  'docs',
+  'performance',
+  'security',
+];
+
 function pick<T>(r: () => number, list: readonly T[]): T {
   return list[Math.floor(r() * list.length)] as T;
 }
@@ -649,6 +719,30 @@ const T: Record<IntentKey, Gen[]> = {
     (r) =>
       faDigits(`${n(r, 1, 9)} از ${n(r, 10, 30)} ${pick(r, ['فصل', 'جلسه', 'درس', 'تمرین'])}`, r),
     (r) => faDigits(`هدف: ${n(r, 100, 900)} کیلومتر دویدن، ${n(r, 10, 99)} تا انجام دادم`, r),
+  ],
+  issue: [
+    (r) => `bug: ${pick(r, FAULTS)}`,
+    (r) => `${pick(r, ['issue', 'new issue', 'ticket', 'work item'])}: ${pick(r, FAULTS)}`,
+    (r) =>
+      `${pick(r, ['make', 'create', 'open', 'file'])} ${pick(r, ['an issue', 'a bug', 'a ticket', 'a work item'])} ${pick(r, ['', 'for ', 'about '])}${pick(r, FAULTS)}`,
+    (r) => `${pick(r, FAULTS)}, label ${pick(r, LABEL_WORDS)}`,
+    (r) => `${pick(r, FAULTS)} in ${pick(r, REPOS)}`,
+    (r) => `feature request: ${pick(r, WANTS)}`,
+    (r) =>
+      `${pick(r, ['issue', 'feature'])}: ${pick(r, WANTS)} labels ${pick(r, LABEL_WORDS)}, ${pick(r, LABEL_WORDS)}`,
+    (r) => `bug in ${pick(r, REPOS)}: ${pick(r, FAULTS)} type bug`,
+    (r) => `باگ: ${pick(r, FA_FAULTS)}`,
+    (r) =>
+      `${pick(r, ['یه ایشو بساز', 'ایشو بزن', 'یک تیکت باز کن', 'یه ورک آیتم درست کن'])} ${pick(r, ['', 'که ', 'برای '])}${pick(r, FA_FAULTS)}`,
+    (r) =>
+      `${pick(r, FA_FAULTS)} لیبل ${pick(r, ['فرانت', 'باگ', 'موبایل', 'بک اند', 'فوری', 'ui'])}`,
+    (r) => `ایشو: ${pick(r, FA_WANTS)} روی ریپو ${pick(r, REPOS)}`,
+    (r) =>
+      `${pick(r, ['یه ایشو', 'تیکت'])} تایپ ${pick(r, ['باگ', 'قابلیت', 'تسک'])} ${pick(r, FA_FAULTS)}`,
+    (r) => `баг: ${pick(r, RU_FAULTS)}`,
+    (r) =>
+      `${pick(r, ['создай задачу', 'новая задача', 'заведи баг', 'тикет'])}: ${pick(r, RU_FAULTS)}`,
+    (r) => `${pick(r, RU_FAULTS)}, метки ${pick(r, ['ui', 'backend', 'срочно', 'mobile', 'docs'])}`,
   ],
   note: [
     (r) => pick(r, THOUGHTS),

@@ -27,6 +27,7 @@ export const SHAPE_INTENTS = [
   'timezone',
   'random',
   'goal',
+  'issue',
   'note',
 ] as const;
 
@@ -187,6 +188,14 @@ export const INTENTS: Record<ShapeIntent, IntentDef> = {
     exampleFa: '۱۲ کتاب امسال، ۴ تا خوندم',
     icon: 'M12 20.5 A8.5 8.5 0 1 0 12 3.5 A8.5 8.5 0 1 0 12 20.5 M12 16.5 A4.5 4.5 0 1 0 12 7.5 A4.5 4.5 0 1 0 12 16.5 M12 12 H12.1',
     words: 'target progress پیشرفت',
+  },
+  issue: {
+    label: 'Issue',
+    fa: 'ایشو',
+    example: 'bug: the save button does nothing on safari, label ui',
+    exampleFa: 'باگ: دکمه ذخیره در سافاری کار نمی‌کند، لیبل فرانت',
+    icon: 'M12 20.5 A8.5 8.5 0 1 0 12 3.5 A8.5 8.5 0 1 0 12 20.5 M12 7.5 V13 M12 16.4 H12.1',
+    words: 'issue bug ticket work item repo git github gitlab ایشو باگ تیکت گیت задача баг',
   },
   note: {
     label: 'Note',

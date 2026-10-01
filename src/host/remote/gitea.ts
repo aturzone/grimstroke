@@ -20,6 +20,7 @@ import {
   person,
   type Remote,
   type RepoSummary,
+  type Upload,
   type Whoami,
 } from '~/host/remote/adapter.ts';
 import { call, RemoteError } from '~/host/remote/http.ts';
@@ -268,5 +269,15 @@ export class Gitea implements Remote {
       name: String(l.name),
       ...(hex(l.color) ? { colour: hex(l.color) as string } : {}),
     }));
+  }
+
+  async attach(repo: string, issue: string, file: Upload): Promise<string> {
+    const form = new FormData();
+    form.append('attachment', new Blob([file.bytes], { type: file.type }), file.name);
+    const up = await this.get<Json>(`/repos/${repo}/issues/${issue}/assets`, {
+      method: 'POST',
+      body: form,
+    });
+    return `![${file.name}](${String(up.browser_download_url ?? '')})`;
   }
 }

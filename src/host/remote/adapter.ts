@@ -44,6 +44,13 @@ export interface NewIssue {
   assignees?: string[];
 }
 
+/** A file to carry into an issue: a picture pasted into the / box. */
+export interface Upload {
+  name: string;
+  type: string;
+  bytes: Uint8Array<ArrayBuffer>;
+}
+
 export interface Whoami extends Person {
   /** What the token may do, as far as the service says: read, and write. */
   scopes: string[];
@@ -75,6 +82,12 @@ export interface Remote {
   commit(repo: string, sha: string): Promise<Commit>;
   pipeline(repo: string, id: string): Promise<Pipeline>;
   labels(repo: string): Promise<Label[]>;
+  /**
+   * Put a file where an issue can show it, and answer with the markdown that shows it. Each
+   * service keeps it its own way: GitLab and Gitea as an upload or an attachment of the issue,
+   * GitHub -- which has no API for it -- as a file on a branch of its own, grimstroke-uploads.
+   */
+  attach(repo: string, issue: string, file: Upload): Promise<string>;
 }
 
 /** A person as the services send one: login and, sometimes, a name. */

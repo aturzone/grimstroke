@@ -19,6 +19,7 @@ import {
   shade,
 } from './colors.ts';
 import type { ShapeIntent } from './intents.ts';
+import { type IssueData, parseIssue } from './issue.ts';
 import {
   type Currency,
   capitalize,
@@ -161,6 +162,7 @@ export interface ShapeDataMap {
   timezone: TimezoneData;
   random: RandomData;
   goal: GoalData;
+  issue: IssueData;
   note: NoteData;
 }
 
@@ -1076,6 +1078,7 @@ export function parseShape<K extends ShapeIntent>(
     timezone: () => parseTimezone(text, ref),
     random: () => parseRandom(text),
     goal: () => parseGoal(text),
+    issue: () => parseIssue(text),
     note: () => parseNote(text),
   };
   return p[intent]() as ShapeDataMap[K];
@@ -1129,6 +1132,8 @@ export function completeness(intent: ShapeIntent, text: string, ref: Date): numb
       return 1;
     case 'goal':
       return has('target') * 0.7 + has('title') * 0.3;
+    case 'issue':
+      return Math.min(1, String(d.title).length / 16) * 0.75 + (d.type ? 0.25 : 0);
     case 'note':
       return Math.min(1, String(d.body).length / 20);
   }

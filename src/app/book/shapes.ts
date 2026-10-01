@@ -99,6 +99,12 @@ export function bookShapes(book: BookShapeSource): ShapeIsland {
 
   const island = new ShapeIsland({
     surface: book.element,
+    // A page is addressed as a board: the card a key names is on its leaf, a new one on the
+    // page in view.
+    address: (key) => {
+      const leaf = key ? split(key).leaf : book.leafInView();
+      return leaf ? `book:${book.session.spec.id}:${leaf}` : undefined;
+    },
     find: (inside) => {
       const at = where(inside);
       const block = at ? shapeOn(book.session.spec, at.leaf, at.id) : undefined;

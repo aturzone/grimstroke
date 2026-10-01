@@ -32,6 +32,7 @@ export class ShapeBar {
         return id && block ? { id, block } : undefined;
       },
       save: (id, block) => ctx.session.run([{ op: 'update', id, patch: { block } }], `shape:${id}`),
+      address: () => ctx.session.spec.id,
       add: (block, width) => {
         const id = ctx.nextId('card');
         const item: BoardItem = {

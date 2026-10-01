@@ -197,6 +197,25 @@ export function ruleFeatures(t: string): Record<string, number> {
       t,
     ),
   );
+  // An issue: asked for by name, or a fault described, or a repository and its labels named.
+  set(
+    'issue.say',
+    /\b(issue|bug report|ticket|work ?item|feature request|pull request)\b|\b(make|create|open|file|raise|log|report)\s+(me\s+)?(an?\s+)?(new\s+)?(bug|issue|ticket)\b|^(bug|issue|feature|task|ticket)\s*:|ایشو|تیکت|ورک ?آیتم|^باگ|باگ\s*:|задач[ауи]?\s*:|^баг|тикет|создай задачу|заведи баг/.test(
+      t,
+    ),
+  );
+  set(
+    'issue.fault',
+    /\b(crash(es|ed)?|broken|throws|exception|stack ?trace|regression|doesn'?t work|does not work|not working|fails? to|error when)\b|کار نمی ?کن|کرش|ارور میده|خطا میده|не работает|падает|ошибка при/.test(
+      t,
+    ),
+  );
+  set(
+    'issue.repo',
+    (/(^|\s)[\w.-]+\/[\w.-]+($|\s)/.test(t) && !/\d+\/\d+/.test(t)) ||
+      /\b(repo|repository|github|gitlab|gitea)\b|ریپو|مخزن|گیت ?هاب|گیت ?لب|репозитор/.test(t),
+  );
+  set('issue.label', /\b(labels?|tags?)\b|لیبل|برچسب|метк|ярлык/.test(t));
   set('fa', /[؀-ۿ]/.test(t));
   return f;
 }
@@ -260,6 +279,10 @@ export function ruleScores(t: string): Partial<Record<ShapeIntent | 'none', numb
   if (on('event.date')) add('event', on('event.gather') || !on('len.long') ? 2.5 : 1);
   if (on('event.gather')) add('event', 3);
   if (on('event.call')) add('event', 2);
+  if (on('issue.say')) add('issue', 6);
+  if (on('issue.fault')) add('issue', 2.5);
+  if (on('issue.repo')) add('issue', 3);
+  if (on('issue.label')) add('issue', 3);
   if (on('note.feel')) add('note', 2);
   if (on('len.long')) add('note', 3);
   else if (on('len.some')) add('note', 2.2);
@@ -301,5 +324,13 @@ export function ruleScores(t: string): Partial<Record<ShapeIntent | 'none', numb
   if (on('random.between')) cap('split', 1);
   if (on('calc.divide')) cap('split', 2);
   if ((s.reminder ?? 0) >= 4.5) cap('event', 3);
+  // "bug: the date picker shows tomorrow" is about a date, not on one.
+  if ((s.issue ?? 0) >= 6) {
+    cap('event', 2);
+    cap('reminder', 2);
+    cap('todo', 2);
+    cap('note', 1);
+    cap('link', 2);
+  }
   return s;
 }

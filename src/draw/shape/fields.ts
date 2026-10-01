@@ -12,6 +12,7 @@
  */
 
 import type { ShapeIntent } from './intents.ts';
+import { ISSUE_TYPES, type IssueType } from './issue.ts';
 import {
   evaluate,
   normalizeExpression,
@@ -174,6 +175,22 @@ export const FIELDS: Record<ShapeIntent, readonly FieldDef[]> = {
     F('current', 'Done so far', 'تا حالا', 'number', { min: 0, step: 1 }),
     F('target', 'Target', 'هدف نهایی', 'number', { min: 1, step: 1 }),
     F('unit', 'Unit', 'واحد', 'text'),
+  ],
+  issue: [
+    F('title', 'Title', 'عنوان', 'text'),
+    F('type', 'Kind', 'نوع', 'select', {
+      options: [
+        ['', '—'],
+        ['bug', 'Bug'],
+        ['feature', 'Feature'],
+        ['task', 'Task'],
+        ['docs', 'Docs'],
+        ['question', 'Question'],
+      ],
+    }),
+    F('repo', 'Repository', 'ریپو', 'text'),
+    F('labels', 'Labels', 'لیبل‌ها', 'list'),
+    F('body', 'Description', 'توضیحات', 'textarea'),
   ],
   note: [F('text', 'Note', 'یادداشت', 'textarea')],
 };
@@ -453,6 +470,18 @@ export function applyFields<K extends ShapeIntent>(
       if (has(f, 'unit')) g.unit = str(f.unit) || null;
       break;
     }
+    case 'issue': {
+      const i = d as ShapeDataMap['issue'];
+      if (has(f, 'title')) i.title = str(f.title);
+      if (has(f, 'type'))
+        i.type = (ISSUE_TYPES as readonly string[]).includes(str(f.type))
+          ? (str(f.type) as IssueType)
+          : null;
+      if (has(f, 'repo')) i.repo = str(f.repo).trim() || null;
+      if (has(f, 'labels')) i.labels = list(f.labels);
+      if (has(f, 'body')) i.body = str(f.body);
+      break;
+    }
     case 'note': {
       const n = d as ShapeDataMap['note'];
       if (has(f, 'text')) {
@@ -575,6 +604,16 @@ export function fieldValues<K extends ShapeIntent>(intent: K, data: ShapeDataMap
     case 'goal': {
       const g = d as ShapeDataMap['goal'];
       return { title: g.title, current: g.current, target: g.target ?? '', unit: g.unit ?? '' };
+    }
+    case 'issue': {
+      const i = d as ShapeDataMap['issue'];
+      return {
+        title: i.title,
+        type: i.type ?? '',
+        repo: i.repo ?? '',
+        labels: i.labels,
+        body: i.body,
+      };
     }
     case 'note':
       return { text: (d as ShapeDataMap['note']).body };

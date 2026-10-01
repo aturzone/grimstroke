@@ -20,6 +20,7 @@ import {
   person,
   type Remote,
   type RepoSummary,
+  type Upload,
   type Whoami,
 } from '~/host/remote/adapter.ts';
 import { call } from '~/host/remote/http.ts';
@@ -318,5 +319,15 @@ export class GitLab implements Remote {
       name: String(l.name),
       ...(hex(l.color) ? { colour: hex(l.color) as string } : {}),
     }));
+  }
+
+  async attach(repo: string, _issue: string, file: Upload): Promise<string> {
+    const form = new FormData();
+    form.append('file', new Blob([file.bytes], { type: file.type }), file.name);
+    const up = await this.get<Json>(`${this.project(repo)}/uploads`, {
+      method: 'POST',
+      body: form,
+    });
+    return String(up.markdown ?? `![${file.name}](${String(up.url ?? '')})`);
   }
 }

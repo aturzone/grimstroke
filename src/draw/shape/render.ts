@@ -44,6 +44,8 @@ export interface ShapeState {
   result?: string;
   /** Reminder, todo, event: marked as done. */
   closed?: boolean;
+  /** Issue: opened, where and as which number. */
+  issue?: { url: string; number: string | number };
   /**
    * Values set by hand, over what the text says: see fields.ts for each kind's keys. The older
    * `people`, `total`, `days`, `current` and `to` above are read beneath these.
@@ -120,6 +122,7 @@ const I = {
     '<svg class="sc-mini" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 L4.8 16 L15.5 5.3 A2 2 0 0 1 18.7 8.5 L8 19.2 Z M14 6.8 L17.2 10"/></svg>',
   plane:
     '<svg class="sc-mini" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12.5 L20.5 5.5 L16.5 20 L12 14.5 Z"/></svg>',
+  repo: '<svg class="sc-mini" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4 V20 M7 8 A3 3 0 1 0 7 2 M17 9 A3 3 0 1 0 17 3 M17 9 C17 14 7 12 7 16"/></svg>',
 };
 
 function when(d: Date | null, hasTime: boolean, now: Date, fa: boolean): string {
@@ -418,6 +421,37 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
     );
   },
 
+  issue: (d, s, c) => {
+    const kinds: Record<string, [string, string]> = {
+      bug: ['Bug', 'باگ'],
+      feature: ['Feature', 'قابلیت'],
+      task: ['Task', 'تسک'],
+      docs: ['Docs', 'مستندات'],
+      question: ['Question', 'سؤال'],
+    };
+    const kind = d.type ? (kinds[d.type] as [string, string]) : undefined;
+    const sent = s.issue;
+    return (
+      (d.title
+        ? `<h3 class="sc-title">${esc(d.title)}</h3>`
+        : missing(t(c.fa, 'what is it about?', 'درباره‌ی چیست؟'))) +
+      `<div class="sc-chips">${kind ? `<span class="sc-chip sc-issue-kind" data-kind="${d.type}">${esc(t(c.fa, kind[0], kind[1]))}</span>` : ''}` +
+      (d.repo ? chip(I.repo, d.repo) : missing(t(c.fa, 'which repository?', 'کدام ریپو؟'))) +
+      '</div>' +
+      (d.labels.length
+        ? `<ul class="sc-labels">${d.labels.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>`
+        : '') +
+      (d.body
+        ? `<p class="sc-meta sc-issue-body">${esc(d.body.length > 240 ? `${d.body.slice(0, 239)}…` : d.body)}</p>`
+        : '') +
+      (sent
+        ? `<p class="sc-meta sc-good"><a href="${esc(sent.url)}" target="_blank" rel="noopener noreferrer">#${esc(String(sent.number))} ${t(c.fa, 'is open', 'باز شد')}</a></p>`
+        : c.live
+          ? `<div class="sc-row">${act('issue:send', 'open it', `<span>${t(c.fa, 'Open the issue', 'ثبت ایشو')}</span>`, Boolean(d.title && d.repo), 'sc-btn')}</div>`
+          : '')
+    );
+  },
+
   note: (d) => `<p class="sc-note">${esc(d.body)}</p>`,
 };
 
@@ -577,6 +611,10 @@ export function summarize(block: ShapeBlock, at?: Date): string {
       return d.target
         ? join(d.title, `${d.current}/${d.target}${d.unit ? ` ${d.unit}` : ''}`)
         : d.title;
+    }
+    case 'issue': {
+      const d = readShape('issue', block.text, made, st);
+      return join(d.title || label, d.type, d.repo, d.labels.join(', '));
     }
     case 'note':
       return readShape('note', block.text, made, st).title;

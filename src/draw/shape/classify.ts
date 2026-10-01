@@ -42,6 +42,7 @@ export const INTENT_KEYS: readonly IntentKey[] = [
   'timezone',
   'random',
   'goal',
+  'issue',
   'note',
   'none',
 ];

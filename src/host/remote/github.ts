@@ -20,6 +20,7 @@ import {
   person,
   type Remote,
   type RepoSummary,
+  type Upload,
   type Whoami,
 } from '~/host/remote/adapter.ts';
 import { call } from '~/host/remote/http.ts';
@@ -313,5 +314,36 @@ export class GitHub implements Remote {
       name: String(l.name),
       ...(hex(l.color) ? { colour: hex(l.color) as string } : {}),
     }));
+  }
+
+  /**
+   * GitHub has no API for an issue's pictures, so they go on a branch of their own,
+   * grimstroke-uploads -- made from the default branch the first time, and never merged -- and
+   * the issue links them there. Someone who can see the repository can see the picture.
+   */
+  async attach(repo: string, issue: string, file: Upload): Promise<string> {
+    const branch = 'grimstroke-uploads';
+    try {
+      await this.get<Json>(`/repos/${repo}/git/ref/heads/${branch}`);
+    } catch {
+      const { defaultBranch } = await this.repo(repo);
+      const head = await this.get<Json>(`/repos/${repo}/git/ref/heads/${defaultBranch}`);
+      const sha = String((head.object as Json | undefined)?.sha ?? '');
+      await this.get<Json>(`/repos/${repo}/git/refs`, {
+        method: 'POST',
+        body: { ref: `refs/heads/${branch}`, sha },
+      });
+    }
+    const safe = file.name.replace(/[^\w.-]+/g, '-').slice(-60) || 'picture.png';
+    const path = `issues/${issue}/${Date.now().toString(36)}-${safe}`;
+    await this.get<Json>(`/repos/${repo}/contents/${path}`, {
+      method: 'PUT',
+      body: {
+        message: `picture for #${issue}`,
+        content: Buffer.from(file.bytes).toString('base64'),
+        branch,
+      },
+    });
+    return `![${file.name}](https://${this.host}/${repo}/blob/${branch}/${path}?raw=true)`;
   }
 }

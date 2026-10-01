@@ -19,6 +19,7 @@ import { toast } from '~/app/chrome.ts';
 import { typing } from '~/app/dom.ts';
 import { comingFrom, moving, play } from '~/app/feel.ts';
 import { fieldEditor, openFieldEditor } from '~/app/shape/editor.ts';
+import { IssueDraft, openIssue } from '~/app/shape/issue.ts';
 import { NOTE_HEIGHT, NOTE_WIDTH } from '~/draw/material/note/model.ts';
 import { classify, type ShapeResult } from '~/draw/shape/classify.ts';
 import { activeIntent, decide, force, type Memory, promote, START } from '~/draw/shape/decide.ts';
@@ -73,6 +74,13 @@ export interface ShapeHost {
   add(block: PlacedBlock, width: number): void;
   /** False where there is nowhere to put one right now (a shut notebook). */
   ready?(): boolean;
+  /**
+   * The board or page a card is on (by its id), or the one a new card would go on (no id):
+   * where an issue's card is kept once it is opened. The / board when there is none.
+   */
+  address?(id?: string): string | undefined;
+  /** A card the server put down itself (an opened issue's), for a host that draws by asking. */
+  placed?(address: string, id: string): void;
 }
 
 export class ShapeIsland {
@@ -92,6 +100,8 @@ export class ShapeIsland {
   /** Values set in the bar's "details", and the kind they were set for. */
   private fields: Fields | undefined;
   private fieldsFor: ShapeIntent | undefined;
+  /** An issue being written: its repository, labels and pictures. */
+  private readonly issue = new IssueDraft(() => this.draw());
   private details: HTMLElement | undefined;
 
   constructor(host: ShapeHost) {
@@ -180,6 +190,10 @@ export class ShapeIsland {
     Object.assign(this, { root, input, card, chips, foot });
     input.addEventListener('input', () => this.update());
     input.addEventListener('keydown', (event) => this.key(event));
+    // A picture pasted in goes with the issue being written; anywhere else it is not the box's.
+    input.addEventListener('paste', (event) => {
+      if (activeIntent(this.mem.ui) === 'issue') void this.issue.paste(event);
+    });
     input.value = text;
     this.mem = intent ? force(intent, text) : START;
     this.update(Boolean(intent));
@@ -190,6 +204,7 @@ export class ShapeIsland {
   }
 
   close(fade = true): void {
+    this.issue.clear();
     // Out quickly, the way it came in; straight away when it is about to be opened again.
     const root = this.root;
     if (root && fade && moving()) {
@@ -244,6 +259,14 @@ export class ShapeIsland {
     this.draw();
   }
 
+  /** The fields set by hand, and for an issue under them the repository and labels offered. */
+  private fieldsOf(intent: ShapeIntent, text: string): Fields | undefined {
+    const hand = this.fieldsFor === intent ? this.fields : undefined;
+    if (intent !== 'issue' || this.editing) return hand;
+    const offered = this.issue.offer(text, hand);
+    return Object.keys(offered).length ? offered : hand;
+  }
+
   private draw(): void {
     const { card, chips, foot, input } = this;
     if (!card || !chips || !foot || !input) return;
@@ -255,16 +278,22 @@ export class ShapeIsland {
     this.root?.classList.toggle('has-card', Boolean(intent));
     if (intent) {
       const ghost = ui.kind === 'ghost';
+      const fields = this.fieldsOf(intent, text);
       card.innerHTML = renderShape(
         {
           kind: 'shape',
           intent,
           text,
           made: this.editing?.block.made ?? new Date().toISOString(),
-          ...(this.fields ? { state: { fields: this.fields } } : {}),
+          ...(fields ? { state: { fields } } : {}),
         },
         { interactive: false, editable: false },
       );
+      this.root?.querySelector('.ss-pictures')?.remove();
+      if (intent === 'issue') {
+        const strip = this.issue.strip(fa);
+        if (strip) card.after(strip);
+      }
       card.classList.toggle('is-ghost', ghost);
       const label = (fa ? INTENTS[intent].fa : INTENTS[intent].label).toLowerCase();
       foot.innerHTML = '';
@@ -295,7 +324,10 @@ export class ShapeIsland {
         const add = el('button', 'ss-add');
         add.type = 'button';
         add.dataset.gs = 'shape-add';
-        add.innerHTML = `${fa ? (this.editing ? 'ذخیره' : 'افزودن') : this.editing ? 'Save' : 'Add'} ${label} <span aria-hidden="true">↵</span>`;
+        add.innerHTML =
+          intent === 'issue' && !this.editing
+            ? `${fa ? 'ثبت ایشو' : 'Open the issue'} <span aria-hidden="true">↵</span>`
+            : `${fa ? (this.editing ? 'ذخیره' : 'افزودن') : this.editing ? 'Save' : 'Add'} ${label} <span aria-hidden="true">↵</span>`;
         add.addEventListener('mousedown', (e) => e.preventDefault());
         add.addEventListener('click', () => this.commit());
         const end = el('span', 'ss-foot-end');
@@ -411,6 +443,27 @@ export class ShapeIsland {
     const text = input?.value.trim() ?? '';
     if (!intent || !text) return;
     const fields = this.fieldsFor === intent ? this.fields : undefined;
+    if (intent === 'issue' && !this.editing) {
+      const block: ShapeBlock = {
+        kind: 'shape',
+        intent,
+        text,
+        made: new Date().toISOString(),
+      };
+      const offered = this.fieldsOf(intent, text);
+      if (offered) block.state = { fields: offered };
+      const pictures = [...this.issue.pictures];
+      const add = this.root?.querySelector<HTMLButtonElement>('[data-gs="shape-add"]');
+      if (add) add.disabled = true;
+      void openIssue(block, { address: this.host.address?.() }, pictures).then((placed) => {
+        if (add) add.disabled = false;
+        if (!placed) return;
+        this.issue.clear();
+        this.close();
+        this.host.placed?.(placed.address, placed.id);
+      });
+      return;
+    }
     if (this.editing) {
       const old = this.editing.block;
       // A different kind, or different words, starts its state afresh; what was set by hand in
@@ -627,6 +680,20 @@ export class ShapeIsland {
       case 'roll':
         s.result = roll(block);
         break;
+      case 'issue': {
+        // A card put down before it was sent: sent now, from where it is.
+        const address = this.host.address?.(id);
+        if (!address) return;
+        (button as HTMLButtonElement).disabled = true;
+        const at = id.lastIndexOf('|');
+        const own =
+          address && id.startsWith(`${address}|`) ? id.slice(at + 1) : id.split('/').pop();
+        void openIssue(block, { address, id: own }).then((placed) => {
+          (button as HTMLButtonElement).disabled = false;
+          if (placed) this.host.placed?.(placed.address, placed.id);
+        });
+        return;
+      }
       default:
         return;
     }

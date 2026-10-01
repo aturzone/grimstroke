@@ -97,6 +97,11 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
     'POST /api/slash/delete':
       'a card let go { address, id }; the reply carries the item, to restore',
     'POST /api/slash/restore': 'a card put back { address, item }',
+    'GET /api/remote/targets':
+      "every repository an issue can be opened in: each connected account's and each connected notebook's",
+    'GET /api/remote/labels': "a repository's labels { host, repo }",
+    'POST /api/remote/issue':
+      "open an issue from an issue card { block | address+id, address?, images?: [{ asset, name, type }] }: labels chosen from the repository's own, pictures carried with it",
     'GET /api/push/key': "the workspace's public key, for a device to subscribe to reminders",
     'POST /api/push/subscribe':
       'a device to tell before what is planned, with the page shut (a PushSubscription)',

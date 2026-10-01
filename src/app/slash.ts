@@ -95,6 +95,8 @@ export function bootSlash(): boolean {
         .then(({ html }) => put(html))
         .catch(failed);
     },
+    address: (key) => (key ? split(key).address : 'slash'),
+    placed: (address, id) => void refresh(`${address}|${id}`).catch(() => {}),
     add: (block: PlacedBlock, width) => {
       post<{ id: string; address: string; html: string }>('/api/slash/add', { block, width })
         .then(({ id, address, html }) => {

@@ -25,5 +25,5 @@ grimstroke is becoming two things, the way git is plumbing and porcelain.
 5. **The model.** Laya (an encoder that chooses among given options, ~650 MB multilingual) for
    choosing a card's kind and an issue's labels; translation needs a model that writes, which
    Laya does not.
-6. **Repositories through /.** An issue written in a sentence, its type and labels chosen from the
-   repository's own, a pasted picture carried with it.
+6. **Repositories through /** -- started: an issue written in a sentence, its type and labels
+   chosen from the repository's own, a pasted picture carried with it (docs/api.md).
