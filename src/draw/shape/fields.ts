@@ -70,6 +70,7 @@ const CURRENCIES: ReadonlyArray<readonly [string, string]> = [
   ['€', '€'],
   ['£', '£'],
   ['₹', '₹'],
+  ['₽', '₽'],
   ['تومان', 'تومان'],
   ['ریال', 'ریال'],
 ];

@@ -18,7 +18,7 @@ export interface DateHit {
   length: number;
 }
 
-import { foldInPlace } from './text.ts';
+import { foldInPlace, type Lang, numberWord } from './text.ts';
 
 const EN_DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 /** Persian weekdays by JS index (0 = Sunday). */
@@ -30,6 +30,31 @@ const FA_DAYS: Array<[RegExp, number]> = [
   [/پنج ?شنبه/, 4],
   [/جمعه/, 5],
   [/شنبه/, 6],
+];
+/** Russian weekdays by JS index, in any case a sentence puts them in ("в пятницу"). */
+const RU_DAYS: Array<[RegExp, number]> = [
+  [/воскресень[еяю]|(?<!\p{L})вс(?!\p{L})/u, 0],
+  [/понедельник\p{L}*|(?<!\p{L})пн(?!\p{L})/u, 1],
+  [/вторник\p{L}*|(?<!\p{L})вт(?!\p{L})/u, 2],
+  [/сред[аеуы]|(?<!\p{L})ср(?!\p{L})/u, 3],
+  [/четверг\p{L}*|(?<!\p{L})чт(?!\p{L})/u, 4],
+  [/пятниц[аеуы]|(?<!\p{L})пт(?!\p{L})/u, 5],
+  [/суббот[аеуы]|(?<!\p{L})сб(?!\p{L})/u, 6],
+];
+/** Russian months by their stems, which every case keeps: "12 октября", "в октябре". */
+const RU_MONTHS = [
+  'январ',
+  'феврал',
+  'март',
+  'апрел',
+  'ма[йяе]',
+  'июн',
+  'июл',
+  'август',
+  'сентябр',
+  'октябр',
+  'ноябр',
+  'декабр',
 ];
 const EN_MONTHS = [
   'jan',
@@ -149,6 +174,20 @@ function findTime(t: string): { h: number; m: number; part: Part } | null {
     else if (!when && h >= 1 && h < 7) h += 12;
     return { h: h % 24, m: Number(m[2] ?? 0), part: { index: m.index, length: m[0].length } };
   }
+  // "в 8 вечера", "в 10:30", "в 7 утра", "в 3 дня", "к 5": a bare small hour, like "at 5", is the
+  // afternoon.
+  m =
+    /(?<!\p{L})(?:в|во|к)\s+(\d{1,2})(?::(\d{2}))?(?:\s*(утра|дня|вечера|ночи))?(?!\s*(?:%|км|кг|мин|раз|человек|руб))(?!\d)/u.exec(
+      t,
+    );
+  if (m && Number(m[1]) <= 23) {
+    let h = Number(m[1]);
+    const when = m[3] ?? '';
+    if (/дня|вечера/.test(when) && h < 12) h += 12;
+    else if (when === 'ночи' && h === 12) h = 0;
+    else if (!when && !m[2] && h >= 1 && h < 7) h += 12;
+    return { h: h % 24, m: Number(m[2] ?? 0), part: { index: m.index, length: m[0].length } };
+  }
   m = /\b(?:at\s+)?([01]?\d|2[0-3]):([0-5]\d)\b/.exec(t);
   if (m) return { h: Number(m[1]), m: Number(m[2]), part: { index: m.index, length: m[0].length } };
   m = /\bat\s+(\d{1,2})\b(?!\s*(?:%|km|kg|min|people|nafar))/.exec(t);
@@ -158,9 +197,9 @@ function findTime(t: string): { h: number; m: number; part: Part } | null {
     if (h < 8) h += 12;
     return { h, m: 0, part: { index: m.index, length: m[0].length } };
   }
-  m = /\b(noon|midday)\b|ظهر/.exec(t);
+  m = /\b(noon|midday)\b|ظهر|полдень|в полдень/.exec(t);
   if (m) return { h: 12, m: 0, part: { index: m.index, length: m[0].length } };
-  m = /\bmidnight\b|نیمه ?شب/.exec(t);
+  m = /\bmidnight\b|نیمه ?شب|полночь|в полночь/.exec(t);
   if (m) return { h: 0, m: 0, part: { index: m.index, length: m[0].length } };
   return null;
 }
@@ -185,11 +224,29 @@ export function findDate(text: string, ref: Date): DateHit | null {
 
   // In N units / N units later: "in 3 days", "in 2 hours", "۳ روز دیگه", "تا ۲ ساعت دیگه".
   const m = hit(
-    /\bin\s+(\d+|an?|one|two|three)\s+(minutes?|mins?|hours?|hrs?|days?|weeks?|months?)\b|(\d+)\s+(دقیقه|ساعت|روز|هفته|ماه)\s+(?:دیگه|دیگر|بعد)/,
+    /\bin\s+(\d+|an?|one|two|three)\s+(minutes?|mins?|hours?|hrs?|days?|weeks?|months?)\b|(\d+)\s+(دقیقه|ساعت|روز|هفته|ماه)\s+(?:دیگه|دیگر|بعد)|через\s+(\d+|один|одну|два|две|три|пару)?\s*(минут\p{L}*|мин|час\p{L}*|д(?:ень|ня|ней)|недел\p{L}*|месяц\p{L}*)/u,
   );
   if (m) {
-    const n = Number(m[1] ?? m[3]) || (/^(an?|one)$/.test(m[1] ?? '') ? 1 : m[1] === 'two' ? 2 : 3);
-    const unit = (m[2] ?? m[4] ?? '').toString();
+    const ruN = m[5]
+      ? (numberWord(m[5]) ?? (m[5] === 'пару' ? 2 : undefined))
+      : m[6]
+        ? 1
+        : undefined;
+    const n =
+      ruN ??
+      (Number(m[1] ?? m[3]) || (/^(an?|one)$/.test(m[1] ?? '') ? 1 : m[1] === 'two' ? 2 : 3));
+    const ru = (m[6] ?? '').toString();
+    const unit = ru
+      ? /^мин/.test(ru)
+        ? 'min'
+        : /^час/.test(ru)
+          ? 'h'
+          : /^д/.test(ru)
+            ? 'd'
+            : /^нед/.test(ru)
+              ? 'w'
+              : 'mo'
+      : (m[2] ?? m[4] ?? '').toString();
     const at = new Date(ref);
     if (/^(min|دقیقه)/.test(unit)) {
       at.setMinutes(at.getMinutes() + n);
@@ -206,14 +263,15 @@ export function findDate(text: string, ref: Date): DateHit | null {
 
   // Named days.
   if (!day) {
-    if (hit(/\bday after tomorrow\b|پس ?فردا/)) day = addDays(startOf(ref), 2);
-    else if (hit(/\b(tomorrow|tmrw|tmr)\b|فردا/)) day = addDays(startOf(ref), 1);
-    else if (hit(/\btonight\b|امشب/)) {
+    if (hit(/\bday after tomorrow\b|پس ?فردا|послезавтра/)) day = addDays(startOf(ref), 2);
+    else if (hit(/\b(tomorrow|tmrw|tmr)\b|فردا|завтра/)) day = addDays(startOf(ref), 1);
+    else if (hit(/\btonight\b|امشب|сегодня вечером/)) {
       day = startOf(ref);
       hour = 20;
       hasTime = true;
-    } else if (hit(/\btoday\b|امروز/)) day = startOf(ref);
-    else if (hit(/\bnext week\b|هفته ?(?:ی )?(?:بعد|دیگه|آینده)/)) day = addDays(startOf(ref), 7);
+    } else if (hit(/\btoday\b|امروز|сегодня/)) day = startOf(ref);
+    else if (hit(/\bnext week\b|هفته ?(?:ی )?(?:بعد|دیگه|آینده)|на следующей неделе/))
+      day = addDays(startOf(ref), 7);
   }
 
   // Weekdays: "friday", "next fri", "on mon", "جمعه", "جمعه بعد".
@@ -225,7 +283,18 @@ export function findDate(text: string, ref: Date): DateHit | null {
     if (en) {
       parts.push({ index: en.index, length: en[0].length });
       day = nextWeekday(ref, EN_DAYS.indexOf((en[2] ?? '').slice(0, 3)), /next/.test(en[1] ?? ''));
-    } else {
+    } else if (
+      !RU_DAYS.some(([re, idx]) => {
+        const ru = new RegExp(
+          `(?:(?:в|во|на)\\s+)?(следующ\\p{L}*\\s+|эт\\p{L}*\\s+)?(?:${re.source})`,
+          'u',
+        ).exec(t);
+        if (!ru) return false;
+        parts.push({ index: ru.index, length: ru[0].length });
+        day = nextWeekday(ref, idx, /следующ/.test(ru[1] ?? ''));
+        return true;
+      })
+    ) {
       for (const [re, idx] of FA_DAYS) {
         const fa = new RegExp(`${re.source}(\\s*(?:بعد|آینده|دیگه))?`).exec(t);
         if (fa) {
@@ -251,6 +320,22 @@ export function findDate(text: string, ref: Date): DateHit | null {
       let d = new Date(ref.getFullYear(), month, dd);
       if (d < startOf(ref)) d = new Date(ref.getFullYear() + 1, month, dd);
       day = d;
+    } else if (
+      (() => {
+        const ruRe = RU_MONTHS.map((s) => `${s}\\p{L}*`).join('|');
+        const ru = new RegExp(`(\\d{1,2})\\s+(${ruRe})`, 'u').exec(t);
+        if (!ru) return false;
+        parts.push({ index: ru.index, length: ru[0].length });
+        const word = ru[2] ?? '';
+        const month = RU_MONTHS.findIndex((s) => new RegExp(`^${s}`, 'u').test(word));
+        const dd = Number(ru[1]);
+        let d = new Date(ref.getFullYear(), month, dd);
+        if (d < startOf(ref)) d = new Date(ref.getFullYear() + 1, month, dd);
+        day = d;
+        return true;
+      })()
+    ) {
+      // A Russian date was read above.
     } else {
       const faRe = FA_MONTHS.join('|');
       const fa =
@@ -280,11 +365,20 @@ export function findDate(text: string, ref: Date): DateHit | null {
     minute = time.m;
     hasTime = true;
   } else if (!hasTime) {
-    const part = /\b(this\s+)?(morning|evening|afternoon)\b|صبح|عصر|بعد ?از ?ظهر/.exec(t);
+    const part =
+      /\b(this\s+)?(morning|evening|afternoon)\b|صبح|عصر|بعد ?از ?ظهر|утром|дн[её]м|вечером|ночью/.exec(
+        t,
+      );
     if (part && day) {
       parts.push({ index: part.index, length: part[0].length });
       const w = part[0];
-      hour = /morning|صبح/.test(w) ? 9 : /afternoon|بعد/.test(w) ? 15 : 18;
+      hour = /morning|صبح|утром/.test(w)
+        ? 9
+        : /afternoon|بعد|дн/.test(w)
+          ? 15
+          : /ночью/.test(w)
+            ? 22
+            : 18;
       hasTime = true;
     }
     // "شب" after a day: فردا شب
@@ -318,8 +412,27 @@ export function formatWhen(
   d: Date,
   hasTime: boolean,
   ref: Date,
-  fa: boolean,
+  fa: boolean | Lang,
 ): { day: string; time: string | null } {
+  // Russian is its own; a boolean still says Persian or not, as it always has.
+  if (fa === 'ru') {
+    const diff = daysBetween(ref, d);
+    const day =
+      diff === 0
+        ? 'Сегодня'
+        : diff === 1
+          ? 'Завтра'
+          : new Intl.DateTimeFormat('ru-RU', {
+              weekday: 'short',
+              day: 'numeric',
+              month: 'short',
+            }).format(d);
+    const time = hasTime
+      ? new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(d)
+      : null;
+    return { day, time };
+  }
+  if (typeof fa !== 'boolean') fa = fa === 'fa';
   const diff = daysBetween(ref, d);
   const day =
     diff === 0

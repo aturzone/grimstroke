@@ -31,6 +31,7 @@ import {
   initials,
   isPersian,
   numberWord,
+  RUSSIAN,
   removeRange,
   tidy,
   titleCase,
@@ -184,6 +185,9 @@ const CALLS: Record<string, string> = {
   'گوگل میت': 'Google Meet',
   واتساپ: 'WhatsApp',
   تلگرام: 'Telegram',
+  зум: 'Zoom',
+  телеграм: 'Telegram',
+  телеграме: 'Telegram',
 };
 
 export function parseEvent(text: string, ref: Date): EventData {
@@ -195,7 +199,9 @@ export function parseEvent(text: string, ref: Date): EventData {
   const lm =
     /\s(?:on|over|via)\s+(google meet|gmeet|zoom|meet|teams|facetime|skype|discord|whatsapp|skyroom)\b/i.exec(
       rest,
-    ) ?? /\s(?:تو|توی|در|روی|با)?\s*(زوم|گوگل میت|اسکای روم|واتساپ|تلگرام)(?=\s|$)/.exec(rest);
+    ) ??
+    /\s(?:تو|توی|در|روی|با)?\s*(زوم|گوگل میت|اسکای روم|واتساپ|تلگرام)(?=\s|$)/.exec(rest) ??
+    /\s(?:в|по)\s+(зум|телеграме?|skype|zoom|teams|google meet)(?=\s|$)/iu.exec(rest);
   if (lm) {
     link = CALLS[(lm[1] ?? '').toLowerCase()] ?? null;
     rest = removeRange(rest, lm.index, lm[0].length);
@@ -204,24 +210,35 @@ export function parseEvent(text: string, ref: Date): EventData {
   let location: string | null = null;
   const loc =
     /\s(?:at|in)\s+(?!\d)([a-z][\w' ]{1,40}?)(?=\s+(?:with|on|for)\s|\s*$)/i.exec(rest) ??
-    /\s(?:توی|تو|در)\s+([؀-ۿ][؀-ۿ ]{1,30}?)(?=\s+(?:با)\s|\s*$)/.exec(rest);
+    /\s(?:توی|تو|در)\s+([؀-ۿ][؀-ۿ ]{1,30}?)(?=\s+(?:با)\s|\s*$)/.exec(rest) ??
+    /\s(?:в|во|на)\s+([а-яё][\p{L} ]{1,30}?)(?=\s+(?:с|со)\s|\s*$)/iu.exec(rest);
   if (loc) {
-    location = isPersian(loc[1] ?? '') ? (loc[1] ?? '').trim() : titleCase((loc[1] ?? '').trim());
+    location =
+      isPersian(loc[1] ?? '') || RUSSIAN.test(loc[1] ?? '')
+        ? (loc[1] ?? '').trim()
+        : titleCase((loc[1] ?? '').trim());
     rest = removeRange(rest, loc.index, loc[0].length);
   }
 
   let people: string[] = [];
-  const wm = /\swith\s+(.+)$/i.exec(rest) ?? /\sبا\s+(.+)$/.exec(rest);
+  const wm =
+    /\swith\s+(.+)$/i.exec(rest) ?? /\sبا\s+(.+)$/.exec(rest) ?? /\s(?:с|со)\s+(.+)$/iu.exec(rest);
   if (wm) {
     const segment = (wm[1] ?? '').replace(
-      /\s+(?:on|at|in|for|about|to|from|via|over|برای|در|تو)\s+.*$/i,
+      /\s+(?:on|at|in|for|about|to|from|via|over|برای|در|تو|в|на|про|о|об)\s+.*$/iu,
       '',
     );
     people = segment
-      .split(/\s*(?:,|&|\band\b|\sو\s)\s*/i)
+      .split(/\s*(?:,|&|\band\b|\sو\s|\sи\s)\s*/iu)
       .map((p) => p.trim())
       .filter((p) => p && p.split(' ').length <= 3 && !/^(the|my|a|team)$/i.test(p))
       .map((p) => (isPersian(p) ? p : titleCase(p)));
+    // "с Анной" is Anna: the instrumental case off a Russian name, as well as can be done.
+    people = people.map((p) =>
+      RUSSIAN.test(p)
+        ? p.replace(/(?<=\p{L}{2})(ой|ей|ом|ем)$/u, (e) => (e === 'ой' || e === 'ей' ? 'а' : ''))
+        : p,
+    );
     rest = `${rest.slice(0, wm.index)} ${(wm[1] ?? '').slice(segment.length)}`;
   }
 
@@ -245,7 +262,14 @@ export function parseReminder(text: string, ref: Date): ReminderData {
     /\s(?:یادم بنداز(?:\s+که)?|یادآوری(?:\s+کن)?|یادت باشه(?:\s+که)?|فراموش نکن(?:\s+که)?|یادم باشه(?:\s+که)?)\s/,
     ' ',
   );
-  rest = rest.replace(/\s(?:urgent(?:ly)?|asap|important|فوری|مهم|!+)(?=\s|$)/gi, ' ');
+  rest = rest.replace(
+    /\s(?:напомни(?:\s+мне)?(?:\s+(?:что|чтобы))?(?:\s+нужно)?|напоминание:?|не забыть|не забудь(?:\s+что)?|надо не забыть)\s/iu,
+    ' ',
+  );
+  rest = rest.replace(
+    /\s(?:urgent(?:ly)?|asap|important|فوری|مهم|срочно|важно|!+)(?=\s|$)/giu,
+    ' ',
+  );
   const date = findDate(rest.toLowerCase(), ref);
   if (date) rest = removeRange(rest, date.index, date.length);
   return {
@@ -259,15 +283,19 @@ export function parseReminder(text: string, ref: Date): ReminderData {
 
 export function parseTodo(text: string): TodoData {
   let rest = collapse(fold(text).replace(/\n/g, ', '));
-  const shopping = /\b(buy|get|groceries|shopping|pick up|order)\b|بخر|خرید|بگیر/i.test(rest);
+  const shopping =
+    /\b(buy|get|groceries|shopping|pick up|order)\b|بخر|خرید|بگیر|купить|купи|покупки|список покупок/iu.test(
+      rest,
+    );
   rest = rest.replace(
-    /^(?:to ?do|todo list|list|shopping list|groceries|کارها|لیست خرید|لیست|خرید)\s*:?\s*/i,
+    /^(?:to ?do|todo list|list|shopping list|groceries|کارها|لیست خرید|لیست|خرید|список покупок|список дел|список|покупки|дела)\s*:?\s*/iu,
     '',
   );
+  rest = rest.replace(/^(?:купить|купи)\s+/iu, '');
   rest = rest.replace(/^(buy|get|pick up|grab|order)\s+/i, '');
   rest = rest.replace(/\s+(بخر|بخرم|بگیر|بگیرم|بخریم)\s*$/, '');
   const items = rest
-    .split(/\s*(?:,|;|\s&\s|\band\b|\sو\s|\n)\s*/i)
+    .split(/\s*(?:,|;|\s&\s|\band\b|\sو\s|\sи\s|\n)\s*/iu)
     .map((s) =>
       s
         .trim()
@@ -309,10 +337,10 @@ export function parseTimer(text: string): TimerData {
   let seconds = 0;
   let found = false;
   const special: Array<[RegExp, number]> = [
-    [/\bpomodoro\b|پومودورو/, 25 * 60],
-    [/\bhalf an? hour\b|نیم ساعت/, 30 * 60],
-    [/\ban? hour\b|یک ساعت|یه ساعت/, 60 * 60],
-    [/\ba minute\b|یک دقیقه|یه دقیقه/, 60],
+    [/\bpomodoro\b|پومودورو|помодоро/, 25 * 60],
+    [/\bhalf an? hour\b|نیم ساعت|полчаса/, 30 * 60],
+    [/\ban? hour\b|یک ساعت|یه ساعت|(?<!\d\s?)(?<!\p{L})(?:один\s+)?час(?!\p{L})/u, 60 * 60],
+    [/\ba minute\b|یک دقیقه|یه دقیقه|(?<!\d\s?)(?<!\p{L})минуту(?!\p{L})/u, 60],
   ];
   for (const [re, s] of special) {
     if (re.test(rest)) {
@@ -321,10 +349,11 @@ export function parseTimer(text: string): TimerData {
       if (!/pomodoro/.test(re.source)) rest = rest.replace(re, ' ');
     }
   }
-  const unit = (u: string): number => (/^(h|ساعت)/.test(u) ? 3600 : /^(s|ثانیه)/.test(u) ? 1 : 60);
+  const unit = (u: string): number =>
+    /^(h|ساعت|ч)/.test(u) ? 3600 : /^(s|ثانیه|с)/.test(u) ? 1 : 60;
   rest = rest.replace(FA_DURATION_WORD, (w) => String(FA_WORDS[w] ?? w));
   rest = rest.replace(
-    /(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m|seconds?|secs?|s|ساعت|دقیقه|ثانیه)(?=\s|$|[^a-z])/g,
+    /(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m|seconds?|secs?|s|ساعت|دقیقه|ثانیه|час(?:а|ов)?|ч|минут[аы]?|мин|секунд[аы]?|сек)(?=\s|$|[^a-zа-я])/gu,
     (_, n: string, u: string) => {
       seconds += Number(n) * unit(u);
       found = true;
@@ -337,7 +366,12 @@ export function parseTimer(text: string): TimerData {
     return ' ';
   });
   const label = tidy(
-    rest.replace(words('timer|set|start|a|for|countdown|of|تایمر|بذار|بزن|برای|شروع|یه'), ' '),
+    rest.replace(
+      words(
+        'timer|set|start|a|for|countdown|of|تایمر|بذار|بزن|برای|شروع|یه|таймер|поставь|запусти|засеки|на',
+      ),
+      ' ',
+    ),
   );
   return { seconds: found ? Math.round(seconds) : null, label: capitalize(label) };
 }
@@ -355,6 +389,19 @@ export function formatClock(total: number): string {
 const EN_DAY =
   /\b(sun|mon|tue|tues|wed|thu|thur|thurs|fri|sat)(?:day|nesday|sday|urday|rsday)?s?\b/gi;
 const EN_DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+/** Russian weekdays by JS index, as the stems every case of them starts with. */
+const RU_DAY_STEMS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+const RU_DAY =
+  /(?<!\p{L})(?:воскресень\p{L}*|понедельник\p{L}*|вторник\p{L}*|сред\p{L}*|четверг\p{L}*|пятниц\p{L}*|суббот\p{L}*|вс|пн|вт|ср|чт|пт|сб)(?!\p{L})/giu;
+const RU_FULL: Record<string, string> = {
+  воскр: 'вс',
+  понед: 'пн',
+  вторн: 'вт',
+  сред: 'ср',
+  четв: 'чт',
+  пятн: 'пт',
+  субб: 'сб',
+};
 
 function spread(n: number): number[] {
   const presets: Record<number, number[]> = {
@@ -374,37 +421,44 @@ export function parseHabit(text: string): HabitData {
   let perWeek: number | null = null;
   let label: string | null = null;
   const fa = isPersian(rest);
+  const ru = RUSSIAN.test(rest);
 
   const nx =
     /\b(\d|once|twice|thrice)\s*(?:x|times?)?\s*(?:a|per|each|every)\s+week\b/i.exec(rest) ??
-    /هفته ?(?:ای|‌ای)?\s*(\d|یک|دو|سه|چهار|پنج|شش)\s*(?:بار|روز)/.exec(rest);
+    /هفته ?(?:ای|‌ای)?\s*(\d|یک|دو|سه|چهار|پنج|شش)\s*(?:بار|روز)/.exec(rest) ??
+    /(\d|один|два|три|четыре|пять|шесть)\s*раз(?:а)?\s+в\s+неделю/iu.exec(rest);
   if (nx) {
     const word = (nx[1] ?? '').toLowerCase();
     perWeek =
       word === 'once' ? 1 : word === 'twice' ? 2 : word === 'thrice' ? 3 : (numberWord(word) ?? 1);
     rest = rest.replace(nx[0], ' ');
-    label = fa ? `هفته‌ای ${perWeek} بار` : `${perWeek}× a week`;
+    label = fa ? `هفته‌ای ${perWeek} بار` : ru ? `${perWeek}× в неделю` : `${perWeek}× a week`;
   }
   const daily =
-    /\b(?:every\s*day|daily|every (?:morning|night|evening|afternoon)|each (?:day|morning|night))\b|هر روز|روزانه|هر صبح|هر شب|هر عصر/i;
+    /\b(?:every\s*day|daily|every (?:morning|night|evening|afternoon)|each (?:day|morning|night))\b|هر روز|روزانه|هر صبح|هر شب|هر عصر|каждый день|ежедневно|каждое утро|каждый вечер|каждую ночь/iu;
   if (daily.test(rest)) {
     days = [0, 1, 2, 3, 4, 5, 6];
-    const part = /\b(?:every|each)\s+(morning|night|evening|afternoon)\b|هر (صبح|شب|عصر)/i.exec(
-      rest,
-    );
+    const part =
+      /\b(?:every|each)\s+(morning|night|evening|afternoon)\b|هر (صبح|شب|عصر)|(каждое утро|каждый вечер|каждую ночь)/iu.exec(
+        rest,
+      );
     label = part
       ? fa
         ? `هر ${part[2] ?? ''}`
-        : `Every ${(part[1] ?? '').toLowerCase()}`
+        : part[3]
+          ? capitalize(part[3].toLowerCase())
+          : `Every ${(part[1] ?? '').toLowerCase()}`
       : fa
         ? 'هر روز'
-        : 'Daily';
-    rest = rest.replace(new RegExp(daily.source, 'gi'), ' ');
-  } else if (/\b(?:weekdays|every weekday)\b|روزهای کاری/i.test(rest)) {
+        : ru
+          ? 'Каждый день'
+          : 'Daily';
+    rest = rest.replace(new RegExp(daily.source, 'giu'), ' ');
+  } else if (/\b(?:weekdays|every weekday)\b|روزهای کاری|по будням|в будни/iu.test(rest)) {
     // An Iranian working week runs Saturday to Wednesday.
     days = fa ? [6, 0, 1, 2, 3] : [1, 2, 3, 4, 5];
-    label = fa ? 'روزهای کاری' : 'Weekdays';
-    rest = rest.replace(/\b(?:every\s+)?weekdays?\b|روزهای کاری/gi, ' ');
+    label = fa ? 'روزهای کاری' : ru ? 'По будням' : 'Weekdays';
+    rest = rest.replace(/\b(?:every\s+)?weekdays?\b|روزهای کاری|по будням|в будни/giu, ' ');
   } else {
     const found = new Set<number>();
     rest = rest.replace(EN_DAY, (_m: string, d: string) => {
@@ -412,18 +466,34 @@ export function parseHabit(text: string): HabitData {
       if (i >= 0) found.add(i);
       return ' ';
     });
+    // "по пн, ср и пт", "по вторникам и четвергам".
+    rest = rest.replace(RU_DAY, (w: string) => {
+      const low = w.toLowerCase();
+      const short = Object.entries(RU_FULL).find(([k]) => low.startsWith(k))?.[1] ?? low;
+      const i = RU_DAY_STEMS.indexOf(short);
+      if (i >= 0) found.add(i);
+      return ' ';
+    });
+    rest = rest.replace(/(?<!\p{L})по(?!\p{L})/giu, ' ');
     if (found.size) {
       days = [...found].sort();
-      if (!label) label = days.length === 1 ? 'Weekly' : `${days.length}× a week`;
+      if (!label)
+        label = ru
+          ? days.length === 1
+            ? 'Раз в неделю'
+            : `${days.length}× в неделю`
+          : days.length === 1
+            ? 'Weekly'
+            : `${days.length}× a week`;
     }
   }
-  if (!label && /\bweekly\b|هفتگی/i.test(rest)) {
+  if (!label && /\bweekly\b|هفتگی|еженедельно|раз в неделю/iu.test(rest)) {
     perWeek = 1;
-    label = fa ? 'هفتگی' : 'Weekly';
+    label = fa ? 'هفتگی' : ru ? 'Раз в неделю' : 'Weekly';
   }
   rest = rest.replace(
     words(
-      "every|each|weekly|habit|routine|start|i want to|i will|i'll|عادت|هفتگی|میخوام|می خوام|باید",
+      "every|each|weekly|habit|routine|start|i want to|i will|i'll|عادت|هفتگی|میخوام|می خوام|باید|привычка|хочу|буду|еженедельно|раз в неделю",
     ),
     ' ',
   );
@@ -469,6 +539,9 @@ export function parseSplit(text: string): SplitData {
       'i',
     ).exec(rest) ??
     new RegExp(`(?:بین|برای|تقسیم بر)\\s*(\\d+|${words})\\s*(?:نفر|تا)?`).exec(rest) ??
+    /(?:на|между)\s+(\d+|двоих|троих|четверых|пятерых|два|три|четыре|пять)(?:\s*(?:человек\p{L}*|чел))?(?!\p{L})/iu.exec(
+      rest,
+    ) ??
     new RegExp(`\\b(\\d+|${words})\\s*(?:ways|people|persons|friends|of us|نفر|نفری)\\b`, 'i').exec(
       rest,
     );
@@ -499,11 +572,12 @@ export function parseExpense(text: string): ExpenseData {
   const rest = amount ? removeRange(t, amount.index, amount.length) : t;
   const on =
     /\b(?:on|for|at|in)\s+(.+)$/i.exec(rest) ??
-    /(?:برای|بابت|سر)\s+(.+?)(?:\s+(?:دادم|خرج کردم|پرداختم|شد))?$/.exec(rest);
+    /(?:برای|بابت|سر)\s+(.+?)(?:\s+(?:دادم|خرج کردم|پرداختم|شد))?$/.exec(rest) ??
+    /(?<!\p{L})(?:на|за)\s+(.+)$/iu.exec(rest);
   let item = on ? (on[1] ?? '') : rest;
   item = item.replace(
     words(
-      'spent|paid|pay|bought|cost|costs|rupees|rs|bucks|dollars|today|yesterday|خرج کردم|دادم|پرداختم|پرداخت|هزینه|تومن|تومان|ریال|هزار|میلیون|خریدم|امروز|دیروز',
+      'spent|paid|pay|bought|cost|costs|rupees|rs|bucks|dollars|today|yesterday|خرج کردم|دادم|پرداختم|پرداخت|هزینه|تومن|تومان|ریال|هزار|میلیون|خریدم|امروز|دیروز|потратил[аи]?|заплатил[аи]?|купил[аи]?|стоит|стоило|руб\\p{L}*|р|₽|сегодня|вчера',
     ),
     ' ',
   );
@@ -519,11 +593,11 @@ export function parseExpense(text: string): ExpenseData {
 export function parseConvert(text: string): ConvertData {
   const t = fold(text)
     .toLowerCase()
-    .replace(/degrees?\s+|درجه\s*/g, '°')
+    .replace(/degrees?\s+|درجه\s*|градус\p{L}*\s*/gu, '°')
     .replace(/°\s+/g, '°');
   const full = new RegExp(
-    `(-?\\d+(?:\\.\\d+)?)\\s*(${UNIT_PATTERN})\\s+(?:to|in|into|as|=|->|به|چند|برابر)\\s+(?:چند\\s+)?(${UNIT_PATTERN})(?![a-z\\u0600-\\u06ff])`,
-    'i',
+    `(-?\\d+(?:\\.\\d+)?)\\s*(${UNIT_PATTERN})\\s+(?:to|in|into|as|=|->|به|چند|برابر|в|во|перевести в)\\s+(?:چند\\s+)?(${UNIT_PATTERN})(?![a-z\\u0600-\\u06ff\\u0400-\\u04ff])`,
+    'iu',
   ).exec(t);
   if (full) {
     const value = Number(full[1]);
@@ -533,8 +607,8 @@ export function parseConvert(text: string): ConvertData {
     if (result !== null) return { value, from, to, result };
   }
   const part = new RegExp(
-    `(-?\\d+(?:\\.\\d+)?)\\s*(${UNIT_PATTERN})(?![a-z\\u0600-\\u06ff])`,
-    'i',
+    `(-?\\d+(?:\\.\\d+)?)\\s*(${UNIT_PATTERN})(?![a-z\\u0600-\\u06ff\\u0400-\\u04ff])`,
+    'iu',
   ).exec(t);
   if (part) {
     const value = Number(part[1]);
@@ -708,19 +782,23 @@ export function parseTravel(text: string, ref: Date): TravelData {
   let end: Date | null = null;
   const low = rest.toLowerCase();
   const mode: TravelData['mode'] =
-    /\b(flight|fly|flying|plane|airport)\b|پرواز|هواپیما|فرودگاه/.test(low)
+    /\b(flight|fly|flying|plane|airport)\b|پرواز|هواپیما|فرودگاه|самол[её]т|рейс|лечу|аэропорт/.test(
+      low,
+    )
       ? 'flight'
-      : /\b(train|rail)\b|قطار/.test(low)
+      : /\b(train|rail)\b|قطار|поезд/.test(low)
         ? 'train'
-        : /\b(bus|coach)\b|اتوبوس/.test(low)
+        : /\b(bus|coach)\b|اتوبوس|автобус/.test(low)
           ? 'bus'
-          : /\b(drive|car|road ?trip)\b|ماشین|جاده/.test(low)
+          : /\b(drive|car|road ?trip)\b|ماشین|جاده|машин|на авто/.test(low)
             ? 'car'
             : null;
   const wk =
-    /\b(this|next)\s+weekend\b/i.exec(rest) ?? /آخر ?هفته ?(?:ی )?(بعد|دیگه|آینده)?/.exec(rest);
+    /\b(this|next)\s+weekend\b/i.exec(rest) ??
+    /آخر ?هفته ?(?:ی )?(بعد|دیگه|آینده)?/.exec(rest) ??
+    /на (?:этих |следующих )?выходных/iu.exec(rest);
   if (wk) {
-    [start, end] = weekend(ref, /next|بعد|دیگه|آینده/.test(wk[0]));
+    [start, end] = weekend(ref, /next|بعد|دیگه|آینده|следующ/.test(wk[0]));
     rest = rest.replace(wk[0], ' ');
   } else {
     const date = findDate(rest.toLowerCase(), ref);
@@ -743,9 +821,16 @@ export function parseTravel(text: string, ref: Date): TravelData {
     const v = (s ?? '').replace(/\s*(?:برم|میرم|بریم|میریم|سفر|پرواز|با|قطار|اتوبوس)$/, '').trim();
     return v || null;
   };
+  // A Russian city is named with a capital: "в Казань", "из Москвы".
+  const ruTo = /(?:^|\s)(?:в|во|до)\s+([А-ЯЁ][\p{L}-]+(?:\s[А-ЯЁ][\p{L}-]+)?)/u.exec(rest);
+  const ruFrom = /(?:^|\s)из\s+([А-ЯЁ][\p{L}-]+)/u.exec(rest);
   const destination =
-    grabEn(/\b(?:to|for|visit(?:ing)?)\s+([a-z][a-z .'-]{1,40})/i) ?? clean(faTo?.[1]);
-  const origin = grabEn(/\bfrom\s+([a-z][a-z .'-]{1,40})/i) ?? clean(faFrom?.[1]);
+    grabEn(/\b(?:to|for|visit(?:ing)?)\s+([a-z][a-z .'-]{1,40})/i) ??
+    clean(faTo?.[1]) ??
+    ruTo?.[1] ??
+    null;
+  const origin =
+    grabEn(/\bfrom\s+([a-z][a-z .'-]{1,40})/i) ?? clean(faFrom?.[1]) ?? ruFrom?.[1] ?? null;
   return { destination, origin, start, end, mode };
 }
 
@@ -757,7 +842,7 @@ export function parsePoll(text: string): PollData {
     stem = t.slice(0, colon).trim();
     t = t.slice(colon + 1).trim();
   }
-  let parts = t.split(/\s*(?:,|\bor\b|\bvs\.?\b|\/|\sیا\s)\s*/i).filter(Boolean);
+  let parts = t.split(/\s*(?:,|\bor\b|\bvs\.?\b|\/|\sیا\s|\sили\s)\s*/iu).filter(Boolean);
   if (parts.length < 2) return { title: stem ? `${capitalize(stem)}?` : '', options: [] };
   let context: string | null = null;
   const last = parts[parts.length - 1] as string;
@@ -784,7 +869,7 @@ export function parsePoll(text: string): PollData {
   }
   parts = parts.map((p) => p.trim()).filter(Boolean);
   const fa = isPersian(t);
-  const base = capitalize(stem ?? parts.join(fa ? ' یا ' : ' or '));
+  const base = capitalize(stem ?? parts.join(fa ? ' یا ' : RUSSIAN.test(t) ? ' или ' : ' or '));
   return {
     title: `${base}${context ? ` ${context}` : ''}${fa ? '؟' : '?'}`,
     options: parts.map(capitalize),
@@ -808,12 +893,12 @@ export function parseContact(text: string): ContactData {
   }
   const name = rest
     .replace(
-      /\b(?:save|add|contact|number|phone|email|mail|is|his|her|their|new)\b|شماره|ذخیره|مخاطب|ایمیل|تلفن|موبایل|:/gi,
+      /\b(?:save|add|contact|number|phone|email|mail|is|his|her|their|new)\b|شماره|ذخیره|مخاطب|ایمیل|تلفن|موبایل|контакт|номер|телефон|почта|сохрани|:/giu,
       ' ',
     )
-    .replace(/[^a-z؀-ۿ\s'.-]/gi, ' ')
+    .replace(/[^a-z؀-ۿа-я\s'.-]/giu, ' ')
     .trim();
-  const shown = isPersian(name) ? collapse(name) : titleCase(name);
+  const shown = isPersian(name) ? collapse(name) : titleCase(collapse(name));
   return { name: shown, phone, email, initials: initials(shown) };
 }
 
@@ -848,6 +933,10 @@ const HOLIDAYS: Record<string, [number, number]> = {
   "valentine's day": [1, 14],
   کریسمس: [11, 25],
   ولنتاین: [1, 14],
+  'нового года': [0, 1],
+  'новый год': [0, 1],
+  рождества: [0, 7],
+  рождество: [0, 7],
 };
 /** Jalali holidays: [month, day] in the Persian calendar. */
 const JALALI_HOLIDAYS: Record<string, [number, number]> = {
@@ -905,7 +994,7 @@ export function parseCountdown(text: string, ref: Date): CountdownData {
         rest
           .replace(
             words(
-              'how many|days?|weeks?|until|till|til|to go|left|countdown|count down|before|is it|are there|the|چند روز|روزهای|روز|مونده|مانده|تا|شمارش معکوس|به|چقدر',
+              'how many|days?|weeks?|until|till|til|to go|left|countdown|count down|before|is it|are there|the|چند روز|روزهای|روز|مونده|مانده|تا|شمارش معکوس|به|چقدر|сколько|дней|дня|день|до|осталось|отсчет',
             ),
             ' ',
           )
@@ -963,9 +1052,10 @@ export function parseRandom(text: string): RandomData {
       count: Math.min(20, Number(dice[1] || 1)),
       sides: Math.max(2, Number(dice[2])),
     };
-  if (/\bcoin\b|\bflip\b|\btoss\b|سکه|شیر یا خط/.test(t)) return { ...base, kind: 'coin' };
+  if (/\bcoin\b|\bflip\b|\btoss\b|سکه|شیر یا خط|монет|орел или решка/.test(t))
+    return { ...base, kind: 'coin' };
   const between =
-    /\b(?:between|from)\s+(-?\d+)\s+(?:and|to)\s+(-?\d+)\b|بین\s*(-?\d+)\s*(?:و|تا)\s*(-?\d+)/.exec(
+    /\b(?:between|from)\s+(-?\d+)\s+(?:and|to)\s+(-?\d+)\b|(?:بین|от)\s*(-?\d+)\s*(?:و|تا|до)\s*(-?\d+)/.exec(
       t,
     );
   if (between) {
@@ -974,20 +1064,28 @@ export function parseRandom(text: string): RandomData {
     return { ...base, kind: 'number', min: Math.min(a, b), max: Math.max(a, b) };
   }
   const pick =
-    /(?:pick|choose)\s+(?:one|for me)?\s*:?\s*(.+)$|(?:یکی رو انتخاب کن|انتخاب کن|قرعه)\s*:?\s*(.+)$/.exec(
+    /(?:pick|choose)\s+(?:one|for me)?\s*:?\s*(.+)$|(?:یکی رو انتخاب کن|انتخاب کن|قرعه|выбери(?:\s+одно)?)\s*:?\s*(.+)$/.exec(
       t,
     );
   if (pick) {
     const options = (pick[1] ?? pick[2] ?? '')
-      .split(/\s*(?:,|\bor\b|\sیا\s|\sو\s)\s*/)
+      .split(/\s*(?:,|\bor\b|\sیا\s|\sو\s|\sили\s)\s*/)
       .map((s) => capitalize(s.trim()))
       .filter(Boolean);
     if (options.length >= 2) return { ...base, kind: 'pick', options };
   }
-  const n = /(?:roll|throw)\s+(\d+|a|one|two|three)?\s*(?:dice|die)|(\d+)?\s*(?:تا\s*)?تاس/.exec(t);
+  const n =
+    /(?:roll|throw)\s+(\d+|a|one|two|three)?\s*(?:dice|die)|(\d+)?\s*(?:تا\s*)?تاس|(?:брось|кинь)?\s*(\d+)?\s*кубик/.exec(
+      t,
+    );
   if (n)
-    return { ...base, kind: 'dice', count: Math.min(20, numberWord(n[1] ?? n[2] ?? '1') ?? 1) };
-  if (/\brandom number\b|عدد تصادفی|عدد رندوم/.test(t)) return { ...base, kind: 'number' };
+    return {
+      ...base,
+      kind: 'dice',
+      count: Math.min(20, numberWord(n[1] ?? n[2] ?? n[3] ?? '1') ?? 1),
+    };
+  if (/\brandom number\b|عدد تصادفی|عدد رندوم|случайное число/.test(t))
+    return { ...base, kind: 'number' };
   return base;
 }
 
@@ -1006,7 +1104,7 @@ export function parseGoal(text: string): GoalData {
   let current = 0;
   let target: number | null = null;
   let rest = ` ${t} `;
-  const of = /(\d[\d,]*)\s*(?:of|\/|out of|از)\s*(\d[\d,]*)/i.exec(rest);
+  const of = /(\d[\d,]*)\s*(?:of|\/|out of|از|из)\s*(\d[\d,]*)/i.exec(rest);
   if (of) {
     current = Number((of[1] ?? '0').replace(/,/g, ''));
     target = Number((of[2] ?? '0').replace(/,/g, ''));
@@ -1016,7 +1114,7 @@ export function parseGoal(text: string): GoalData {
       Number(m[0].replace(/,/g, '')),
     );
     const doneWord =
-      /\b(done|so far|saved|completed|finished|read)\b|تا حالا|خوندم|انجام دادم|تموم|جمع کردم/i;
+      /\b(done|so far|saved|completed|finished|read)\b|تا حالا|خوندم|انجام دادم|تموم|جمع کردم|прочитал\p{L}*|сделал\p{L}*|готово|уже/iu;
     if (nums.length >= 2) {
       const [a, b] = nums as [number, number];
       [target, current] = doneWord.test(rest.slice(rest.search(/\d/) + 1))
@@ -1025,21 +1123,21 @@ export function parseGoal(text: string): GoalData {
     } else if (nums.length === 1) target = nums[0] ?? null;
     rest = rest.replace(/\d[\d,]*(?:\.\d+)?/g, ' ');
   }
-  const unitM = /^\s*([a-z؀-ۿ]+)/i.exec(
+  const unitM = /^\s*([a-z؀-ۿа-я]+)/iu.exec(
     rest.replace(/^\s*(?:read|save|run|write|lose|بخونم|خوندن)\s+/i, ' '),
   );
   const cleaned = tidy(
     rest
       .replace(
         words(
-          'done|so far|saved|completed|finished|this year|goal|target|already|تا حالا|امسال|هدف|تا|خوندم|انجام دادم|:',
+          'done|so far|saved|completed|finished|this year|goal|target|already|تا حالا|امسال|هدف|تا|خوندم|انجام دادم|цель|в этом году|уже|прочитал\\p{L}*|сделал\\p{L}*|готово|:',
         ),
         ' ',
       )
       .replace(/[,:]/g, ' '),
   );
   return {
-    title: capitalize(cleaned) || (isPersian(t) ? 'هدف' : 'Goal'),
+    title: capitalize(cleaned) || (isPersian(t) ? 'هدف' : RUSSIAN.test(t) ? 'Цель' : 'Goal'),
     current,
     target,
     unit: unitM && target ? (unitM[1] ?? null) : null,

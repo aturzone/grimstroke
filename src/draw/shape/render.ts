@@ -15,7 +15,7 @@ import { hslString, inkOn, rgbString } from './colors.ts';
 import { type Fields, readShape } from './fields.ts';
 import { INTENTS, iconSvg, type ShapeIntent } from './intents.ts';
 import { describeRandom, formatClock, type ShapeDataMap } from './parse.ts';
-import { digitsFor, formatAmount, isPersian } from './text.ts';
+import { digitsFor, formatAmount, isPersian, type Lang, langOf } from './text.ts';
 import { UNITS, unitOptions } from './units.ts';
 import { daysBetween, formatWhen } from './when.ts';
 import { formatIn, localZone, offsetBetween } from './zones.ts';
@@ -76,8 +76,10 @@ export interface FaceOptions {
 const esc = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-function t(fa: boolean, en: string, faText: string): string {
-  return fa ? faText : en;
+/** A card's words in the language its text is in; Russian falls back to English where unsaid. */
+function t(lang: boolean | Lang, en: string, faText: string, ruText?: string): string {
+  if (lang === 'ru') return ruText ?? en;
+  return lang === true || lang === 'fa' ? faText : en;
 }
 
 function act(name: string, label: string, body: string, on: boolean, extra = ''): string {
@@ -125,8 +127,8 @@ const I = {
   repo: '<svg class="sc-mini" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4 V20 M7 8 A3 3 0 1 0 7 2 M17 9 A3 3 0 1 0 17 3 M17 9 C17 14 7 12 7 16"/></svg>',
 };
 
-function when(d: Date | null, hasTime: boolean, now: Date, fa: boolean): string {
-  if (!d) return missing(t(fa, 'add a date', 'تاریخ؟'));
+function when(d: Date | null, hasTime: boolean, now: Date, fa: boolean | Lang): string {
+  if (!d) return missing(t(fa, 'add a date', 'تاریخ؟', 'дата?'));
   const w = formatWhen(d, hasTime, now, fa);
   return chip(I.calendar, w.day) + (w.time ? chip(I.clock, w.time) : '');
 }
@@ -140,7 +142,7 @@ function ymd(d: Date): string {
 type Body<K extends ShapeIntent> = (
   d: ShapeDataMap[K],
   s: ShapeState,
-  ctx: { fa: boolean; now: Date; live: boolean; text: string },
+  ctx: { fa: boolean; lang: Lang; now: Date; live: boolean; text: string },
 ) => string;
 
 const BODIES: { [K in ShapeIntent]: Body<K> } = {
@@ -148,9 +150,15 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
   // able to take it back.
   event: (d, s, c) =>
     `<div class="sc-reminder${s.closed ? ' is-done' : ''}">` +
-    act('close', t(c.fa, 'done', 'انجام شد'), '', c.live, `sc-check${s.closed ? ' is-on' : ''}`) +
-    `<div><h3 class="sc-title">${d.title ? esc(d.title) : missing(t(c.fa, 'Untitled event', 'رویداد بی‌نام'))}</h3>` +
-    `<div class="sc-row">${when(d.date, d.hasTime, c.now, c.fa)}</div></div></div>` +
+    act(
+      'close',
+      t(c.lang, 'done', 'انجام شد', 'готово'),
+      '',
+      c.live,
+      `sc-check${s.closed ? ' is-on' : ''}`,
+    ) +
+    `<div><h3 class="sc-title">${d.title ? esc(d.title) : missing(t(c.lang, 'Untitled event', 'رویداد بی‌نام', 'Событие без названия'))}</h3>` +
+    `<div class="sc-row">${when(d.date, d.hasTime, c.now, c.lang)}</div></div></div>` +
     (d.link || d.location
       ? `<div class="sc-line">${d.link ? I.video : I.pin}<span>${esc(d.link ?? d.location ?? '')}</span></div>`
       : '') +
@@ -163,9 +171,15 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
 
   reminder: (d, s, c) =>
     `<div class="sc-reminder${s.closed ? ' is-done' : ''}">` +
-    act('close', t(c.fa, 'done', 'انجام شد'), '', c.live, `sc-check${s.closed ? ' is-on' : ''}`) +
-    `<div><h3 class="sc-title">${d.task ? esc(d.task) : missing(t(c.fa, 'What to remember', 'چه چیزی یادت باشه'))}</h3>` +
-    `<div class="sc-row">${when(d.when, d.hasTime, c.now, c.fa)}</div></div></div>`,
+    act(
+      'close',
+      t(c.lang, 'done', 'انجام شد', 'готово'),
+      '',
+      c.live,
+      `sc-check${s.closed ? ' is-on' : ''}`,
+    ) +
+    `<div><h3 class="sc-title">${d.task ? esc(d.task) : missing(t(c.lang, 'What to remember', 'چه چیزی یادت باشه', 'О чём напомнить'))}</h3>` +
+    `<div class="sc-row">${when(d.when, d.hasTime, c.now, c.lang)}</div></div></div>`,
 
   todo: (d, s, c) => {
     const done = new Set(s.done ?? []);
@@ -180,8 +194,15 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
         )
         .join('')}</ul>` +
       (items.length
-        ? `<p class="sc-meta">${done.size}/${items.length} ${t(c.fa, 'done', 'انجام شد')}</p>`
-        : missing(t(c.fa, 'Add items, separated by commas', 'موارد رو با ویرگول جدا کن')))
+        ? `<p class="sc-meta">${done.size}/${items.length} ${t(c.lang, 'done', 'انجام شد', 'готово')}</p>`
+        : missing(
+            t(
+              c.lang,
+              'Add items, separated by commas',
+              'موارد رو با ویرگول جدا کن',
+              'Перечислите через запятую',
+            ),
+          ))
     );
   },
 
@@ -205,17 +226,17 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
       `<circle cx="60" cy="60" r="${R}" class="sc-ring-bar" stroke-dasharray="${len.toFixed(1)}" ` +
       `stroke-dashoffset="${(len * progress).toFixed(1)}"/></svg>` +
       `<span class="sc-clock" role="timer">${formatClock(left)}</span></div>` +
-      `<div class="sc-side"><h3 class="sc-title">${esc(d.label || (stopwatch ? t(c.fa, 'Stopwatch', 'کرنومتر') : t(c.fa, 'Timer', 'تایمر')))}</h3>` +
+      `<div class="sc-side"><h3 class="sc-title">${esc(d.label || (stopwatch ? t(c.lang, 'Stopwatch', 'کرنومتر', 'Секундомер') : t(c.lang, 'Timer', 'تایمر', 'Таймер')))}</h3>` +
       (total && idle
-        ? `<div class="sc-row sc-steps">${act('timer:-60', t(c.fa, 'one minute less', 'یک دقیقه کمتر'), `${I.minus}<span>${t(c.fa, '1m', '۱ دقیقه')}</span>`, c.live && total > 60, 'sc-btn sc-soft-btn')}` +
-          `${act('timer:+60', t(c.fa, 'one minute more', 'یک دقیقه بیشتر'), `${I.plus}<span>${t(c.fa, '1m', '۱ دقیقه')}</span>`, c.live, 'sc-btn sc-soft-btn')}</div>`
+        ? `<div class="sc-row sc-steps">${act('timer:-60', t(c.lang, 'one minute less', 'یک دقیقه کمتر', 'на минуту меньше'), `${I.minus}<span>${t(c.lang, '1m', '۱ دقیقه', '1 мин')}</span>`, c.live && total > 60, 'sc-btn sc-soft-btn')}` +
+          `${act('timer:+60', t(c.lang, 'one minute more', 'یک دقیقه بیشتر', 'на минуту больше'), `${I.plus}<span>${t(c.lang, '1m', '۱ دقیقه', '1 мин')}</span>`, c.live, 'sc-btn sc-soft-btn')}</div>`
         : !total && !stopwatch && idle
-          ? `<p class="sc-meta">${t(c.fa, 'How long?', 'چقدر؟')}</p><div class="sc-row sc-steps">${presets
+          ? `<p class="sc-meta">${t(c.lang, 'How long?', 'چقدر؟', 'Сколько?')}</p><div class="sc-row sc-steps">${presets
               .map((m) =>
                 act(
                   `timer:set:${m * 60}`,
-                  `${m} ${t(c.fa, 'minutes', 'دقیقه')}`,
-                  `${digitsFor(m, c.fa)}${t(c.fa, 'm', ' دقیقه')}`,
+                  `${m} ${t(c.lang, 'minutes', 'دقیقه', 'минут')}`,
+                  `${digitsFor(m, c.fa)}${t(c.lang, 'm', ' دقیقه', ' мин')}`,
                   c.live,
                   'sc-pill',
                 ),
@@ -225,14 +246,14 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
       `<div class="sc-row">` +
       act(
         'timer:toggle',
-        running ? t(c.fa, 'pause', 'مکث') : t(c.fa, 'start', 'شروع'),
-        `${running ? I.pause : I.play}<span>${running ? t(c.fa, 'Pause', 'مکث') : ran > 0 ? t(c.fa, 'Resume', 'ادامه') : t(c.fa, 'Start', 'شروع')}</span>`,
+        running ? t(c.lang, 'pause', 'مکث', 'пауза') : t(c.lang, 'start', 'شروع', 'старт'),
+        `${running ? I.pause : I.play}<span>${running ? t(c.lang, 'Pause', 'مکث', 'Пауза') : ran > 0 ? t(c.lang, 'Resume', 'ادامه', 'Продолжить') : t(c.lang, 'Start', 'شروع', 'Старт')}</span>`,
         c.live,
         'sc-btn',
       ) +
       act(
         'timer:reset',
-        t(c.fa, 'reset', 'از نو'),
+        t(c.lang, 'reset', 'از نو', 'сброс'),
         I.reset,
         c.live && ran > 0,
         'sc-btn sc-icon-btn',
@@ -250,15 +271,17 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
     const today = ymd(c.now);
     const doneToday = (s.log ?? []).includes(today);
     return (
-      `<div class="sc-head-row"><h3 class="sc-title">${d.title ? esc(d.title) : missing(t(c.fa, 'Untitled habit', 'عادت بی‌نام'))}</h3>` +
-      (d.label ? chip(I.repeat, d.label) : missing(t(c.fa, 'how often?', 'هر چند وقت؟'))) +
+      `<div class="sc-head-row"><h3 class="sc-title">${d.title ? esc(d.title) : missing(t(c.lang, 'Untitled habit', 'عادت بی‌نام', 'Привычка без названия'))}</h3>` +
+      (d.label
+        ? chip(I.repeat, d.label)
+        : missing(t(c.lang, 'how often?', 'هر چند وقت؟', 'как часто?'))) +
       `</div><div class="sc-week">${order
         .map((i) =>
           act(`day:${i}`, `${i}`, letters[i] ?? '', c.live, `sc-day${days.has(i) ? ' is-on' : ''}`),
         )
         .join('')}</div>` +
-      `<div class="sc-row">${act('habit:log', 'done today', `<span>${doneToday ? t(c.fa, 'Done today', 'امروز انجام شد') : t(c.fa, 'Mark today', 'علامت امروز')}</span>`, c.live, `sc-btn${doneToday ? ' is-on' : ''}`)}` +
-      `<span class="sc-meta">${(s.log ?? []).length} ${t(c.fa, 'times', 'بار')}</span></div>`
+      `<div class="sc-row">${act('habit:log', 'done today', `<span>${doneToday ? t(c.lang, 'Done today', 'امروز انجام شد', 'Сегодня сделано') : t(c.lang, 'Mark today', 'علامت امروز', 'Отметить сегодня')}</span>`, c.live, `sc-btn${doneToday ? ' is-on' : ''}`)}` +
+      `<span class="sc-meta">${(s.log ?? []).length} ${t(c.lang, 'times', 'بار', 'раз')}</span></div>`
     );
   },
 
@@ -266,29 +289,38 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
     d.hex
       ? `<div class="sc-swatch" style="background:${d.hex};color:${inkOn(d.hex)}"><span>${esc(d.name ?? d.hex.toUpperCase())}</span></div>` +
         `<dl class="sc-codes"><dt>HEX</dt><dd>${d.hex.toUpperCase()}</dd><dt>RGB</dt><dd>${rgbString(d.hex)}</dd><dt>HSL</dt><dd>${hslString(d.hex)}</dd></dl>`
-      : missing(t(c.fa, 'A hex code, rgb(), or a colour name', 'کد رنگ یا نام رنگ')),
+      : missing(
+          t(
+            c.lang,
+            'A hex code, rgb(), or a colour name',
+            'کد رنگ یا نام رنگ',
+            'Код цвета, rgb() или название',
+          ),
+        ),
 
   split: (d, _s, c) => {
     const people = d.people ?? 2;
     const total = d.total ?? 0;
     return (
-      `<div class="sc-split"><div><p class="sc-meta">${t(c.fa, 'Total', 'مبلغ کل')}</p><p class="sc-num">${total ? formatAmount(total, d.currency) : '—'}</p>` +
-      `<p class="sc-meta">${t(c.fa, 'People', 'نفرات')}</p><div class="sc-row">` +
+      `<div class="sc-split"><div><p class="sc-meta">${t(c.lang, 'Total', 'مبلغ کل', 'Всего')}</p><p class="sc-num">${total ? formatAmount(total, d.currency) : '—'}</p>` +
+      `<p class="sc-meta">${t(c.lang, 'People', 'نفرات', 'Человек')}</p><div class="sc-row">` +
       act('people:-', 'fewer', I.minus, c.live && people > 1, 'sc-btn sc-icon-btn') +
       `<span class="sc-count">${digitsFor(people, c.fa)}</span>` +
       act('people:+', 'more', I.plus, c.live && people < 99, 'sc-btn sc-icon-btn') +
-      `</div></div><div class="sc-end"><p class="sc-meta">${t(c.fa, 'Each pays', 'سهم هر نفر')}</p>` +
+      `</div></div><div class="sc-end"><p class="sc-meta">${t(c.lang, 'Each pays', 'سهم هر نفر', 'С каждого')}</p>` +
       `<p class="sc-hero">${total ? formatAmount(total / people, d.currency) : '—'}</p></div></div>`
     );
   },
 
   expense: (d, _s, c) =>
-    `<div class="sc-split"><h3 class="sc-title">${d.item ? esc(d.item) : missing(t(c.fa, 'on what?', 'برای چی؟'))}</h3>` +
+    `<div class="sc-split"><h3 class="sc-title">${d.item ? esc(d.item) : missing(t(c.lang, 'on what?', 'برای چی؟', 'на что?'))}</h3>` +
     `<p class="sc-hero">${d.amount !== null ? formatAmount(d.amount, d.currency) : '—'}</p></div>`,
 
   convert: (d, _s, c) => {
     if (d.value === null || !d.from)
-      return missing(t(c.fa, 'Like “5 miles in km”', 'مثل «۵ مایل به کیلومتر»'));
+      return missing(
+        t(c.lang, 'Like “5 miles in km”', 'مثل «۵ مایل به کیلومتر»', 'Например «5 миль в км»'),
+      );
     const to = d.to;
     const value = d.result;
     const opts = unitOptions(d.from).filter((u) => u !== d.from);
@@ -312,19 +344,19 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
 
   calc: (d, _s, c) =>
     `<p class="sc-expr" dir="ltr">${esc(d.expression)}</p>` +
-    `<p class="sc-hero" dir="ltr">${d.result !== null ? `= ${d.result.toLocaleString('en-US', { maximumFractionDigits: 6 })}` : missing(t(c.fa, 'not a sum yet', 'هنوز محاسبه‌پذیر نیست'))}</p>`,
+    `<p class="sc-hero" dir="ltr">${d.result !== null ? `= ${d.result.toLocaleString('en-US', { maximumFractionDigits: 6 })}` : missing(t(c.lang, 'not a sum yet', 'هنوز محاسبه‌پذیر نیست', 'пока не вычисляется'))}</p>`,
 
   travel: (d, _s, c) =>
-    `<h3 class="sc-title">${d.destination ? `${d.origin ? `${esc(d.origin)} → ` : ''}${esc(d.destination)}` : missing(t(c.fa, 'Where to?', 'مقصد؟'))}</h3>` +
-    `<div class="sc-row">${d.start ? chip(I.calendar, formatWhen(d.start, false, c.now, c.fa).day + (d.end ? ` – ${formatWhen(d.end, false, c.now, c.fa).day}` : '')) : missing(t(c.fa, 'when?', 'کی؟'))}` +
+    `<h3 class="sc-title">${d.destination ? `${d.origin ? `${esc(d.origin)} → ` : ''}${esc(d.destination)}` : missing(t(c.lang, 'Where to?', 'مقصد؟', 'Куда?'))}</h3>` +
+    `<div class="sc-row">${d.start ? chip(I.calendar, formatWhen(d.start, false, c.now, c.lang).day + (d.end ? ` – ${formatWhen(d.end, false, c.now, c.lang).day}` : '')) : missing(t(c.lang, 'when?', 'کی؟', 'когда?'))}` +
     (d.mode
       ? chip(
           I.plane,
           {
-            flight: t(c.fa, 'Flight', 'پرواز'),
-            train: t(c.fa, 'Train', 'قطار'),
-            bus: t(c.fa, 'Bus', 'اتوبوس'),
-            car: t(c.fa, 'Road trip', 'جاده'),
+            flight: t(c.lang, 'Flight', 'پرواز', 'Перелёт'),
+            train: t(c.lang, 'Train', 'قطار', 'Поезд'),
+            bus: t(c.lang, 'Bus', 'اتوبوس', 'Автобус'),
+            car: t(c.lang, 'Road trip', 'جاده', 'На машине'),
           }[d.mode],
         )
       : '') +
@@ -335,7 +367,7 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
     const votes = options.map((_, i) => s.votes?.[i] ?? 0);
     const all = votes.reduce((a, b) => a + b, 0);
     return (
-      `<h3 class="sc-title">${d.title ? esc(d.title) : missing(t(c.fa, 'Ask the group', 'از جمع بپرس'))}</h3>` +
+      `<h3 class="sc-title">${d.title ? esc(d.title) : missing(t(c.lang, 'Ask the group', 'از جمع بپرس', 'Спросите всех'))}</h3>` +
       `<ul class="sc-poll">${options
         .map((o, i) => {
           const pct = all ? Math.round(((votes[i] ?? 0) / all) * 100) : 0;
@@ -350,14 +382,21 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
         })
         .join('')}</ul>` +
       (options.length
-        ? `<p class="sc-meta">${all} ${t(c.fa, all === 1 ? 'vote' : 'votes', 'رای')}</p>`
-        : missing(t(c.fa, 'Add options with “or”', 'گزینه‌ها رو با «یا» جدا کن')))
+        ? `<p class="sc-meta">${all} ${t(c.lang, all === 1 ? 'vote' : 'votes', 'رای', 'голос.')}</p>`
+        : missing(
+            t(
+              c.lang,
+              'Add options with “or”',
+              'گزینه‌ها رو با «یا» جدا کن',
+              'Добавьте варианты через «или»',
+            ),
+          ))
     );
   },
 
   contact: (d, _s, c) =>
     `<div class="sc-contact"><span class="sc-avatar sc-avatar-big">${esc(d.initials || '?')}</span><div>` +
-    `<h3 class="sc-title">${d.name ? esc(d.name) : missing(t(c.fa, 'Name', 'نام'))}</h3>` +
+    `<h3 class="sc-title">${d.name ? esc(d.name) : missing(t(c.lang, 'Name', 'نام', 'Имя'))}</h3>` +
     (d.phone
       ? `<p class="sc-line">${I.phone}<a href="tel:${esc(d.phone.replace(/\s/g, ''))}" dir="ltr">${esc(d.phone)}</a></p>`
       : '') +
@@ -371,16 +410,16 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
       ? `<a class="sc-link" href="${esc(d.url)}" target="_blank" rel="noopener"><span class="sc-avatar">${esc((d.domain ?? '?').slice(0, 1).toUpperCase())}</span>` +
         `<span><b>${esc(d.domain ?? d.url)}</b><small dir="ltr">${esc(d.url.replace(/^https?:\/\//, '').slice(0, 60))}</small></span></a>` +
         (d.note ? `<p class="sc-note">${esc(d.note)}</p>` : '')
-      : missing(t(c.fa, 'Paste a link', 'یه لینک بذار')),
+      : missing(t(c.lang, 'Paste a link', 'یه لینک بذار', 'Вставьте ссылку')),
 
   countdown: (d, _s, c) => {
     if (!d.date)
-      return `<h3 class="sc-title">${esc(d.title || '')}</h3>${missing(t(c.fa, 'until when?', 'تا کی؟'))}`;
+      return `<h3 class="sc-title">${esc(d.title || '')}</h3>${missing(t(c.lang, 'until when?', 'تا کی؟', 'до какого дня?'))}`;
     const days = daysBetween(c.now, d.date);
     return (
-      `<div class="sc-split"><div><h3 class="sc-title">${esc(d.title || t(c.fa, 'Countdown', 'شمارش معکوس'))}</h3>` +
+      `<div class="sc-split"><div><h3 class="sc-title">${esc(d.title || t(c.lang, 'Countdown', 'شمارش معکوس', 'Отсчёт'))}</h3>` +
       `<p class="sc-meta">${formatWhen(d.date, false, c.now, c.fa).day}</p></div>` +
-      `<div class="sc-end"><p class="sc-hero">${Math.abs(days)}</p><p class="sc-meta">${days === 0 ? t(c.fa, 'today', 'امروز') : days < 0 ? t(c.fa, 'days since', 'روز گذشته') : t(c.fa, days === 1 ? 'day to go' : 'days to go', 'روز مونده')}</p></div></div>`
+      `<div class="sc-end"><p class="sc-hero">${Math.abs(days)}</p><p class="sc-meta">${days === 0 ? t(c.lang, 'today', 'امروز', 'сегодня') : days < 0 ? t(c.lang, 'days since', 'روز گذشته', 'дней прошло') : t(c.lang, days === 1 ? 'day to go' : 'days to go', 'روز مونده', days === 1 ? 'день остался' : 'дн. осталось')}</p></div></div>`
     );
   },
 
@@ -392,51 +431,55 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
       `<ul class="sc-zones">${rows
         .map(
           (z) =>
-            `<li><span>${esc(z.label === 'Local' ? t(c.fa, 'Here', 'اینجا') : z.label)}</span><b dir="ltr">${formatIn(z.tz, at, c.fa)}</b></li>`,
+            `<li><span>${esc(z.label === 'Local' ? t(c.lang, 'Here', 'اینجا', 'Здесь') : z.label)}</span><b dir="ltr">${formatIn(z.tz, at, c.fa)}</b></li>`,
         )
         .join('')}</ul>` +
       (d.to
         ? `<p class="sc-meta" dir="ltr">${offsetBetween(from.tz, d.to.tz, at)}</p>`
-        : missing(t(c.fa, 'in which city?', 'کدوم شهر؟')))
+        : missing(t(c.lang, 'in which city?', 'کدوم شهر؟', 'в каком городе?')))
     );
   },
 
   random: (d, s, c) =>
     `<div class="sc-split"><div><h3 class="sc-title">${esc(describeRandom(d, c.fa))}</h3>` +
     (d.kind === 'pick' ? `<p class="sc-meta">${esc(d.options.join(c.fa ? '، ' : ', '))}</p>` : '') +
-    `<div class="sc-row">${act('roll', 'roll', `${I.dice}<span>${s.result ? t(c.fa, 'Again', 'دوباره') : t(c.fa, 'Roll', 'بنداز')}</span>`, c.live, 'sc-btn')}</div></div>` +
+    `<div class="sc-row">${act('roll', 'roll', `${I.dice}<span>${s.result ? t(c.lang, 'Again', 'دوباره', 'Ещё раз') : t(c.lang, 'Roll', 'بنداز', 'Бросить')}</span>`, c.live, 'sc-btn')}</div></div>` +
     `<p class="sc-hero sc-result">${s.result ? esc(s.result) : '?'}</p></div>`,
 
   goal: (d, _s, c) => {
     if (!d.target)
-      return `<h3 class="sc-title">${esc(d.title)}</h3>${missing(t(c.fa, 'Add a target, like “12 books, 4 done”', 'یه هدف بنویس، مثل «۱۲ کتاب، ۴ تا خوندم»'))}`;
+      return `<h3 class="sc-title">${esc(d.title)}</h3>${missing(t(c.lang, 'Add a target, like “12 books, 4 done”', 'یه هدف بنویس، مثل «۱۲ کتاب، ۴ تا خوندم»', 'Задайте цель, например «12 книг, 4 готово»'))}`;
     const cur = Math.min(d.target, d.current);
     const pct = Math.round((cur / d.target) * 100);
     return (
-      `<div class="sc-split"><div><h3 class="sc-title">${esc(d.title)}</h3><p class="sc-meta">${cur} ${t(c.fa, 'of', 'از')} ${d.target}${d.unit ? ` ${esc(d.unit)}` : ''}</p></div>` +
+      `<div class="sc-split"><div><h3 class="sc-title">${esc(d.title)}</h3><p class="sc-meta">${cur} ${t(c.lang, 'of', 'از', 'из')} ${d.target}${d.unit ? ` ${esc(d.unit)}` : ''}</p></div>` +
       `<p class="sc-hero">${pct}%</p></div><div class="sc-bar sc-bar-big"><span style="width:${pct}%"></span></div>` +
       `<div class="sc-row">${act('goal:-', 'less', I.minus, c.live && cur > 0, 'sc-btn sc-icon-btn')}${act('goal:+', 'more', I.plus, c.live && cur < d.target, 'sc-btn sc-icon-btn')}` +
-      (cur >= d.target ? `<span class="sc-meta sc-good">${t(c.fa, 'Done', 'تمام')}</span>` : '') +
+      (cur >= d.target
+        ? `<span class="sc-meta sc-good">${t(c.lang, 'Done', 'تمام', 'Готово')}</span>`
+        : '') +
       `</div>`
     );
   },
 
   issue: (d, s, c) => {
-    const kinds: Record<string, [string, string]> = {
-      bug: ['Bug', 'باگ'],
-      feature: ['Feature', 'قابلیت'],
-      task: ['Task', 'تسک'],
-      docs: ['Docs', 'مستندات'],
-      question: ['Question', 'سؤال'],
+    const kinds: Record<string, [string, string, string]> = {
+      bug: ['Bug', 'باگ', 'Баг'],
+      feature: ['Feature', 'قابلیت', 'Функция'],
+      task: ['Task', 'تسک', 'Задача'],
+      docs: ['Docs', 'مستندات', 'Документация'],
+      question: ['Question', 'سؤال', 'Вопрос'],
     };
-    const kind = d.type ? (kinds[d.type] as [string, string]) : undefined;
+    const kind = d.type ? (kinds[d.type] as [string, string, string]) : undefined;
     const sent = s.issue;
     return (
       (d.title
         ? `<h3 class="sc-title">${esc(d.title)}</h3>`
-        : missing(t(c.fa, 'what is it about?', 'درباره‌ی چیست؟'))) +
-      `<div class="sc-chips">${kind ? `<span class="sc-chip sc-issue-kind" data-kind="${d.type}">${esc(t(c.fa, kind[0], kind[1]))}</span>` : ''}` +
-      (d.repo ? chip(I.repo, d.repo) : missing(t(c.fa, 'which repository?', 'کدام ریپو؟'))) +
+        : missing(t(c.lang, 'what is it about?', 'درباره‌ی چیست؟', 'о чём она?'))) +
+      `<div class="sc-chips">${kind ? `<span class="sc-chip sc-issue-kind" data-kind="${d.type}">${esc(t(c.lang, kind[0], kind[1], kind[2]))}</span>` : ''}` +
+      (d.repo
+        ? chip(I.repo, d.repo)
+        : missing(t(c.lang, 'which repository?', 'کدام ریپو؟', 'какой репозиторий?'))) +
       '</div>' +
       (d.labels.length
         ? `<ul class="sc-labels">${d.labels.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>`
@@ -445,9 +488,9 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
         ? `<p class="sc-meta sc-issue-body">${esc(d.body.length > 240 ? `${d.body.slice(0, 239)}…` : d.body)}</p>`
         : '') +
       (sent
-        ? `<p class="sc-meta sc-good"><a href="${esc(sent.url)}" target="_blank" rel="noopener noreferrer">#${esc(String(sent.number))} ${t(c.fa, 'is open', 'باز شد')}</a></p>`
+        ? `<p class="sc-meta sc-good"><a href="${esc(sent.url)}" target="_blank" rel="noopener noreferrer">#${esc(String(sent.number))} ${t(c.lang, 'is open', 'باز شد', 'открыт')}</a></p>`
         : c.live
-          ? `<div class="sc-row">${act('issue:send', 'open it', `<span>${t(c.fa, 'Open the issue', 'ثبت ایشو')}</span>`, Boolean(d.title && d.repo), 'sc-btn')}</div>`
+          ? `<div class="sc-row">${act('issue:send', 'open it', `<span>${t(c.lang, 'Open the issue', 'ثبت ایشو', 'Открыть задачу')}</span>`, Boolean(d.title && d.repo), 'sc-btn')}</div>`
           : '')
     );
   },
@@ -455,10 +498,11 @@ const BODIES: { [K in ShapeIntent]: Body<K> } = {
   note: (d) => `<p class="sc-note">${esc(d.body)}</p>`,
 };
 
-function headerLabel(intent: ShapeIntent, d: unknown, fa: boolean): string {
+function headerLabel(intent: ShapeIntent, d: unknown, lang: Lang): string {
   const def = INTENTS[intent];
-  if (intent === 'todo' && (d as ShapeDataMap['todo']).shopping) return fa ? 'خرید' : 'Shopping';
-  return fa ? def.fa : def.label;
+  if (intent === 'todo' && (d as ShapeDataMap['todo']).shopping)
+    return lang === 'fa' ? 'خرید' : lang === 'ru' ? 'Покупки' : 'Shopping';
+  return lang === 'fa' ? def.fa : lang === 'ru' ? def.ru : def.label;
 }
 
 /** The whole card. */
@@ -473,6 +517,7 @@ export function renderShape(block: ShapeBlock, options: FaceOptions = {}): strin
   const live = options.interactive ?? true;
   const body = (BODIES[block.intent] as Body<ShapeIntent>)(data, s, {
     fa,
+    lang: langOf(block.text),
     now,
     live,
     text: block.text,
@@ -481,7 +526,7 @@ export function renderShape(block: ShapeBlock, options: FaceOptions = {}): strin
   return (
     `<article class="sc sc-is-${block.intent}${s.closed ? ' is-closed' : ''}" dir="${fa ? 'rtl' : 'ltr'}" data-sc="${block.intent}">` +
     `<header class="sc-head"><span class="sc-tile">${iconSvg(block.intent)}</span>` +
-    `<span class="sc-label">${esc(headerLabel(block.intent, data, fa))}</span>` +
+    `<span class="sc-label">${esc(headerLabel(block.intent, data, langOf(block.text)))}</span>` +
     (urgent ? `<span class="sc-badge sc-caution">${I.alert}${fa ? 'فوری' : 'Urgent'}</span>` : '') +
     (live && options.editable !== false
       ? act('edit', fa ? 'ویرایش' : 'edit', I.pencil, true, 'sc-edit')

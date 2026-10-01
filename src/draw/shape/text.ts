@@ -16,17 +16,22 @@ const DIGITS: Record<string, string> = {};
 
 /** Persian and Arabic digits to ASCII, Arabic letters to their Persian forms, spaces collapsed. */
 export function fold(text: string): string {
-  return text
-    .replace(/[۰-۹٠-٩]/g, (d) => DIGITS[d] ?? d)
-    .replace(/ي/g, 'ی')
-    .replace(/ك/g, 'ک')
-    .replace(/[٫]/g, '.')
-    .replace(/[٬،]/g, ',')
-    .replace(/؟/g, '?')
-    .replace(/٪/g, '%')
-    .replace(/‌/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (
+    text
+      .replace(/[۰-۹٠-٩]/g, (d) => DIGITS[d] ?? d)
+      .replace(/ي/g, 'ی')
+      .replace(/ك/g, 'ک')
+      // Russian is typed with and without the dots on ё; it is read one way.
+      .replace(/ё/g, 'е')
+      .replace(/Ё/g, 'Е')
+      .replace(/[٫]/g, '.')
+      .replace(/[٬،]/g, ',')
+      .replace(/؟/g, '?')
+      .replace(/٪/g, '%')
+      .replace(/‌/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 /** Digits and letters folded, one character for one, so positions in the text still hold. */
@@ -35,6 +40,8 @@ export function foldInPlace(text: string): string {
     .replace(/[۰-۹٠-٩]/g, (d) => DIGITS[d] ?? d)
     .replace(/ي/g, 'ی')
     .replace(/ك/g, 'ک')
+    .replace(/ё/g, 'е')
+    .replace(/Ё/g, 'Е')
     .replace(/\u200c/g, ' ');
 }
 
@@ -44,6 +51,18 @@ export function norm(text: string): string {
 }
 
 export const PERSIAN = /[؀-ۿ]/;
+
+export const RUSSIAN = /[Ѐ-ӿ]/;
+
+export function isRussian(text: string): boolean {
+  return RUSSIAN.test(text) && !PERSIAN.test(text);
+}
+
+/** Which of the three a line is in, by its letters: what its card speaks. */
+export type Lang = 'en' | 'fa' | 'ru';
+export function langOf(text: string): Lang {
+  return PERSIAN.test(text) ? 'fa' : RUSSIAN.test(text) ? 'ru' : 'en';
+}
 
 export function isPersian(text: string): boolean {
   return PERSIAN.test(text);
@@ -111,6 +130,23 @@ export const WORD_NUMBERS: Record<string, number> = {
   ده: 10,
   یازده: 11,
   دوازده: 12,
+  один: 1,
+  одна: 1,
+  одну: 1,
+  два: 2,
+  две: 2,
+  три: 3,
+  четыре: 4,
+  пять: 5,
+  шесть: 6,
+  семь: 7,
+  восемь: 8,
+  девять: 9,
+  десять: 10,
+  двоих: 2,
+  троих: 3,
+  четверых: 4,
+  пятерых: 5,
 };
 
 export function numberWord(word: string): number | undefined {
@@ -119,7 +155,7 @@ export function numberWord(word: string): number | undefined {
   return WORD_NUMBERS[w];
 }
 
-export type Currency = '$' | '€' | '£' | '₹' | 'تومان' | 'ریال' | '';
+export type Currency = '$' | '€' | '£' | '₹' | '₽' | 'تومان' | 'ریال' | '';
 
 export function detectCurrency(text: string): Currency {
   const t = text.toLowerCase();
@@ -127,6 +163,7 @@ export function detectCurrency(text: string): Currency {
   if (/€|\beur(os?)?\b|یورو/.test(t)) return '€';
   if (/£|\bgbp\b|pounds? sterling/.test(t)) return '£';
   if (/₹|\binr\b|\brs\.?\s?\d|rupees?/.test(t)) return '₹';
+  if (/₽|руб|\brub\b/.test(t)) return '₽';
   if (/ریال/.test(t)) return 'ریال';
   if (/تومن|تومان|هزار تومن|میلیون/.test(t) || isPersian(t)) return 'تومان';
   return '';
@@ -134,15 +171,16 @@ export function detectCurrency(text: string): Currency {
 
 /** "2,400", "2.5k", "۲ میلیون", "۴۵۰ هزار": the first amount of money in the text. */
 export function findAmount(text: string): { value: number; index: number; length: number } | null {
-  const re = /(?:₹|rs\.?|inr|\$|€|£)?\s?(\d[\d,]*(?:\.\d+)?)\s?(k\b|m\b|هزار|میلیون|میلیارد)?/gi;
+  const re =
+    /(?:₹|rs\.?|inr|\$|€|£|₽)?\s?(\d[\d,]*(?:\.\d+)?)\s?(k\b|m\b|هزار|میلیون|میلیارد|тыс(?:яч[аи]?)?\.?|млн)?/giu;
   for (let m = re.exec(text); m !== null; m = re.exec(text)) {
     const n = Number((m[1] ?? '').replace(/,/g, ''));
     if (!Number.isFinite(n)) continue;
     const scale = (m[2] ?? '').toLowerCase();
     const value =
-      scale === 'k' || scale === 'هزار'
+      scale === 'k' || scale === 'هزار' || scale.startsWith('тыс')
         ? n * 1000
-        : scale === 'm' || scale === 'میلیون'
+        : scale === 'm' || scale === 'میلیون' || scale === 'млн'
           ? n * 1_000_000
           : scale === 'میلیارد'
             ? n * 1_000_000_000
@@ -170,6 +208,7 @@ export function formatAmount(n: number, currency: Currency): string {
   const rounded = Math.round(n * 100) / 100;
   if (currency === 'تومان' || currency === 'ریال')
     return `${rounded.toLocaleString('fa-IR')} ${currency}`;
+  if (currency === '₽') return `${rounded.toLocaleString('ru-RU')} ₽`;
   const digits = rounded.toLocaleString('en-US', {
     minimumFractionDigits: Number.isInteger(rounded) ? 0 : 2,
     maximumFractionDigits: 2,

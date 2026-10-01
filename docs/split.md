@@ -34,8 +34,13 @@ grimstroke is becoming two things, the way git is plumbing and porcelain.
    connect a GitHub, GitLab or Gitea account; reminders on this device; a backup; sign out
    (draw/shape/commands.ts). Next: the bookcase, the settings and the calendar drawn as the box's
    own panels.
-5. **The model.** Laya (an encoder that chooses among given options, ~650 MB multilingual) for
-   choosing a card's kind and an issue's labels; translation needs a model that writes, which
-   Laya does not.
+5. **The model** -- grimstroke's own, grown rather than replaced. Laya (an encoder that chooses
+   among given options, ~650 MB multilingual, near chance before it is fine-tuned, and unable to
+   write, so no translation) was weighed and set aside: on a small server it would answer a few
+   questions a second for everyone, where the box's own model answers in well under a
+   millisecond in the browser itself. Done: Russian beside English and Persian -- dates, times and
+   spans, every kind's reader, the rules, the training sentences (held-out 97.1%), and the cards
+   and the box speaking it; an issue's labels from an archive of what labels mean. Not done:
+   translation, which needs a model that writes.
 6. **Repositories through /** -- started: an issue written in a sentence, its type and labels
    chosen from the repository's own, a pasted picture carried with it (docs/api.md).

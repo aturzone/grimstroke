@@ -62,7 +62,8 @@ const LABELS =
   /(?:^|[\s,،;])(?:labels?|tags?|لیبل(?:\s*ها|‌ها)?|برچسب(?:\s*ها|‌ها)?|метк[аи]|ярлык[иа]?)\s*[:：]?\s*([^\n.;:]+?)(?=$|\s+(?:type|تایپ|نوع|тип|in|on|repo|ریپو|در|روی|توی|в|description|توضیحات|описание)(?![\p{L}])|[.;\n]|:)/iu;
 const TYPE_SAID = /(?:^|[\s,،;])(?:type|kind|تایپ|نوع|тип)\s*[:：]?\s*([^\s,،;:.]+)/iu;
 /** owner/name, or "repo name", "in the name repo", "ریپو name", "в репозитории name". */
-const REPO_PATH = /(?:^|[\s(])((?:[\w.-]+\/)+[\w.-]+)(?=$|[\s),.;:،])/u;
+// An owner has no dots (a domain does: docs.rs/serde is an address, not a repository).
+const REPO_PATH = /(?:^|[\s(])((?:[\w-]+\/)+[\w.-]+)(?=$|[\s),.;:،])/u;
 const REPO_SAID =
   /(?:^|[\s,،])(?:(?:in|on|for|to)\s+(?:the\s+)?)?(?:repo(?:sitory)?|ریپو(?:ی)?|مخزن|репо(?:зитори[йия])?)\s*[:：]?\s*([\w.-]+)|(?:^|\s)(?:in|on)\s+(?:the\s+)?([\w.-]+)\s+repo(?:sitory)?\b|(?:در|روی|توی|تو)\s+(?:ریپو|مخزن)(?:ی)?\s+([\w.-]+)/iu;
 

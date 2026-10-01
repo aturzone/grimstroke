@@ -15,20 +15,24 @@ import { ZONE_RE } from './zones.ts';
 
 const FA_WEEKDAY = /(?:یک|دو|سه|چهار|پنج)? ?شنبه|جمعه/;
 const DATE_WORDS =
-  /\b(today|tonight|tomorrow|tmrw|mon(day)?|tue(s(day)?)?|wed(nesday)?|thu(rs(day)?)?|fri(day)?|sat(urday)?|sun(day)?|next week|this week|noon|midnight|morning|evening|\d{1,2}\s?(am|pm)|\d{1,2}:\d{2}|jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|june?|july?|aug(ust)?|sep(t(ember)?)?|oct(ober)?|nov(ember)?|dec(ember)?)\b|امروز|امشب|فردا|پس ?فردا|هفته بعد|ساعت \d|صبح|ظهر|عصر|شب|فروردین|اردیبهشت|خرداد|تیر|مرداد|شهریور|مهر|آبان|آذر|دی|بهمن|اسفند/;
+  /\b(today|tonight|tomorrow|tmrw|mon(day)?|tue(s(day)?)?|wed(nesday)?|thu(rs(day)?)?|fri(day)?|sat(urday)?|sun(day)?|next week|this week|noon|midnight|morning|evening|\d{1,2}\s?(am|pm)|\d{1,2}:\d{2}|jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|june?|july?|aug(ust)?|sep(t(ember)?)?|oct(ober)?|nov(ember)?|dec(ember)?)\b|امروز|امشب|فردا|پس ?فردا|هفته بعد|ساعت \d|صبح|ظهر|عصر|شب|فروردین|اردیبهشت|خرداد|تیر|مرداد|شهریور|مهر|آبان|آذر|دی|بهمن|اسفند|сегодня|завтра|послезавтра|понедельник|вторник|сред[ауы]|четверг|пятниц|суббот|воскресень|на следующей неделе|утром|вечером|(^|\s)в \d{1,2}(:\d\d)?(\s|$)|январ|феврал|апрел|июн|июл|август|сентябр|октябр|ноябр|декабр/;
 const GATHER =
-  /\b(dinner|lunch|breakfast|brunch|coffee|meeting|meet|call|sync|standup|party|drinks|date|catch ?up|interview|appointment|hangout|1:1|session with|with [a-z]+)\b|شام|ناهار|نهار|صبحانه|قهوه با|جلسه|قرار|مهمونی|مهمانی|دورهمی|مصاحبه|وقت دکتر|تماس با|ملاقات|با [؀-ۿ]+/;
+  /\b(dinner|lunch|breakfast|brunch|coffee|meeting|meet|call|sync|standup|party|drinks|date|catch ?up|interview|appointment|hangout|1:1|session with|with [a-z]+)\b|شام|ناهار|نهار|صبحانه|قهوه با|جلسه|قرار|مهمونی|مهمانی|دورهمی|مصاحبه|وقت دکتر|تماس با|ملاقات|با [؀-ۿ]+|ужин|обед|завтрак|кофе с|встреча|встретиться|созвон|звонок|вечеринк|собеседован|прием у|приём у|свидание|с [а-я]+(ой|ей|ом|ем)(\s|$)/;
 const COLOR_WORD = new RegExp(
   `(?:^|[^a-z\\u0600-\\u06ff])(${COLOR_WORD_PATTERN})(?=$|[^a-z\\u0600-\\u06ff])`,
 );
 const CONVERT_FULL = new RegExp(
-  `\\d\\s*(?:${UNIT_PATTERN})\\s+(?:to|in|into|as|به|چند)\\s+(?:چند\\s+)?(?:${UNIT_PATTERN})(?![a-z\\u0600-\\u06ff])`,
+  `\\d\\s*(?:${UNIT_PATTERN})\\s+(?:to|in|into|as|به|چند|в|во)\\s+(?:چند\\s+)?(?:${UNIT_PATTERN})(?![a-z\\u0600-\\u06ff\\u0400-\\u04ff])`,
 );
-const CONVERT_PART = new RegExp(`\\d\\s*(?:${UNIT_PATTERN})(?![a-z\\u0600-\\u06ff])`);
-const CLOCK = /\b\d{1,2}(:\d{2})?\s*(am|pm)\b|\b\d{1,2}:\d{2}\b|\b(noon|midnight)\b|ساعت\s*\d/;
+const CONVERT_PART = new RegExp(
+  `\\d\\s*(?:${UNIT_PATTERN})(?![a-z\\u0600-\\u06ff\\u0400-\\u04ff])`,
+);
+const CLOCK =
+  /\b\d{1,2}(:\d{2})?\s*(am|pm)\b|\b\d{1,2}:\d{2}\b|\b(noon|midnight)\b|ساعت\s*\d|(^|\s)в \d{1,2}(\s|$|:)|полдень|полночь/;
 const FA_NUM = '(?:\\d+|یک|یه|دو|سه|چهار|پنج|شش|هفت|هشت|نه|ده|پانزده|بیست|سی|چهل|پنجاه|شصت|نود)';
 const DURATION = new RegExp(
-  `\\b\\d+\\s*(h|hr|hrs|hours?|m|min|mins|minutes?|s|sec|secs|seconds?)\\b|${FA_NUM}\\s*(دقیقه|ثانیه)|\\d+\\s*ساعت(?!\\s*(دیگه|بعد))|نیم ?ساعت|\\bhalf an? hour\\b`,
+  `\\b\\d+\\s*(h|hr|hrs|hours?|m|min|mins|minutes?|s|sec|secs|seconds?)\\b|${FA_NUM}\\s*(دقیقه|ثانیه)|\\d+\\s*ساعت(?!\\s*(دیگه|بعد))|نیم ?ساعت|\\bhalf an? hour\\b|\\d+\\s*(мин|минут|сек|секунд|ч|час)(?![\\p{L}])|полчаса`,
+  'u',
 );
 
 /** Every named fact about the text, 0 or 1 (or a small count). */
@@ -52,7 +56,7 @@ export function ruleFeatures(t: string): Record<string, number> {
   set('q.mark', /\?\s*$/.test(t));
   set(
     'q.word',
-    /^(what|why|how|when|where|who|should|could|would|is|are|do|does|can)\b|^(چرا|چطور|کی|کجا|آیا|چی)\b/.test(
+    /^(what|why|how|when|where|who|should|could|would|is|are|do|does|can)\b|^(چرا|چطور|کی|کجا|آیا|چی)\b|^(что|почему|как|когда|где|кто|стоит ли|можно ли)(?![а-я])/.test(
       t,
     ),
   );
@@ -72,61 +76,90 @@ export function ruleFeatures(t: string): Record<string, number> {
     /(\+?\d{1,3}[\s-]?)?\d{3,5}[\s-]?\d{3,4}[\s-]?\d{3,5}/.test(t) ||
       /\b09\d{9}\b|\b09\d{2}\s?\d{3}\s?\d{4}\b/.test(t),
   );
-  set('contact.say', /\b(contact|number|phone|save)\b|شماره|مخاطب|تلفن|موبایل/.test(t));
+  set(
+    'contact.say',
+    /\b(contact|number|phone|save)\b|شماره|مخاطب|تلفن|موبایل|контакт|номер|телефон|сохрани/.test(t),
+  );
   // An obligation with a deadline: "need to renew my visa before friday", "باید تا شنبه ... بدم".
   set(
     'reminder.must',
-    /\b(need to|have to|must|gotta|should)\b.*\b(before|by|until)\b|باید.*(تا|قبل از)/.test(t),
-  );
-  set(
-    'reminder.say',
-    /\b(remind|reminder|don'?t forget|remember to|let me forget)\b|یادم بنداز|یادآوری|یادت باشه|یادم باشه|فراموش نکن|یادت نره|یادم نره|فراموشم نشه/.test(
+    /\b(need to|have to|must|gotta|should)\b.*\b(before|by|until)\b|باید.*(تا|قبل از)|(нужно|надо|должен|должна).*(до|к) /.test(
       t,
     ),
   );
-  set('split.say', /\b(split|divide|share)\b|تقسیم|دنگ|سهم|نفری/.test(t));
+  set(
+    'reminder.say',
+    /\b(remind|reminder|don'?t forget|remember to|let me forget)\b|یادم بنداز|یادآوری|یادت باشه|یادم باشه|فراموش نکن|یادت نره|یادم نره|فراموشم نشه|напомни|напоминание|не забыть|не забудь/.test(
+      t,
+    ),
+  );
+  set(
+    'split.say',
+    /\b(split|divide|share)\b|تقسیم|دنگ|سهم|نفری|раздели|разделить|поделить|пополам|скинуться/.test(
+      t,
+    ),
+  );
   set(
     'split.among',
-    /\b(between|among)\s+(\d+|two|three|four|five|six)\b|بین\s*(\d+|دو|سه|چهار|پنج|شش)\s*(نفر|تا)?/.test(
+    /\b(between|among)\s+(\d+|two|three|four|five|six)\b|بین\s*(\d+|دو|سه|چهار|پنج|شش)\s*(نفر|تا)?|(на|между) (\d+|двоих|троих|четверых|пятерых|два|три|четыре|пять)( человек| чел)?/.test(
       t,
     ),
   );
   // A bill shared: "bill 180 for 4 of us", "۱.۲ میلیون شد، ۳ نفر بودیم".
   set(
     'split.us',
-    /\b(for|between|among) (\d+|two|three|four|five|six) of us\b|\d+ نفر (بودیم|هستیم)|\bbill\b.*\d.*\bfor \d+/.test(
+    /\b(for|between|among) (\d+|two|three|four|five|six) of us\b|\d+ نفر (بودیم|هستیم)|\bbill\b.*\d.*\bfor \d+|нас (было )?\d+|на \d+ человек/.test(
       t,
     ),
   );
   // "۱۲۰۰ تقسیم بر ۷" is division, not a split: nobody is named or counted as people.
   set('calc.divide', /\d\s*(تقسیم بر|divided by)\s*\d+(?!\s*(نفر|people))/.test(t));
-  set('money.people', /\d+\s*(نفر|people|persons|friends|ways)/.test(t));
-  set('expense.say', /\b(spent|paid|bought|cost|expense)\b|خرج|دادم|پرداخت|خریدم|هزینه/.test(t));
-  set('money.sign', /^(₹|rs\.?|\$|€|£)\s?\d|تومن|تومان|ریال|دلار|یورو|\$|€|£/.test(t));
-  set('money.big', /\d\s*(k|هزار|میلیون)\b|\d{4,}/.test(t));
+  set('money.people', /\d+\s*(نفر|people|persons|friends|ways)|\d+\s*(человек|чел)/.test(t));
+  set(
+    'expense.say',
+    /\b(spent|paid|bought|cost|expense)\b|خرج|دادم|پرداخت|خریدم|هزینه|потратил|заплатил|купил|стоил|расход|трата/.test(
+      t,
+    ),
+  );
+  set('money.sign', /^(₹|rs\.?|\$|€|£)\s?\d|تومن|تومان|ریال|دلار|یورو|\$|€|£|руб|₽/.test(t));
+  set('money.big', /\d\s*(k|هزار|میلیون)\b|\d{4,}|\d\s*(тыс|млн)/.test(t));
   set('convert.full', CONVERT_FULL.test(t));
   set('convert.part', CONVERT_PART.test(t) && !DURATION.test(t));
-  set('convert.say', /\bconvert\b|تبدیل|چند (کیلو|متر|مایل|پوند|فوت)/.test(t));
+  set(
+    'convert.say',
+    /\bconvert\b|تبدیل|چند (کیلو|متر|مایل|پوند|فوت)|перевести|сколько (км|миль|кг|фунтов|литров)/.test(
+      t,
+    ),
+  );
   set('calc.expr', /^[\d\s+\-*/x×÷^().,%]+$/.test(t) && /\d\s*[+\-*/x×÷^%]\s*[\d(]/.test(t));
   set('calc.percent', /\d\s*(%|درصد)\s*(of|off|tip|tax|از|تخفیف|انعام|مالیات)/.test(t));
   set(
     'calc.say',
-    /\b(what'?s|calculate|compute)\b.*\d|حساب کن|چند میشه|چقدر میشه|ضرب|تقسیم بر|به علاوه|منهای/.test(
+    /\b(what'?s|calculate|compute)\b.*\d|حساب کن|چند میشه|چقدر میشه|ضرب|تقسیم بر|به علاوه|منهای|посчитай|сколько будет|умножить|разделить на|плюс|минус/.test(
       t,
     ),
   );
-  set('timer.say', /\b(timer|countdown|stopwatch|pomodoro)\b|تایمر|پومودورو|کرنومتر/.test(t));
+  set(
+    'timer.say',
+    /\b(timer|countdown|stopwatch|pomodoro)\b|تایمر|پومودورو|کرنومتر|таймер|помодоро|секундомер|засеки/.test(
+      t,
+    ),
+  );
   set('timer.duration', DURATION.test(t));
-  set('timer.focus', /\b(focus|break|rest|nap|deep work)\b|تمرکز|استراحت|چرت/.test(t) && num);
+  set(
+    'timer.focus',
+    /\b(focus|break|rest|nap|deep work)\b|تمرکز|استراحت|چرت|фокус|перерыв|отдых|работ/.test(t) &&
+      num,
+  );
   set(
     'habit.every',
-    /\b(every\s*day|daily|every (morning|night|evening)|each (day|morning)|\d\s*x\s*a\s*week|times a week|habit|weekly|every (mon|tue|wed|thu|fri|sat|sun))/.test(
+    /\b(every\s*day|daily|every (morning|night|evening)|each (day|morning)|\d\s*x\s*a\s*week|times a week|habit|weekly|every (mon|tue|wed|thu|fri|sat|sun))|каждый день|ежедневно|каждое утро|каждый вечер|раза? в неделю|привычка|еженедельно|по будням|по (пн|вт|ср|чт|пт|сб|вс|понедельникам|вторникам|средам|четвергам|пятницам|субботам|воскресеньям)/.test(
       t,
     ) || /هر روز|روزانه|هر صبح|هر شب|هفته ?ای \S+ بار|عادت|هفتگی|(^|\s)روزی \S+/.test(t),
   );
   set(
     'travel.say',
-    /\b(flight|fly|flying|trip|travel|vacation|holiday|train to|bus to|road ?trip|visit|getaway)\b|سفر|پرواز|بلیط|قطار|اتوبوس|تعطیلات|مسافرت/.test(
+    /\b(flight|fly|flying|trip|travel|vacation|holiday|train to|bus to|road ?trip|visit|getaway)\b|سفر|پرواز|بلیط|قطار|اتوبوس|تعطیلات|مسافرت|поездка|путешеств|отпуск|лечу|полет|рейс|поезд в|билет|командировк/.test(
       t,
     ),
   );
@@ -134,66 +167,85 @@ export function ruleFeatures(t: string): Record<string, number> {
   // A route: "from lisbon to rome", "train to paris", "از تهران به مشهد".
   set(
     'travel.route',
-    /\bfrom [a-z][a-z ]+ to [a-z]+|\b(train|bus|ferry|drive|driving) (to|from)\b|از [\u0600-\u06ff]+ (به|تا) [\u0600-\u06ff]+/.test(
+    /\bfrom [a-z][a-z ]+ to [a-z]+|\b(train|bus|ferry|drive|driving) (to|from)\b|از [\u0600-\u06ff]+ (به|تا) [\u0600-\u06ff]+|из [а-я]+ в [а-я]+|(поезд|автобус|самолет) (в|до|из) /.test(
       t,
     ),
   );
-  set('travel.weekend', /\b(this|next) weekend\b|آخر ?هفته/.test(t));
-  set('poll.orq', /\b(or|vs)\b|\sیا\s/.test(t) && /\?\s*$/.test(t));
-  set('poll.or', /\b\w+ or \w+|\S+ یا \S+/.test(t));
-  set('poll.say', /\b(poll|vote)\b|نظرسنجی|رای/.test(t));
+  set('travel.weekend', /\b(this|next) weekend\b|آخر ?هفته|на выходных|выходные/.test(t));
+  set('poll.orq', /\b(or|vs)\b|\sیا\s|\sили\s/.test(t) && /\?\s*$/.test(t));
+  set('poll.or', /\b\w+ or \w+|\S+ یا \S+|\S+ или \S+/.test(t));
+  set('poll.say', /\b(poll|vote)\b|نظرسنجی|رای|опрос|голосовани|проголосуем/.test(t));
   set(
     'countdown.say',
-    /\b(days?|weeks?|sleeps?)\s+(until|till|til|to go|left|before)\b|\bcount ?down\b|\bhow (many days|long) (until|till|til)\b|روز (مونده|مانده)|مونده تا|مانده تا|شمارش معکوس|چند روز/.test(
+    /\b(days?|weeks?|sleeps?)\s+(until|till|til|to go|left|before)\b|\bcount ?down\b|\bhow (many days|long) (until|till|til)\b|روز (مونده|مانده)|مونده تا|مانده تا|شمارش معکوس|چند روز|сколько дней до|дней до|осталось до|обратный отсчет/.test(
       t,
     ),
   );
   set(
     'countdown.holiday',
-    /\b(christmas|xmas|new year|halloween|valentine)|نوروز|یلدا|عید|کریسمس|سال نو/.test(t),
+    /\b(christmas|xmas|new year|halloween|valentine)|نوروز|یلدا|عید|کریسمس|سال نو|новый год|нового года|рождеств/.test(
+      t,
+    ),
   );
   const zoneHits = [...` ${t} `.matchAll(ZONE_RE)].length;
   set('tz.two', zoneHits >= 2);
   set('tz.one', zoneHits === 1);
   set('tz.clock', CLOCK.test(t));
-  set('tz.time', /\btime\b|به وقت|ساعت چنده|ساعت چند/.test(t));
+  set(
+    'tz.time',
+    /\btime\b|به وقت|ساعت چنده|ساعت چند|который час|сколько времени|по времени/.test(t),
+  );
   set(
     'random.between',
     /\b(a |random )?number (between|from) \d+/.test(t) ||
-      /عدد (تصادفی |رندوم )?(بین|از) \d+/.test(t),
+      /عدد (تصادفی |رندوم )?(بین|از) \d+/.test(t) ||
+      /(случайное )?число от \d+/.test(t),
   );
   set(
     'random.say',
-    /\b(roll|flip|toss)\b|\b\d*d\d+\b|\bcoin\b|\bdice\b|\bdie\b|\brandom\b|\b(pick|choose) (one|a random|for me)\b|تاس|سکه|شیر یا خط|تصادفی|قرعه|یکی رو انتخاب/.test(
+    /\b(roll|flip|toss)\b|\b\d*d\d+\b|\bcoin\b|\bdice\b|\bdie\b|\brandom\b|\b(pick|choose) (one|a random|for me)\b|تاس|سکه|شیر یا خط|تصادفی|قرعه|یکی رو انتخاب|брось|кубик|монетк|орел или решка|случайн|выбери/.test(
       t,
     ),
   );
-  set('goal.of', /\b\d[\d,]*\s*(of|\/|out of|از)\s*\d[\d,]*/.test(t) && /[a-z؀-ۿ]{3,}/.test(t));
-  set('goal.say', /\b(goal|target)\b|هدف/.test(t));
+  set(
+    'goal.of',
+    /\b\d[\d,]*\s*(of|\/|out of|از|из)\s*\d[\d,]*/.test(t) && /[a-z؀-ۿа-я]{3,}/.test(t),
+  );
+  set('goal.say', /\b(goal|target)\b|هدف|цель|задача на год/.test(t));
   set(
     'goal.done',
-    /\b(done|so far|saved|completed|finished)\b|تا حالا|خوندم|انجام دادم|تموم کردم/.test(t) && num,
+    /\b(done|so far|saved|completed|finished)\b|تا حالا|خوندم|انجام دادم|تموم کردم|прочитал|сделал|уже|готово/.test(
+      t,
+    ) && num,
   );
-  const listSeps = (t.match(/,|\band\b|&|\n|\sو\s/g) ?? []).length;
+  const listSeps = (t.match(/,|\band\b|&|\n|\sو\s|\sи\s/g) ?? []).length;
   set('todo.many', listSeps >= 2);
   set('todo.one', listSeps === 1);
-  set('todo.buy', /^(buy|get|pick up|grab)\b|بخر|خرید|بگیرم|بگیر$/.test(t));
+  set(
+    'todo.buy',
+    /^(buy|get|pick up|grab)\b|بخر|خرید|بگیرم|بگیر$|^(купить|купи)|список покупок/.test(t),
+  );
   // A bare list of things to buy, with no commas: "eggs flour sugar butter".
   set(
     'todo.goods',
     (
       t.match(
-        /\b(milk|eggs?|bread|coffee|flour|sugar|butter|rice|apples?|cheese|tea|pasta|onions?|tomatoes?|yogurt|soap|salt|oil)\b|شیر|تخم ?مرغ|نان|نون|قهوه|آرد|شکر|کره|برنج|سیب|پنیر|چای|ماکارونی|پیاز|گوجه|ماست|صابون|نمک|روغن/g,
+        /\b(milk|eggs?|bread|coffee|flour|sugar|butter|rice|apples?|cheese|tea|pasta|onions?|tomatoes?|yogurt|soap|salt|oil)\b|شیر|تخم ?مرغ|نان|نون|قهوه|آرد|شکر|کره|برنج|سیب|پنیر|چای|ماکارونی|پیاز|گوجه|ماست|صابون|نمک|روغن|молоко|яйца|хлеб|кофе|мука|сахар|масло|рис|яблоки|сыр|чай|макароны|лук|помидоры|йогурт|мыло|соль/g,
       ) ?? []
     ).length >= 3,
   );
-  set('todo.head', /^(todo|to do|groceries|list)\b|^(کارها|لیست)/.test(t));
+  set('todo.head', /^(todo|to do|groceries|list)\b|^(کارها|لیست)|^(список|дела|покупки)/.test(t));
   set('event.date', DATE_WORDS.test(t) || FA_WEEKDAY.test(t));
   set('event.gather', GATHER.test(t));
-  set('event.call', /\b(on|over|via) (zoom|meet|teams|facetime)\b|زوم|گوگل میت|اسکای روم/.test(t));
+  set(
+    'event.call',
+    /\b(on|over|via) (zoom|meet|teams|facetime)\b|زوم|گوگل میت|اسکای روم|в зуме|по зуму|в телеграме|созвон/.test(
+      t,
+    ),
+  );
   set(
     'note.feel',
-    /\b(i think|i feel|felt|feeling|thinking|wonder|realized|idea|thought|maybe we)\b|فکر کنم|حس|احساس|به نظرم|ایده|شاید/.test(
+    /\b(i think|i feel|felt|feeling|thinking|wonder|realized|idea|thought|maybe we)\b|فکر کنم|حس|احساس|به نظرم|ایده|شاید|я думаю|мне кажется|чувствую|идея|может быть/.test(
       t,
     ),
   );
@@ -212,11 +264,12 @@ export function ruleFeatures(t: string): Record<string, number> {
   );
   set(
     'issue.repo',
-    (/(^|\s)[\w.-]+\/[\w.-]+($|\s)/.test(t) && !/\d+\/\d+/.test(t)) ||
+    (/(^|\s)[\w-]+\/[\w.-]+($|\s)/.test(t) && !/\d+\/\d+/.test(t)) ||
       /\b(repo|repository|github|gitlab|gitea)\b|ریپو|مخزن|گیت ?هاب|گیت ?لب|репозитор/.test(t),
   );
-  set('issue.label', /\b(labels?|tags?)\b|لیبل|برچسب|метк|ярлык/.test(t));
+  set('issue.label', /\b(labels?|tags?)\b|لیبل|برچسب|(^|[^а-я])метк|ярлык/.test(t));
   set('fa', /[؀-ۿ]/.test(t));
+  set('ru', /[а-я]/.test(t));
   return f;
 }
 

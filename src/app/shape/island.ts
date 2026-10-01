@@ -36,7 +36,7 @@ import { type Fields, readShape } from '~/draw/shape/fields.ts';
 import { INTENTS, iconSvg, SHAPE_INTENTS, type ShapeIntent } from '~/draw/shape/intents.ts';
 import { formatClock } from '~/draw/shape/parse.ts';
 import { renderShape, type ShapeBlock, type ShapeState } from '~/draw/shape/render.ts';
-import { isPersian } from '~/draw/shape/text.ts';
+import { isPersian, langOf } from '~/draw/shape/text.ts';
 
 function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -286,6 +286,7 @@ export class ShapeIsland {
     const intent = activeIntent(ui);
     const text = input.value;
     const fa = isPersian(text);
+    const ru = !fa && langOf(text) === 'ru';
     if (this.root) this.root.dir = fa ? 'rtl' : 'ltr';
     const asked = this.commands[0]?.sure ? this.commands[0] : undefined;
     this.root?.classList.toggle('has-card', Boolean(intent) || Boolean(asked));
@@ -328,7 +329,9 @@ export class ShapeIsland {
         if (strip) card.after(strip);
       }
       card.classList.toggle('is-ghost', ghost);
-      const label = (fa ? INTENTS[intent].fa : INTENTS[intent].label).toLowerCase();
+      const label = (
+        fa ? INTENTS[intent].fa : ru ? INTENTS[intent].ru : INTENTS[intent].label
+      ).toLowerCase();
       foot.innerHTML = '';
       if (ghost) {
         // A button as well as a key: a phone has no Tab, and this is the only way to keep a guess.
@@ -336,7 +339,9 @@ export class ShapeIsland {
         (keys as HTMLButtonElement).type = 'button';
         keys.innerHTML = fa
           ? `<kbd class="gs-kbd">Tab</kbd> برای نگه‌داشتن به‌عنوان ${label}`
-          : `<kbd class="gs-kbd">Tab</kbd> to keep as ${label}`;
+          : ru
+            ? `<kbd class="gs-kbd">Tab</kbd> оставить как «${label}»`
+            : `<kbd class="gs-kbd">Tab</kbd> to keep as ${label}`;
         keys.addEventListener('click', () => {
           this.mem = promote(this.mem);
           this.draw();
@@ -345,9 +350,9 @@ export class ShapeIsland {
         foot.append(keys);
       } else {
         const keys = el('span', 'ss-keys');
-        keys.innerHTML = `<kbd class="gs-kbd">Esc</kbd> ${fa ? (this.editing ? 'انصراف' : 'پاک کردن') : this.editing ? 'to cancel' : 'to clear'}`;
+        keys.innerHTML = `<kbd class="gs-kbd">Esc</kbd> ${fa ? (this.editing ? 'انصراف' : 'پاک کردن') : ru ? (this.editing ? 'отмена' : 'очистить') : this.editing ? 'to cancel' : 'to clear'}`;
         // The card's values, by hand, before it is put down.
-        const more = el('button', 'ss-details', fa ? 'جزئیات' : 'Details');
+        const more = el('button', 'ss-details', fa ? 'جزئیات' : ru ? 'Подробнее' : 'Details');
         more.type = 'button';
         more.dataset.gs = 'shape-details';
         more.setAttribute('aria-expanded', String(Boolean(this.details)));
@@ -359,8 +364,8 @@ export class ShapeIsland {
         add.dataset.gs = 'shape-add';
         add.innerHTML =
           intent === 'issue' && !this.editing
-            ? `${fa ? 'ثبت ایشو' : 'Open the issue'} <span aria-hidden="true">↵</span>`
-            : `${fa ? (this.editing ? 'ذخیره' : 'افزودن') : this.editing ? 'Save' : 'Add'} ${label} <span aria-hidden="true">↵</span>`;
+            ? `${fa ? 'ثبت ایشو' : ru ? 'Открыть задачу' : 'Open the issue'} <span aria-hidden="true">↵</span>`
+            : `${fa ? (this.editing ? 'ذخیره' : 'افزودن') : ru ? (this.editing ? 'Сохранить' : 'Добавить') : this.editing ? 'Save' : 'Add'} ${label} <span aria-hidden="true">↵</span>`;
         add.addEventListener('mousedown', (e) => e.preventDefault());
         add.addEventListener('click', () => this.commit());
         const end = el('span', 'ss-foot-end');
@@ -552,9 +557,13 @@ export class ShapeIsland {
         ? intent === 'note'
           ? 'یادداشت روی صفحه است · دو بار بزنید تا در آن بنویسید'
           : `${INTENTS[intent].fa} روی صفحه است · مداد روی کارت ویرایشش می‌کند`
-        : intent === 'note'
-          ? 'Note on the page · tap it twice to write in it'
-          : `${INTENTS[intent].label} on the page · the pencil on it changes it`,
+        : langOf(text) === 'ru'
+          ? intent === 'note'
+            ? 'Заметка на странице · нажмите дважды, чтобы писать'
+            : `${INTENTS[intent].ru} на странице · карандаш на карточке меняет её`
+          : intent === 'note'
+            ? 'Note on the page · tap it twice to write in it'
+            : `${INTENTS[intent].label} on the page · the pencil on it changes it`,
     );
   }
 

@@ -428,6 +428,103 @@ function n(r: () => number, lo: number, hi: number): number {
   return Math.floor(lo + r() * (hi - lo + 1));
 }
 
+const RU_NAMES = [
+  'Анной',
+  'Машей',
+  'Иваном',
+  'Сергеем',
+  'мамой',
+  'папой',
+  'командой',
+  'Олегом',
+  'Катей',
+  'друзьями',
+];
+const RU_DAYS = [
+  'завтра',
+  'сегодня',
+  'в пятницу',
+  'в понедельник',
+  'в среду',
+  'в субботу',
+  'послезавтра',
+  'в четверг',
+  'на следующей неделе',
+  '12 октября',
+  '',
+];
+const RU_TIMES = [
+  'в 8 вечера',
+  'в 10:30',
+  'в 7 утра',
+  'в 19:00',
+  'в 3 дня',
+  '',
+  'вечером',
+  'утром',
+];
+const RU_MEALS = [
+  'ужин',
+  'обед',
+  'завтрак',
+  'кофе',
+  'встреча',
+  'созвон',
+  'собеседование',
+  'вечеринка',
+];
+const RU_TASKS = [
+  'позвонить в банк',
+  'оплатить счета',
+  'купить подарок',
+  'записаться к врачу',
+  'отправить отчет',
+  'забрать посылку',
+  'продлить визу',
+  'полить цветы',
+];
+const RU_ITEMS = [
+  'молоко',
+  'яйца',
+  'хлеб',
+  'сыр',
+  'кофе',
+  'рис',
+  'яблоки',
+  'масло',
+  'чай',
+  'сахар',
+  'макароны',
+  'помидоры',
+];
+const RU_CHORES = [
+  'убраться',
+  'постирать',
+  'помыть посуду',
+  'вынести мусор',
+  'погладить',
+  'приготовить ужин',
+];
+const RU_HABITS = [
+  'спорт',
+  'медитация',
+  'бег',
+  'чтение',
+  'йога',
+  'английский',
+  'пить воду',
+  'зарядка',
+];
+const RU_CITIES = ['Москву', 'Казань', 'Петербург', 'Сочи', 'Стамбул', 'Тбилиси'];
+const RU_THOUGHTS = [
+  'сегодня город был удивительно тихим',
+  'мне кажется проект стоит упростить',
+  'идея для статьи про дизайн',
+  'надо больше гулять',
+  'хорошая книга меняет настроение',
+  'интересно как это работает',
+];
+
 /** Persian digits for some Persian sentences, as a phone keyboard types them. */
 function faDigits(s: string, r: () => number): string {
   return r() < 0.5 ? s.replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)] as string) : s;
@@ -435,6 +532,10 @@ function faDigits(s: string, r: () => number): string {
 
 const T: Record<IntentKey, Gen[]> = {
   event: [
+    (r) => `${pick(r, RU_MEALS)} с ${pick(r, RU_NAMES)} ${pick(r, RU_DAYS)} ${pick(r, RU_TIMES)}`,
+    (r) => `${pick(r, RU_DAYS)} ${pick(r, RU_TIMES)} ${pick(r, RU_MEALS)} с ${pick(r, RU_NAMES)}`,
+    (r) => `${pick(r, RU_MEALS)} ${pick(r, RU_DAYS)} ${pick(r, RU_TIMES)}`,
+    (r) => `встреча с ${pick(r, RU_NAMES)} в зуме ${pick(r, RU_DAYS)}`,
     (r) => `${pick(r, MEALS)} with ${pick(r, NAMES)} ${pick(r, DAYS)} ${pick(r, TIMES)}`,
     (r) => `${pick(r, MEALS)} ${pick(r, DAYS)} ${pick(r, TIMES)}`,
     (r) => `${pick(r, DAYS)} ${pick(r, TIMES)} ${pick(r, MEALS)} with ${pick(r, NAMES)}`,
@@ -463,6 +564,11 @@ const T: Record<IntentKey, Gen[]> = {
       ),
   ],
   reminder: [
+    (r) => `напомни ${pick(r, RU_TASKS)} ${pick(r, RU_DAYS)} ${pick(r, RU_TIMES)}`,
+    (r) => `напомни мне ${pick(r, RU_TASKS)}`,
+    (r) => `не забыть ${pick(r, RU_TASKS)} ${pick(r, RU_DAYS)}`,
+    (r) =>
+      `нужно ${pick(r, RU_TASKS)} до ${pick(r, ['пятницы', 'понедельника', 'выходных', 'завтра'])}`,
     (r) => `don't let me forget ${pick(r, TASKS)} ${pick(r, DAYS)}`,
     (r) => `یادت نره ${pick(r, FA_DAYS)} ${pick(r, FA_TASKS)}`,
     (r) =>
@@ -481,6 +587,12 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => `فراموش نکنم ${pick(r, FA_TASKS)}`,
   ],
   todo: [
+    (r) =>
+      `${pick(r, RU_ITEMS)}, ${pick(r, RU_ITEMS)}, ${pick(r, RU_ITEMS)} и ${pick(r, RU_ITEMS)}`,
+    (r) => `купить ${pick(r, RU_ITEMS)}, ${pick(r, RU_ITEMS)} и ${pick(r, RU_ITEMS)}`,
+    (r) => `список покупок: ${pick(r, RU_ITEMS)}, ${pick(r, RU_ITEMS)}, ${pick(r, RU_ITEMS)}`,
+    (r) => `дела: ${pick(r, RU_CHORES)}, ${pick(r, RU_CHORES)}, ${pick(r, RU_CHORES)}`,
+    (r) => `${pick(r, RU_ITEMS)} ${pick(r, RU_ITEMS)} ${pick(r, RU_ITEMS)} ${pick(r, RU_ITEMS)}`,
     (r) => `${pick(r, ITEMS)} ${pick(r, ITEMS)} ${pick(r, ITEMS)} ${pick(r, ITEMS)}`,
     (r) => `${pick(r, FA_ITEMS)} ${pick(r, FA_ITEMS)} ${pick(r, FA_ITEMS)}`,
     (r) => `buy ${pick(r, ITEMS)}, ${pick(r, ITEMS)}, ${pick(r, ITEMS)} and ${pick(r, ITEMS)}`,
@@ -497,6 +609,10 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => `خرید ${pick(r, FA_ITEMS)} و ${pick(r, FA_ITEMS)}`,
   ],
   timer: [
+    (r) => `таймер ${n(r, 1, 60)} ${pick(r, ['минут', 'мин', 'секунд'])}`,
+    (r) => `${n(r, 5, 50)} минут ${pick(r, ['фокус', 'работы', 'отдыха', 'перерыв'])}`,
+    (r) => `поставь таймер на ${pick(r, ['полчаса', 'час', '10 минут', '25 минут'])}`,
+    (_r) => `помодоро`,
     (r) =>
       `${pick(r, ['ده', 'بیست', 'پنج', 'سی', 'پانزده'])} دقیقه ${pick(r, ['استراحت', 'تمرکز', 'مطالعه', ''])}`,
     (r) => `${n(r, 5, 60)}m ${pick(r, ['deep work', 'focus', 'break'])}`,
@@ -516,6 +632,11 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => faDigits(`${n(r, 10, 59)} ثانیه`, r),
   ],
   habit: [
+    (r) => `${pick(r, RU_HABITS)} каждый день`,
+    (r) =>
+      `${pick(r, RU_HABITS)} по ${pick(r, ['пн ср пт', 'вт и чт', 'понедельникам и средам', 'будням'])}`,
+    (r) => `${pick(r, RU_HABITS)} ${n(r, 2, 5)} раза в неделю`,
+    (r) => `каждое утро ${pick(r, RU_HABITS)}`,
     (r) => `روزی ${pick(r, ['دو لیتر آب', 'ده صفحه کتاب', 'یک ساعت ورزش', 'بیست دقیقه مدیتیشن'])}`,
     (r) => `${pick(r, HABITS)} every ${pick(r, ['morning', 'day', 'night', 'evening'])}`,
     (r) => `${pick(r, HABITS)} daily`,
@@ -531,6 +652,9 @@ const T: Record<IntentKey, Gen[]> = {
   ],
   color: [
     (r) =>
+      `${pick(r, ['синий', 'красный', 'зеленый', 'бирюзовый', 'фиолетовый', 'оранжевый'])} цвет`,
+    (r) => `цвет #${pick(r, ['1f3fd0', 'ff6600', '00aa88', 'cc3366'])}`,
+    (r) =>
       `#${Math.floor(r() * 0xffffff)
         .toString(16)
         .padStart(6, '0')}`,
@@ -545,6 +669,8 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => `رنگ ${pick(r, ['دریا', 'غروب', 'نعنا'])}`,
   ],
   split: [
+    (r) => `раздели ${n(r, 300, 9000)} на ${pick(r, ['двоих', 'троих', '4', '5 человек'])}`,
+    (r) => `счет ${n(r, 1000, 9000)} руб на ${n(r, 2, 6)} человек`,
     (r) =>
       `${pick(r, ['dinner', 'lunch', 'cab', 'groceries'])} bill ${n(r, 40, 900)} for ${n(r, 2, 6)} of us`,
     (r) => faDigits(`${pick(r, FA_MEALS)} ${n(r, 1, 9)} میلیون شد، ${n(r, 2, 6)} نفر بودیم`, r),
@@ -561,6 +687,10 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => faDigits(`نفری چقدر میشه ${n(r, 1, 9)} میلیون ${n(r, 2, 6)} نفری`, r),
   ],
   expense: [
+    (r) =>
+      `потратил ${n(r, 100, 5000)} руб на ${pick(r, ['кофе', 'такси', 'продукты', 'обед', 'билеты'])}`,
+    (r) => `${n(r, 200, 3000)} ₽ ${pick(r, ['такси', 'продукты', 'кафе'])}`,
+    (r) => `заплатил ${n(r, 500, 9000)} за ${pick(r, ['интернет', 'свет', 'квартиру'])}`,
     (r) => `spent ${n(r, 5, 900)} on ${pick(r, WHERE)}`,
     (r) => `paid ${n(r, 5, 900)} for ${pick(r, WHERE)}`,
     (r) => `$${n(r, 5, 300)} ${pick(r, WHERE)}`,
@@ -573,6 +703,10 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => faDigits(`${pick(r, FA_WHERE)} ${n(r, 50, 900)} هزار`, r),
   ],
   convert: [
+    (r) =>
+      `${n(r, 1, 100)} ${pick(r, ['км', 'кг', 'литров', 'миль', 'фунтов'])} в ${pick(r, ['мили', 'фунты', 'галлоны', 'км', 'кг'])}`,
+    (r) =>
+      `перевести ${n(r, 1, 300)} ${pick(r, ['см', 'футов', 'кг'])} в ${pick(r, ['дюймы', 'метры', 'фунты'])}`,
     (r) =>
       `${n(r, 1, 500)} ${pick(r, ['miles', 'km', 'kg', 'lbs', 'feet', 'inches', 'cm', 'liters', 'gallons', 'oz'])} ${pick(r, ['in', 'to'])} ${pick(r, ['km', 'miles', 'lbs', 'kg', 'meters', 'cm', 'inches', 'gallons', 'liters', 'grams'])}`,
     (r) =>
@@ -591,6 +725,9 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => faDigits(`تبدیل ${n(r, 1, 500)} ${pick(r, ['پوند', 'مایل', 'فوت'])}`, r),
   ],
   calc: [
+    (r) =>
+      `сколько будет ${n(r, 10, 999)} ${pick(r, ['умножить на', 'плюс', 'минус'])} ${n(r, 2, 99)}`,
+    (r) => `посчитай ${n(r, 10, 999)} * ${n(r, 2, 40)}`,
     (r) => `${n(r, 5, 25)}% ${pick(r, ['tip', 'tax'])} on ${n(r, 20, 900)}`,
     (r) => faDigits(`${n(r, 100, 9999)} تقسیم بر ${n(r, 2, 30)}`, r),
     (r) => `${n(r, 100, 9999)} * 0.${n(r, 1, 99)}`,
@@ -609,6 +746,10 @@ const T: Record<IntentKey, Gen[]> = {
   ],
   travel: [
     (r) =>
+      `поездка в ${pick(r, RU_CITIES)} ${pick(r, ['на выходных', 'в пятницу', 'на следующей неделе'])}`,
+    (r) => `лечу в ${pick(r, RU_CITIES)} ${pick(r, RU_DAYS)}`,
+    (r) => `поезд из Москвы в ${pick(r, RU_CITIES)} ${pick(r, RU_DAYS)}`,
+    (r) =>
       `flight to ${pick(r, CITIES)} ${pick(r, ['next weekend', 'this weekend', 'on friday', 'in march', 'tomorrow', ''])}`,
     (r) => `trip to ${pick(r, CITIES)} ${pick(r, ['next month', 'this weekend', 'dec 12', ''])}`,
     (r) => `train from ${pick(r, CITIES)} to ${pick(r, CITIES)} ${pick(r, DAYS)}`,
@@ -623,6 +764,12 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => `سفر کاری ${pick(r, FA_CITIES)}`,
   ],
   poll: [
+    (r) =>
+      `${pick(r, ['пицца', 'суши', 'бургеры'])} или ${pick(r, ['паста', 'шаурма', 'салат'])} на ужин?`,
+    (r) =>
+      `куда пойдем: ${pick(r, ['кино', 'парк', 'бар'])}, ${pick(r, ['музей', 'кафе', 'театр'])} или ${pick(r, ['домой', 'клуб', 'концерт'])}?`,
+    (r) =>
+      `голосуем: ${pick(r, ['пятница', 'суббота'])} или ${pick(r, ['воскресенье', 'понедельник'])}`,
     (r) =>
       `${pick(r, ['pizza', 'sushi', 'tacos', 'burgers', 'thai'])} or ${pick(r, ['burgers', 'pasta', 'curry', 'salad', 'ramen'])} for ${pick(r, DAYS)}?`,
     (r) =>
@@ -640,6 +787,9 @@ const T: Record<IntentKey, Gen[]> = {
   ],
   contact: [
     (r) =>
+      `${pick(r, ['Анна', 'Иван', 'Олег', 'Маша'])} +7 9${n(r, 10, 99)} ${n(r, 100, 999)} ${n(r, 10, 99)} ${n(r, 10, 99)}`,
+    (r) => `контакт ${pick(r, ['Сергей', 'Катя'])} ${pick(r, ['sergey', 'katya'])}@mail.ru`,
+    (r) =>
       `${pick(r, NAMES)} ${n(r, 70000, 99999)} ${n(r, 10000, 99999)} ${pick(r, NAMES).split(' ')[0]}@mail.com`,
     (r) => `${pick(r, NAMES)} +1 ${n(r, 200, 999)} ${n(r, 200, 999)} ${n(r, 1000, 9999)}`,
     (r) => `save ${pick(r, NAMES)} ${pick(r, ['alex', 'sam', 'lee'])}@company.io`,
@@ -652,6 +802,8 @@ const T: Record<IntentKey, Gen[]> = {
   ],
   link: [
     (r) =>
+      `https://${pick(r, ['habr.com', 'vc.ru', 'github.com/aturzone'])} ${pick(r, ['почитать позже', 'посмотреть', ''])}`,
+    (r) =>
       `https://${pick(r, ['vercel.com/blog', 'github.com/org/repo', 'news.ycombinator.com', 'example.org/docs', 'youtu.be/abc'])} ${pick(r, ['check later', 'read this', '', 'for the talk'])}`,
     (r) =>
       `${pick(r, ['figma.com/file/x', 'notion.so/page', 'linear.app/team', 'docs.rs/serde'])} ${pick(r, ['', 'design', 'todo'])}`,
@@ -660,6 +812,9 @@ const T: Record<IntentKey, Gen[]> = {
       `https://${pick(r, ['digikala.com', 'virgool.io/post', 'github.com/aturzone/grimstroke', 'aparat.com/v/x'])} ${pick(r, ['بعدا بخونم', 'برای جلسه', '', 'اینو ببین'])}`,
   ],
   countdown: [
+    (r) => `сколько дней до ${pick(r, ['нового года', 'отпуска', 'дня рождения', '12 октября'])}`,
+    (r) =>
+      `дней до ${pick(r, ['релиза', 'свадьбы', 'нового года'])} ${pick(r, ['12 ноября', '1 декабря', ''])}`,
     (r) =>
       `days until ${pick(r, ['christmas', 'new year', 'halloween', 'my birthday on dec 12', 'the launch on oct 20', 'valentines day'])}`,
     (r) => `how many days till ${pick(r, ['christmas', 'summer', 'the wedding on june 3'])}`,
@@ -674,6 +829,7 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => `تا ${pick(r, ['نوروز', 'یلدا'])} چند روز مونده`,
   ],
   timezone: [
+    (r) => `который час в ${pick(r, ['токио', 'лондоне', 'нью-йорке', 'дубае'])}`,
     (r) =>
       `${n(r, 1, 12)}${pick(r, ['pm', 'am'])} ${pick(r, ['pst', 'est', 'ist', 'utc', 'london', 'tokyo'])} in ${pick(r, ['ist', 'pst', 'berlin', 'tehran', 'sydney', 'est'])}`,
     (r) =>
@@ -690,6 +846,10 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => faDigits(`ساعت ${n(r, 1, 12)} ${pick(r, ['لندن', 'برلین', 'دبی'])} به وقت تهران`, r),
   ],
   random: [
+    (r) => `брось ${pick(r, ['кубик', '2 кубика', 'монетку'])}`,
+    (r) => `случайное число от ${n(r, 1, 10)} до ${n(r, 20, 100)}`,
+    (r) =>
+      `выбери: ${pick(r, ['кино', 'книга'])}, ${pick(r, ['прогулка', 'сериал'])} или ${pick(r, ['сон', 'игра'])}`,
     (r) => faDigits(`یه عدد بین ${n(r, 1, 10)} تا ${n(r, 20, 1000)}`, r),
     (r) => `a number between ${n(r, 1, 10)} and ${n(r, 20, 1000)}`,
     (r) => `roll ${pick(r, ['2d6', 'd20', '3d8', 'a die', 'dice', 'two dice'])}`,
@@ -709,6 +869,9 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => `قرعه بکش بین ${pick(r, FA_NAMES)}، ${pick(r, FA_NAMES)} و ${pick(r, FA_NAMES)}`,
   ],
   goal: [
+    (r) => `прочитать ${n(r, 6, 50)} книг в этом году, ${n(r, 1, 5)} уже прочитал`,
+    (r) => `цель: ${n(r, 100, 900)} км бега, ${n(r, 10, 99)} готово`,
+    (r) => `${n(r, 1, 9)} из ${n(r, 10, 30)} ${pick(r, ['глав', 'уроков', 'тренировок'])}`,
     (r) => `read ${n(r, 6, 50)} books this year, ${n(r, 1, 5)} done`,
     (r) => `save ${n(r, 1, 50)}000, saved ${n(r, 1, 9)}000 so far`,
     (r) => `${n(r, 1, 9)} of ${n(r, 10, 30)} ${pick(r, ['chapters', 'lessons', 'runs', 'tasks'])}`,
@@ -745,6 +908,9 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => `${pick(r, RU_FAULTS)}, метки ${pick(r, ['ui', 'backend', 'срочно', 'mobile', 'docs'])}`,
   ],
   note: [
+    (r) => pick(r, RU_THOUGHTS),
+    (r) => `${pick(r, RU_THOUGHTS)}. ${pick(r, RU_THOUGHTS)}`,
+    (r) => `заметка: ${pick(r, RU_THOUGHTS)}`,
     (r) => pick(r, THOUGHTS),
     (r) => `${pick(r, THOUGHTS)}. ${pick(r, THOUGHTS)}`,
     (r) => `note: ${pick(r, THOUGHTS)}`,
@@ -753,6 +919,7 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => `یادداشت: ${pick(r, FA_THOUGHTS)}`,
   ],
   none: [
+    (r) => pick(r, ['привет', 'ок', 'да', 'нет', 'хм', 'тест', 'спасибо', 'что', 'ну']),
     (r) =>
       pick(r, [
         'hi',
