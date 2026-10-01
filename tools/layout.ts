@@ -76,6 +76,7 @@ await serving.store.writeBook(fa);
 const PAGES = [
   '/',
   '/today',
+  '/slash',
   '/shelf',
   '/book?id=field',
   '/page?book=field&leaf=one',

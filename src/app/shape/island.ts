@@ -98,6 +98,11 @@ export class ShapeIsland {
     this.host = host;
   }
 
+  /** Whether the box is up: a page is not drawn again under someone typing. */
+  get isOpen(): boolean {
+    return this.root !== undefined;
+  }
+
   bind(): void {
     window.addEventListener('keydown', (event) => {
       if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;

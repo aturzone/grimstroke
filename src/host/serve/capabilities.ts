@@ -89,6 +89,14 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
       'a card typed on the day { block: shape, width? }, put on the home board under what is there',
     'POST /api/today/act':
       'on a card from the day { address, id, act: tick|done|habit, index? }, as the card itself would',
+    'GET /api/slash':
+      'every card the / box made, on every board and page: { address, id, block, where, summary, done }',
+    'POST /api/slash/add':
+      'a card from the / box { block: shape|note, width? }, onto the / board (board "slash")',
+    'POST /api/slash/save': 'a card changed { address, id, block }',
+    'POST /api/slash/delete':
+      'a card let go { address, id }; the reply carries the item, to restore',
+    'POST /api/slash/restore': 'a card put back { address, item }',
     'GET /api/push/key': "the workspace's public key, for a device to subscribe to reminders",
     'POST /api/push/subscribe':
       'a device to tell before what is planned, with the page shut (a PushSubscription)',

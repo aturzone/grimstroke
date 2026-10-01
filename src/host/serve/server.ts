@@ -41,6 +41,7 @@ import { pages } from '~/host/serve/pages.ts';
 import { Push } from '~/host/serve/push.ts';
 import { keepFresh, oauthCallback, remoteApi } from '~/host/serve/remote.ts';
 import { publicFile } from '~/host/serve/shell.ts';
+import { slash } from '~/host/serve/slash.ts';
 import { today, todaySources } from '~/host/serve/today.ts';
 import { Store } from '~/host/store/store.ts';
 
@@ -162,6 +163,7 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
     if (await pushApi(ask, push, live)) return;
     if (await pages(ask, live)) return;
     if (await today(ask, live, [appUrl()])) return;
+    if (await slash(ask, live, [appUrl()])) return;
     if (await remoteApi(ask, live)) return;
     if (await api(ask, live)) return;
     send(res, 404, { error: 'no such thing here' });

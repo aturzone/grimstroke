@@ -207,6 +207,15 @@ would: `tick` a checklist item, mark a reminder or event `done`, keep a `habit` 
 answers with the day page's markup, drawn again. `POST /api/today/add { block, width? }` puts a
 card typed on the day page onto the home board, under what is already there, and answers the same.
 
+## The / board
+
+`GET /slash` is the page where everything the / box made is looked after; `GET /api/slash` is the
+same as data: every card on every board and page, as `{ address, id, block, where, summary, done }`.
+What the box makes without being told where goes onto the board `slash` -- `POST /api/slash/add
+{ block, width? }`, where the block is a shape or a note. `POST /api/slash/save { address, id, block }`
+changes a card, `POST /api/slash/delete { address, id }` lets one go and answers with the item, and
+`POST /api/slash/restore { address, item }` puts it back. Moving one is `POST /api/items/move`.
+
 ## Moving things between surfaces
 
 `POST /api/items/move` with `{ "from": "<address>", "to": "<address>", "ids": [...] }` takes the

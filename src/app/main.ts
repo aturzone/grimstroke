@@ -16,6 +16,7 @@ import { bootPrint } from '~/app/print.ts';
 import { bootProfile } from '~/app/profile.ts';
 import { bootReminders } from '~/app/remind.ts';
 import { bootShelf } from '~/app/shelf/index.ts';
+import { bootSlash } from '~/app/slash.ts';
 import { bootToday } from '~/app/today.ts';
 import { startWelcome } from '~/app/welcome.ts';
 
@@ -56,6 +57,7 @@ async function boot(): Promise<void> {
   smoothLinks();
   if (bootPrint()) return;
   if (bootToday()) return;
+  if (bootSlash()) return;
   if (bootShelf()) return;
   const profile = bootProfile();
   if (profile) {

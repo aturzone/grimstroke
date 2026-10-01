@@ -34,6 +34,7 @@ import { must, onClick, typing } from '~/app/dom.ts';
 import { appear, play, type SoundName, slideFrom, vanish } from '~/app/feel.ts';
 import { letterOf } from '~/app/keys.ts';
 import { type PatchReply, Session } from '~/app/net.ts';
+import { pickPage } from '~/app/pick.ts';
 import type { BoardItem, BoardSpec } from '~/draw/doc/board/model.ts';
 import type { Op } from '~/draw/doc/board/patch.ts';
 import { apply, invert, topZ } from '~/draw/doc/board/patch.ts';
@@ -844,74 +845,6 @@ export async function bootBoard(): Promise<BoardApp> {
   const res = await fetch(`/api/state?kind=board&id=${encodeURIComponent(id)}`);
   const { spec } = (await res.json()) as { spec: BoardSpec };
   return new BoardApp(spec);
-}
-
-/** Which page of which notebook: a small card with the notebooks and a page number. */
-async function pickPage(from = ''): Promise<string | undefined> {
-  const res = await fetch('/api/shelf');
-  if (!res.ok) return undefined;
-  const { rows, archive } = (await res.json()) as {
-    rows: Array<Array<{ id: string }>>;
-    archive: string[];
-  };
-  // Notebooks only: the bookcase's rows also hold its objects (a plant, a lamp).
-  const ids = [...rows.flat().map((s) => s.id), ...archive].filter(
-    (id) => !id.startsWith('decor:'),
-  );
-  const titles = await Promise.all(
-    ids.map(async (id) => {
-      const r = await fetch(`/api/state?kind=book&id=${encodeURIComponent(id)}`);
-      const { spec } = (await r.json()) as { spec: { title?: string; cover?: { title?: string } } };
-      return spec.cover?.title ?? spec.title ?? id;
-    }),
-  );
-  return new Promise((done) => {
-    const dialog = document.createElement('dialog');
-    dialog.className = 'gs-dialog gs-ask';
-    dialog.setAttribute('aria-label', 'send to a page');
-    const form = document.createElement('form');
-    form.method = 'dialog';
-    form.innerHTML =
-      '<header class="gs-dialog-head"><h2>send it somewhere else</h2></header>' +
-      '<div class="gs-dialog-body">' +
-      '<label class="gs-ask-label" for="gs-move-book">where to</label>' +
-      '<select class="gs-field" id="gs-move-book" data-gs="move-book"></select>' +
-      '<label class="gs-ask-label" for="gs-move-page">page</label>' +
-      '<input class="gs-field" id="gs-move-page" type="number" min="1" value="1" data-gs="move-page">' +
-      '</div><div class="gs-dialog-actions">' +
-      '<button class="gs-btn" value="cancel" formnovalidate>not now</button>' +
-      '<button class="gs-btn gs-btn-primary" value="send" data-gs="move-send">send</button></div>';
-    const select = form.querySelector('select') as HTMLSelectElement;
-    const pageField = form.querySelector('input') as HTMLInputElement;
-    // The board first, unless that is where they are coming from.
-    if (from.startsWith('book:')) {
-      const board = document.createElement('option');
-      board.value = '';
-      board.textContent = 'the board';
-      select.append(board);
-    }
-    const onBoard = (): void => {
-      pageField.disabled = select.value === '';
-    };
-    select.addEventListener('change', onBoard);
-    ids.forEach((id, i) => {
-      const option = document.createElement('option');
-      option.value = id;
-      option.textContent = titles[i] ?? id;
-      select.append(option);
-    });
-    dialog.append(form);
-    onBoard();
-    dialog.addEventListener('close', () => {
-      const page = Math.max(1, Number(pageField.value) || 1);
-      const book = select.value;
-      dialog.remove();
-      if (dialog.returnValue !== 'send') return done(undefined);
-      done(book ? `book:${book}:${page}` : 'workspace');
-    });
-    document.body.append(dialog);
-    dialog.showModal();
-  });
 }
 
 /** The stamps are words and want more width than a symbol does. */

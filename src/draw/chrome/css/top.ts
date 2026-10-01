@@ -179,9 +179,9 @@ export const TOP = `/* ---- the top ----
   .gs-search-open { min-width: 0; }
   .gs-search-open .gs-btn-text { display: none; }
 }
-/* A notebook with a long name in a right-to-left script still met the places at 915px, so the
-   bar folds into the menu from 1000px down. */
-@media (max-width: 1000px) {
+/* A notebook with a long name in a right-to-left script still met the places at 915px, and at
+   1024px once there were five places, so the bar folds into the menu from 1100px down. */
+@media (max-width: 1100px) {
   .gs-top { display: flex; justify-content: space-between; }
   .gs-places { display: none; }
   .gs-menu-places { display: block; }
