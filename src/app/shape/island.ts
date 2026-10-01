@@ -18,10 +18,19 @@
 import { toast } from '~/app/chrome.ts';
 import { typing } from '~/app/dom.ts';
 import { comingFrom, moving, play } from '~/app/feel.ts';
+import { runCommand } from '~/app/shape/command.ts';
 import { fieldEditor, openFieldEditor } from '~/app/shape/editor.ts';
 import { IssueDraft, openIssue } from '~/app/shape/issue.ts';
+import { icon } from '~/draw/chrome/icons.ts';
 import { NOTE_HEIGHT, NOTE_WIDTH } from '~/draw/material/note/model.ts';
 import { classify, type ShapeResult } from '~/draw/shape/classify.ts';
+import {
+  COMMANDS,
+  type CommandMatch,
+  commandLabel,
+  languageOf,
+  matchCommands,
+} from '~/draw/shape/commands.ts';
 import { activeIntent, decide, force, type Memory, promote, START } from '~/draw/shape/decide.ts';
 import { type Fields, readShape } from '~/draw/shape/fields.ts';
 import { INTENTS, iconSvg, SHAPE_INTENTS, type ShapeIntent } from '~/draw/shape/intents.ts';
@@ -100,6 +109,8 @@ export class ShapeIsland {
   /** Values set in the bar's "details", and the kind they were set for. */
   private fields: Fields | undefined;
   private fieldsFor: ShapeIntent | undefined;
+  /** What the line asks the box to do, rather than to make: surest first. */
+  private commands: CommandMatch[] = [];
   /** An issue being written: its repository, labels and pictures. */
   private readonly issue = new IssueDraft(() => this.draw());
   private details: HTMLElement | undefined;
@@ -246,6 +257,7 @@ export class ShapeIsland {
     const text = input.value;
     const result = classify(text, new Date());
     this.last = result;
+    this.commands = this.editing ? [] : matchCommands(text);
     if (!keepForced) this.mem = decide(this.mem, result, text);
     if (this.mem.ui.kind === 'choose') this.chip = Math.min(this.chip, 1);
     // Details set by hand belong to one kind: another kind starts clean.
@@ -275,8 +287,29 @@ export class ShapeIsland {
     const text = input.value;
     const fa = isPersian(text);
     if (this.root) this.root.dir = fa ? 'rtl' : 'ltr';
-    this.root?.classList.toggle('has-card', Boolean(intent));
-    if (intent) {
+    const asked = this.commands[0]?.sure ? this.commands[0] : undefined;
+    this.root?.classList.toggle('has-card', Boolean(intent) || Boolean(asked));
+    this.root?.querySelector('.ss-pictures')?.remove();
+    if (asked) {
+      // Asked for by name: the box does it, and says what it will do.
+      const lang = languageOf(text);
+      card.innerHTML =
+        `<div class="ss-command">${icon(asked.command.icon as never)}` +
+        `<b>${commandLabel(asked.command, lang)}</b>` +
+        (asked.arg ? `<span dir="auto">${asked.arg.replace(/[<>&"]/g, '')}</span>` : '') +
+        '</div>';
+      card.classList.remove('is-ghost');
+      foot.innerHTML = '';
+      const go = el('button', 'ss-add');
+      go.type = 'button';
+      go.dataset.gs = 'shape-add';
+      go.innerHTML = `${lang === 'fa' ? 'انجام بده' : lang === 'ru' ? 'Сделать' : 'Do it'} <span aria-hidden="true">↵</span>`;
+      go.addEventListener('mousedown', (e) => e.preventDefault());
+      go.addEventListener('click', () => this.commit());
+      const end = el('span', 'ss-foot-end');
+      end.append(go);
+      foot.append(el('span', 'ss-keys'), end);
+    } else if (intent) {
       const ghost = ui.kind === 'ghost';
       const fields = this.fieldsOf(intent, text);
       card.innerHTML = renderShape(
@@ -339,6 +372,16 @@ export class ShapeIsland {
       foot.innerHTML = '';
     }
     chips.innerHTML = '';
+    // Commands the line might be the start of, offered beside the card, never instead of it.
+    for (const m of this.commands.filter((c) => !c.sure)) {
+      const b = el('button', 'ss-chip ss-chip-command');
+      b.type = 'button';
+      b.dataset.gs = `shape-command-${m.command.id}`;
+      b.innerHTML = `${icon(m.command.icon as never)}<span>${commandLabel(m.command, languageOf(text))}</span>`;
+      b.addEventListener('mousedown', (e) => e.preventDefault());
+      b.addEventListener('click', () => this.run(m));
+      chips.append(b);
+    }
     if (ui.kind === 'choose') {
       ui.options.forEach((option, i) => {
         const b = el('button', `ss-chip${i === this.chip ? ' is-on' : ''}`);
@@ -439,6 +482,11 @@ export class ShapeIsland {
   private commit(): void {
     const input = this.input;
     const ui = this.mem.ui;
+    const asked = this.commands[0]?.sure ? this.commands[0] : undefined;
+    if (asked) {
+      this.run(asked);
+      return;
+    }
     const intent = ui.kind === 'choose' ? ui.options[this.chip] : activeIntent(ui);
     const text = input?.value.trim() ?? '';
     if (!intent || !text) return;
@@ -510,6 +558,12 @@ export class ShapeIsland {
     );
   }
 
+  /** Do what was asked, with the box out of the way first. */
+  private run(m: CommandMatch): void {
+    this.close(false);
+    void runCommand(m);
+  }
+
   // ---------------------------------------------------------------- the list of kinds
 
   private openPalette(): void {
@@ -524,24 +578,41 @@ export class ShapeIsland {
     const list = el('ul', 'ss-palette-list');
     list.setAttribute('role', 'listbox');
     let active = 0;
-    let shown: ShapeIntent[] = [...SHAPE_INTENTS];
+    // The kinds of card, and after them everything the box can do: one list, one way in.
+    type Row = { card: ShapeIntent } | { command: (typeof COMMANDS)[number] };
+    let shown: Row[] = [];
+    const choose = (row: Row): void => {
+      if ('card' in row) this.pick(row.card);
+      else this.run({ command: row.command, arg: '', sure: true, score: 1 });
+    };
     const fill = (): void => {
       const q = search.value.trim().toLowerCase();
-      shown = SHAPE_INTENTS.filter((k) => {
-        const d = INTENTS[k];
-        return !q || `${k} ${d.label} ${d.fa} ${d.example} ${d.words}`.toLowerCase().includes(q);
-      });
-      active = Math.min(active, Math.max(0, shown.length - 1));
-      list.replaceChildren(
-        ...shown.map((k, i) => {
+      shown = [
+        ...SHAPE_INTENTS.filter((k) => {
           const d = INTENTS[k];
+          return !q || `${k} ${d.label} ${d.fa} ${d.example} ${d.words}`.toLowerCase().includes(q);
+        }).map((card) => ({ card })),
+        ...COMMANDS.filter(
+          (c) => !q || `${c.label} ${c.fa} ${c.ru} ${c.names.join(' ')}`.toLowerCase().includes(q),
+        ).map((command) => ({ command })),
+      ];
+      active = Math.min(active, Math.max(0, shown.length - 1));
+      const firstCommand = shown.findIndex((r) => 'command' in r);
+      list.replaceChildren(
+        ...shown.flatMap((row, i) => {
           const li = el('li', `ss-option${i === active ? ' is-on' : ''}`);
           li.setAttribute('role', 'option');
-          li.dataset.gs = `shape-kind-${k}`;
-          li.innerHTML = `<span class="ss-option-tile">${iconSvg(k, 'ss-icon')}</span><b>${d.label}</b><span class="ss-option-example" dir="auto">${d.example}</span>`;
+          if ('card' in row) {
+            const d = INTENTS[row.card];
+            li.dataset.gs = `shape-kind-${row.card}`;
+            li.innerHTML = `<span class="ss-option-tile">${iconSvg(row.card, 'ss-icon')}</span><b>${d.label}</b><span class="ss-option-example" dir="auto">${d.example}</span>`;
+          } else {
+            li.dataset.gs = `shape-command-${row.command.id}`;
+            li.innerHTML = `<span class="ss-option-tile">${icon(row.command.icon as never)}</span><b>${row.command.label}</b><span class="ss-option-example" dir="auto">${row.command.fa}</span>`;
+          }
           li.addEventListener('mousedown', (e) => e.preventDefault());
-          li.addEventListener('click', () => this.pick(k));
-          return li;
+          li.addEventListener('click', () => choose(row));
+          return i === firstCommand ? [el('li', 'ss-palette-group', 'go and do'), li] : [li];
         }),
       );
       if (!shown.length)
@@ -559,8 +630,8 @@ export class ShapeIsland {
         fill();
       } else if (event.key === 'Enter') {
         event.preventDefault();
-        const k = shown[active];
-        if (k) this.pick(k);
+        const row = shown[active];
+        if (row) choose(row);
       } else if (event.key === 'Escape') {
         event.preventDefault();
         this.closePalette();

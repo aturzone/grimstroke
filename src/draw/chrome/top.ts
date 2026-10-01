@@ -92,6 +92,11 @@ export function topBar(o: TopOptions): string {
     o.actions
       ? `<div class="gs-acts-own${o.compact ? ' gs-wide-only' : ''}">${o.actions}</div>`
       : '',
+    // The / box, on every surface: the one way in. The board has its own, in the tray.
+    o.place === 'board'
+      ? ''
+      : '<button type="button" class="gs-btn gs-btn-icon gs-slash-open" data-gs="shape-open" ' +
+        `aria-label="the / box: make anything, go anywhere" aria-keyshortcuts="/">${icon('shape')}</button>`,
     '<button type="button" class="gs-btn gs-search-open" data-gs="search-open" ' +
       'aria-label="search everything" aria-keyshortcuts="Control+K /">' +
       `${icon('search')}<span class="gs-btn-text">search</span>${kbd('mod+K')}</button>`,

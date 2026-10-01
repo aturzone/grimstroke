@@ -173,3 +173,30 @@ export function bootSlash(): boolean {
     appear(card, n * 30);
   return true;
 }
+
+/** The box on a page with no place of its own: what it makes goes onto the / board. */
+export function bootAnywhere(): void {
+  const island = new ShapeIsland({
+    surface: document.body,
+    find: () => undefined,
+    save: () => {},
+    address: () => 'slash',
+    placed: () => {},
+    add: (block: PlacedBlock, width) => {
+      post<{ id: string }>('/api/slash/add', { block, width })
+        .then(() => {
+          play('pop');
+          toast('on the / board', 'info', {
+            label: 'see it',
+            run: () => {
+              location.href = '/slash';
+            },
+          });
+        })
+        .catch(() => {
+          toast('that did not save -- is the workspace running?', 'error');
+        });
+    },
+  });
+  island.bind();
+}

@@ -20,8 +20,12 @@ grimstroke is becoming two things, the way git is plumbing and porcelain.
 3. **The front moves out.** `draw/` (all but the / card faces and what the core needs to read
    cards), `app/` (all but the box and the / board) and the HTML pages move to
    `../grimstroke-front`, which runs as its own server against the core's API.
-4. **Everything through /.** The bookcase, the settings and the calendar become things the box
-   opens, so there is one way in.
+4. **Everything through /** -- started: the box is on every page (a / button in every top bar),
+   and besides cards it does what it is asked by name, in English, Persian or Russian: go to the
+   board, the calendar, the notebooks or the settings; dark or light; a new notebook; search;
+   connect a GitHub, GitLab or Gitea account; reminders on this device; a backup; sign out
+   (draw/shape/commands.ts). Next: the bookcase, the settings and the calendar drawn as the box's
+   own panels.
 5. **The model.** Laya (an encoder that chooses among given options, ~650 MB multilingual) for
    choosing a card's kind and an issue's labels; translation needs a model that writes, which
    Laya does not.

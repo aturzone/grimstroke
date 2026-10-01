@@ -161,6 +161,15 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
 .ss-option b { width: 96px; flex: none; font-size: 14px; font-weight: 500; }
 .ss-option-example { min-width: 0; overflow: hidden; color: var(--ss-soft); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .ss-empty { padding: 14px 8px; color: var(--ss-soft); font-size: 13px; }
+/* What the box can do besides make a card: in the list under its own name, and in the box. */
+.ss-palette-group { padding: 12px 8px 4px; color: var(--ss-soft); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.ss-option-tile .gs-icon { width: 18px; height: 18px; }
+.ss-option b { width: auto; min-width: 96px; }
+.ss-command { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 12px; border: 1px solid var(--ss-line); border-radius: min(calc(14px * var(--ss-g)), 20px); background: var(--ss-bg); color: var(--ss-fg); }
+.ss-command .gs-icon { width: 22px; height: 22px; flex: none; }
+.ss-command b { font-size: 16px; font-weight: 600; }
+.ss-command span { min-width: 0; overflow: hidden; color: var(--ss-soft); text-overflow: ellipsis; white-space: nowrap; }
+.ss-chip-command .gs-icon { width: 16px; height: 16px; flex: none; }
 
 /* ---- a card's fields, by hand ---- */
 .se-panel {

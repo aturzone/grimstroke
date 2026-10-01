@@ -109,6 +109,17 @@ function pushOn(): boolean {
   }
 }
 
+/** Ask to be reminded on this device, from anywhere: the / box's "remind me on this device". */
+export async function remindHere(): Promise<boolean> {
+  if (typeof Notification === 'undefined') return false;
+  const answer =
+    Notification.permission === 'default'
+      ? await Notification.requestPermission()
+      : Notification.permission;
+  if (answer !== 'granted') return false;
+  return subscribePush();
+}
+
 export function bootReminders(): void {
   if (typeof Notification === 'undefined') return;
   const offer = (): void => {

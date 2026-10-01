@@ -104,7 +104,8 @@ async function json<T>(res: Response): Promise<T & { error?: string }> {
 }
 
 export class RepoSetup {
-  private readonly book: BookSpec;
+  /** The notebook being connected; none when only an account is (from the / box). */
+  private readonly book: BookSpec | undefined;
   private dialog: HTMLDialogElement | undefined;
   private body: HTMLElement | undefined;
   private steps: HTMLElement | undefined;
@@ -120,7 +121,7 @@ export class RepoSetup {
   /** The page open on the spread, to go straight to with the drawer open. */
   private readonly pageHref: string | undefined;
 
-  constructor(book: BookSpec, client = '', page?: string) {
+  constructor(book: BookSpec | undefined, client = '', page?: string) {
     this.book = book;
     this.client = client;
     this.pageHref = page;
@@ -162,7 +163,17 @@ export class RepoSetup {
     const dialog = el('dialog', 'gs-dialog gs-repo');
     dialog.setAttribute('aria-label', 'connect a repository');
     const head = el('header', 'gs-dialog-head');
-    head.append(el('h2', '', this.book.remote ? 'the repository' : 'connect a repository'));
+    head.append(
+      el(
+        'h2',
+        '',
+        !this.book
+          ? 'connect an account'
+          : this.book.remote
+            ? 'the repository'
+            : 'connect a repository',
+      ),
+    );
     const close = button('×', 'repo-close', 'gs-btn-icon');
     close.setAttribute('aria-label', 'close');
     close.addEventListener('click', () => dialog.close());
@@ -174,7 +185,7 @@ export class RepoSetup {
     document.body.append(dialog);
     this.dialog = dialog;
     dialog.showModal();
-    if (this.book.remote) this.connected(this.book.remote);
+    if (this.book?.remote) this.connected(this.book.remote);
     else this.chooseService();
   }
 
@@ -398,7 +409,7 @@ export class RepoSetup {
     b.addEventListener('click', async () => {
       if (gitlabReady) {
         window.open(
-          `/api/remote/oauth/start?host=${encodeURIComponent(host)}&book=${encodeURIComponent(this.book.id)}`,
+          `/api/remote/oauth/start?host=${encodeURIComponent(host)}${this.book ? `&book=${encodeURIComponent(this.book.id)}` : ''}`,
           '_blank',
           'noopener',
         );
@@ -463,6 +474,11 @@ export class RepoSetup {
       if (key) {
         this.keys = known.keys;
         if (key.user) this.state.user = key.user;
+        if (!this.book) {
+          toast(`signed in to ${host}: the / box can now open issues in its repositories`);
+          this.dialog?.close();
+          return;
+        }
         this.chooseRepo();
         return;
       }
@@ -496,6 +512,14 @@ export class RepoSetup {
       user: reply.user,
     });
     toast(`signed in to ${this.state.host} as ${reply.name ?? reply.user}`);
+    // An account on its own: its repositories are the / box's from now on, nothing to choose.
+    if (!this.book) {
+      toast(
+        `the / box can now open issues in ${this.state.host}'s repositories -- try “bug: … in owner/name”`,
+      );
+      this.dialog?.close();
+      return;
+    }
     this.chooseRepo(
       reply.canWrite
         ? undefined
@@ -570,6 +594,7 @@ export class RepoSetup {
   }
 
   private async connect(box: HTMLElement, repo: string): Promise<void> {
+    if (!this.book) return;
     box.classList.add('is-busy');
     const res = await fetch('/api/remote/connect', {
       method: 'POST',
@@ -664,7 +689,7 @@ export class RepoSetup {
       await fetch('/api/remote/disconnect', {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-grimstroke-client': this.client },
-        body: JSON.stringify({ book: this.book.id }),
+        body: JSON.stringify({ book: this.book?.id }),
       });
       toast('disconnected; the cards keep what they last saw');
       this.dialog?.close();

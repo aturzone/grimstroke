@@ -16,7 +16,7 @@ import { bootPrint } from '~/app/print.ts';
 import { bootProfile } from '~/app/profile.ts';
 import { bootReminders } from '~/app/remind.ts';
 import { bootShelf } from '~/app/shelf/index.ts';
-import { bootSlash } from '~/app/slash.ts';
+import { bootAnywhere, bootSlash } from '~/app/slash.ts';
 import { bootToday } from '~/app/today.ts';
 import { startWelcome } from '~/app/welcome.ts';
 
@@ -40,6 +40,9 @@ function morning(): boolean {
   return true;
 }
 
+/** The surfaces that bind a / box of their own, with somewhere of their own to put a card. */
+const OWN_BOX = '[data-gs="board"], [data-gs="book"], [data-gs="today"], [data-gs="slash"]';
+
 async function boot(): Promise<void> {
   if (!navigator.webdriver && morning()) return;
   bootChrome();
@@ -56,6 +59,9 @@ async function boot(): Promise<void> {
   });
   smoothLinks();
   if (bootPrint()) return;
+  // The / box is on every page. One with a place of its own binds its own box; any other page
+  // -- the bookcase, the settings -- gets one that keeps what it makes on the / board.
+  if (!document.querySelector(OWN_BOX)) bootAnywhere();
   if (bootToday()) return;
   if (bootSlash()) return;
   if (bootShelf()) return;
