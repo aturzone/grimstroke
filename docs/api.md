@@ -230,6 +230,10 @@ assets (`POST /api/assets`) carried into the issue -- an upload on GitLab, an at
 Gitea, and on GitHub, which has no API for it, a file on the branch `grimstroke-uploads`. The
 card stays where it was typed, or on the / board, and says which number it became.
 
+The box also acts on issues by number: `GET /api/remote/issues?repo=&mine=&state=` lists them,
+and `POST /api/remote/issues/act { repo?, number, action: close|reopen|comment, body? }` does one
+of those on its service. A month of the calendar as data is `GET /api/calendar?year=&month=`.
+
 ## Moving things between surfaces
 
 `POST /api/items/move` with `{ "from": "<address>", "to": "<address>", "ids": [...] }` takes the

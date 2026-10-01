@@ -73,6 +73,8 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
       'the workspace look: how round every corner is (0 square, 1 as designed, 3 very round)',
     'POST /api/look':
       'change it { corners }; a notebook or board can override with its own corners',
+    'GET /api/calendar?year=&month=':
+      'a month of days (month 1-12): for each, how many things fall on it and how many are done, habits due and kept',
     'GET /api/today':
       'the day, from every card on every board and page: now, today, habits, slipped past, open lists, this week',
     'POST /api/today/add':
@@ -92,6 +94,10 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
     'GET /api/remote/labels': "a repository's labels { host, repo }",
     'POST /api/remote/issue':
       "open an issue from an issue card { block | address+id, address?, images?: [{ asset, name, type }] }: labels chosen from the repository's own, pictures carried with it",
+    'GET /api/remote/issues':
+      "a repository's issues { repo?, mine?, state? }: the repository as a sentence names it, or the one used last",
+    'POST /api/remote/issues/act':
+      'close, reopen or comment on an issue { repo?, number, action, body? }',
     'GET /api/push/key': "the workspace's public key, for a device to subscribe to reminders",
     'POST /api/push/subscribe':
       'a device to tell before what is planned, with the page shut (a PushSubscription)',

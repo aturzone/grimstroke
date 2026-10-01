@@ -17,6 +17,7 @@ let github: Server;
 let base: string;
 const seen: Array<{ method: string; path: string; body: Record<string, unknown> }> = [];
 let refExists = false;
+let closed = false;
 
 async function json(req: IncomingMessage): Promise<Record<string, unknown>> {
   let text = '';
@@ -64,6 +65,34 @@ beforeAll(async () => {
           (name) => ({ name, color: 'ededed' }),
         ),
       );
+    if (path === '/repos/acme/web/issues' && req.method === 'GET')
+      return send(200, [
+        {
+          number: 42,
+          title: 'The save button is slow',
+          state: 'open',
+          labels: [{ name: 'mobile' }],
+          html_url: 'https://github.com/acme/web/issues/42',
+        },
+        {
+          number: 43,
+          title: 'a pull request',
+          state: 'open',
+          labels: [],
+          pull_request: {},
+          html_url: 'x',
+        },
+      ]);
+    if (path === '/repos/acme/web/issues/42' && req.method === 'GET')
+      return send(200, {
+        number: 42,
+        title: 'x',
+        state: closed ? 'closed' : 'open',
+        labels: [],
+        html_url: 'https://github.com/acme/web/issues/42',
+      });
+    if (path === '/repos/acme/web/issues/42/comments' && req.method === 'POST')
+      return send(201, { id: 1, body: body.body, user: { login: 'ada' } });
     if (path === '/repos/acme/web/issues' && req.method === 'POST')
       return send(201, {
         number: 42,
@@ -72,6 +101,16 @@ beforeAll(async () => {
         labels: body.labels,
         html_url: 'https://github.com/acme/web/issues/42',
       });
+    if (path === '/repos/acme/web/issues/42' && req.method === 'PATCH' && body.state === 'closed') {
+      closed = true;
+      return send(200, {
+        number: 42,
+        title: 'x',
+        state: 'closed',
+        labels: [],
+        html_url: 'https://github.com/acme/web/issues/42',
+      });
+    }
     if (path === '/repos/acme/web/issues/42' && req.method === 'PATCH')
       return send(200, {
         number: 42,
@@ -175,5 +214,31 @@ describe('an issue from the / box', () => {
     });
     expect(res.status).toBe(400);
     expect(((await res.json()) as { error: string }).error).toMatch(/nowhere\/else/);
+  });
+
+  it("lists a repository's open issues, and leaves pull requests out", async () => {
+    const reply = (await (await ask('/api/remote/issues?repo=web')).json()) as {
+      repo: string;
+      issues: Array<{ number: string; title: string }>;
+    };
+    expect(reply.repo).toBe('github.com/acme/web');
+    expect(reply.issues.map((i) => i.number)).toEqual(['42']);
+  });
+
+  it('closes and comments on an issue named by its number', async () => {
+    const shut = await ask('/api/remote/issues/act', {
+      method: 'POST',
+      body: JSON.stringify({ repo: 'web', number: '#42', action: 'close' }),
+    });
+    expect(shut.status).toBe(200);
+    expect(((await shut.json()) as { issue: { state: string } }).issue.state).toBe('closed');
+    const said = await ask('/api/remote/issues/act', {
+      method: 'POST',
+      body: JSON.stringify({ repo: 'web', number: 42, action: 'comment', body: 'fixed in 0.7' }),
+    });
+    expect(said.status).toBe(200);
+    expect(
+      seen.some((s) => s.path.endsWith('/issues/42/comments') && s.body.body === 'fixed in 0.7'),
+    ).toBe(true);
   });
 });

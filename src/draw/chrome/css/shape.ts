@@ -170,6 +170,38 @@ export const SHAPE_BAR = `/* ---- the shape bar ---- */
 .ss-command b { font-size: 16px; font-weight: 600; }
 .ss-command span { min-width: 0; overflow: hidden; color: var(--ss-soft); text-overflow: ellipsis; white-space: nowrap; }
 .ss-chip-command .gs-icon { width: 16px; height: 16px; flex: none; }
+/* What a command answers with, in the box: a short list, each row a way there. */
+.ss-panel { display: grid; gap: 6px; padding: 4px 6px; }
+.ss-panel-head { margin: 0; color: var(--ss-soft); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; }
+.ss-panel-list { display: grid; gap: 2px; max-height: min(320px, 46vh); margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.ss-panel-row { display: flex; align-items: baseline; gap: 10px; min-height: 40px; padding: 8px; border-radius: min(calc(10px * var(--ss-g)), 14px); color: var(--ss-fg); text-decoration: none; }
+.ss-panel-row:hover, .ss-panel-row:focus-visible { background: var(--ss-tile); }
+.ss-panel-row b { flex: none; color: var(--ss-soft); font-variant-numeric: tabular-nums; }
+.ss-panel-row span { min-width: 0; overflow-wrap: anywhere; }
+.ss-panel-none { padding: 10px 8px; color: var(--ss-soft); }
+.ss-panel-row.is-done span { color: var(--ss-soft); text-decoration: line-through; }
+.ss-panel-more { justify-self: start; display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border: 1px solid var(--ss-line); border-radius: calc(999px * var(--round, 1)); color: var(--ss-fg); font-size: 13px; font-weight: 600; text-decoration: none; }
+.ss-panel-more:hover { background: var(--ss-tile); }
+/* The calendar in the box: a month of small days, and the one chosen under it. */
+.ss-cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ss-cal-head b { font-size: 15px; }
+.ss-cal-step { width: 36px; height: 36px; border: 0; border-radius: 50%; background: transparent; color: var(--ss-fg); font: inherit; font-size: 20px; cursor: pointer; }
+.ss-cal-step:hover { background: var(--ss-tile); }
+.ss-cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+.ss-cal-wd { padding: 2px 0; color: var(--ss-soft); font-size: 11px; text-align: center; }
+.ss-cal-cell { position: relative; display: grid; place-items: center; min-height: 38px; padding: 0; border: 0; border-radius: min(calc(9px * var(--ss-g)), 12px); background: transparent; color: var(--ss-fg); font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer; }
+.ss-cal-cell:hover { background: var(--ss-tile); }
+.ss-cal-cell.is-out { color: var(--ss-soft); opacity: 0.55; }
+.ss-cal-cell.is-today { box-shadow: inset 0 0 0 1.5px var(--ss-brand, var(--accent)); font-weight: 700; }
+.ss-cal-cell.is-on { background: var(--ss-fg); color: var(--ss-bg); }
+.ss-cal-dots { position: absolute; inset-block-end: 4px; width: 4px; height: 4px; border-radius: 50%; background: var(--ss-brand, var(--accent)); }
+.ss-cal-dots[data-n="2"] { box-shadow: -6px 0 0 var(--ss-brand, var(--accent)); }
+.ss-cal-dots[data-n="3"] { box-shadow: -6px 0 0 var(--ss-brand, var(--accent)), 6px 0 0 var(--ss-brand, var(--accent)); }
+.ss-cal-dots.is-done { background: var(--ss-soft); }
+.ss-cal-day { display: grid; gap: 6px; padding-block-start: 6px; border-block-start: 1px dashed var(--ss-line); }
+/* A setting in the box: what it is, and its choices as chips. */
+.ss-set { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 44px; }
+.ss-set > span { min-width: 96px; color: var(--ss-soft); font-size: 13px; }
 
 /* ---- a card's fields, by hand ---- */
 .se-panel {

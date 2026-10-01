@@ -28,12 +28,15 @@ grimstroke is becoming two things, the way git is plumbing and porcelain.
    `face/face.js`, or from a checkout beside it, or wherever `GRIMSTROKE_FACE` says. The core
    serves the face's `app.js` from the face's own files.
 
-4. **Everything through /** -- started: the box is on every page (a / button in every top bar),
-   and besides cards it does what it is asked by name, in English, Persian or Russian: go to the
-   board, the calendar, the notebooks or the settings; dark or light; a new notebook; search;
-   connect a GitHub, GitLab or Gitea account; reminders on this device; a backup; sign out
-   (draw/shape/commands.ts). Next: the bookcase, the settings and the calendar drawn as the box's
-   own panels.
+4. **Everything through /** -- the box is on every page (a / button in every top bar), and
+   besides cards it does what it is asked by name, in English, Persian or Russian
+   (draw/shape/commands.ts): dark or light, a new notebook, search, connect a GitHub, GitLab
+   or Gitea account, reminders on this device, a backup, sign out. The calendar, the notebooks
+   and the settings open as panels in the box itself (app/shape/panels.ts) -- a month with each
+   day's things, the notebooks to open, the look, sounds and reminders -- with the face's whole
+   page a tap further. Not done: the bookcase and the settings page themselves redrawn in the
+   box's style.
+
 5. **The model** -- grimstroke's own, grown rather than replaced. Laya (an encoder that chooses
    among given options, ~650 MB multilingual, near chance before it is fine-tuned, and unable to
    write, so no translation) was weighed and set aside: on a small server it would answer a few
@@ -42,5 +45,7 @@ grimstroke is becoming two things, the way git is plumbing and porcelain.
    spans, every kind's reader, the rules, the training sentences (held-out 97.1%), and the cards
    and the box speaking it; an issue's labels from an archive of what labels mean. Not done:
    translation, which needs a model that writes.
-6. **Repositories through /** -- started: an issue written in a sentence, its type and labels
-   chosen from the repository's own, a pasted picture carried with it (docs/api.md).
+6. **Repositories through /** -- an issue written in a sentence, its type and labels chosen from
+   the repository's own, a pasted picture carried with it; "my issues" (or "issues in web")
+   listed in the box; "close #12", "reopen #12", "comment #12: fixed" done on the service; and
+   every repository of every connected account is the box's the moment the account is connected.

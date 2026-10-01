@@ -105,6 +105,94 @@ export async function issueApi(ask: Ask, live: Live): Promise<boolean> {
   }
 
   /*
+   * A repository's issues, for the box: { repo?, mine?, state? }. The repository is named the
+   * way a sentence names it, or is the one used last.
+   */
+  if (path === '/api/remote/issues' && req.method === 'GET') {
+    const known = await targets(live);
+    const target = resolveRepo(
+      url.searchParams.get('repo') || null,
+      known,
+      url.searchParams.get('last') ?? undefined,
+    );
+    if (!target) {
+      send(res, 400, {
+        error: known.length
+          ? 'which repository?'
+          : 'connect a GitHub, GitLab or Gitea account first',
+        repos: known.map((k) => `${k.host}/${k.repo}`),
+      });
+      return true;
+    }
+    try {
+      const state = url.searchParams.get('state');
+      const rows = await (await live.remote.adapter(target)).issues(target.repo, {
+        state: state === 'closed' || state === 'all' ? state : 'open',
+        ...(url.searchParams.has('mine') ? { assignee: 'me' } : {}),
+        perPage: 20,
+      });
+      send(res, 200, {
+        repo: `${target.host}/${target.repo}`,
+        issues: rows.map((i) => ({
+          number: i.number,
+          title: i.title,
+          state: i.state,
+          url: i.url,
+          labels: i.labels.map((l) => l.name),
+        })),
+      });
+    } catch (error) {
+      send(res, error instanceof RemoteError ? error.status || 502 : 500, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    return true;
+  }
+
+  /** Close, reopen or comment on an issue by its number: { repo?, number, action, body? }. */
+  if (path === '/api/remote/issues/act' && req.method === 'POST') {
+    const body = (await readBody(req)) as {
+      repo?: string;
+      number?: string | number;
+      action?: string;
+      body?: string;
+      last?: string;
+    };
+    const target = resolveRepo(body.repo || null, await targets(live), body.last);
+    const n = String(body.number ?? '').replace(/^#/, '');
+    const action = body.action;
+    if (
+      !target ||
+      !/^\d+$/.test(n) ||
+      (action !== 'close' && action !== 'reopen' && action !== 'comment')
+    ) {
+      send(res, 400, {
+        error: 'a repository, an issue number and close, reopen or comment are needed',
+      });
+      return true;
+    }
+    try {
+      const seen =
+        action === 'comment'
+          ? await live.remote.act(
+              { ...target, kind: 'issue', id: n },
+              { action, body: body.body ?? '' },
+            )
+          : await live.remote.act({ ...target, kind: 'issue', id: n }, { action });
+      const issue = seen as { number?: string; title?: string; state?: string; url?: string };
+      send(res, 200, {
+        repo: `${target.host}/${target.repo}`,
+        issue: { number: issue.number, title: issue.title, state: issue.state, url: issue.url },
+      });
+    } catch (error) {
+      send(res, error instanceof RemoteError ? error.status || 502 : 500, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    return true;
+  }
+
+  /*
    * Open an issue from a card the box made: { block, address?, id?, images?, last? }. With an id
    * the card already on that board or page is the one that says where the issue went; without,
    * a new card goes onto the board or page given, or the / board.

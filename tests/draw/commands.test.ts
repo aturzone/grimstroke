@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { languageOf, matchCommands } from '~/draw/shape/commands.ts';
+import { issueRef, languageOf, matchCommands } from '~/draw/shape/commands.ts';
 
 const top = (text: string) => matchCommands(text)[0];
 
@@ -36,5 +36,23 @@ describe('what the / box is asked to do', () => {
     expect(languageOf('hello')).toBe('en');
     expect(languageOf('سلام')).toBe('fa');
     expect(languageOf('привет')).toBe('ru');
+  });
+
+  it('acts on an issue only once it has a number', () => {
+    expect(top('close #12 in web')).toMatchObject({ sure: true, command: { id: 'issue-close' } });
+    expect(matchCommands('close the window tonight').some((m) => m.sure)).toBe(false);
+    expect(top('закрой #7')).toMatchObject({ sure: true, command: { id: 'issue-close' } });
+    expect(top('my issues')).toMatchObject({ sure: true, command: { id: 'issue-list' } });
+    expect(top('ایشوهای من')).toMatchObject({ sure: true, command: { id: 'issue-list' } });
+  });
+
+  it('reads an issue named in a command', () => {
+    expect(issueRef('#12 in web')).toEqual({ number: '12', repo: 'web', words: '' });
+    expect(issueRef('12 aturzone/grimstroke: fixed, thanks')).toEqual({
+      number: '12',
+      repo: 'aturzone/grimstroke',
+      words: 'fixed, thanks',
+    });
+    expect(issueRef('#3: done')).toEqual({ number: '3', repo: null, words: 'done' });
   });
 });

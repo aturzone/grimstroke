@@ -569,6 +569,19 @@ export class ShapeIsland {
 
   /** Do what was asked, with the box out of the way first. */
   private run(m: CommandMatch): void {
+    // A command that answers in the box keeps it open, and its answer takes the card's place.
+    if (m.command.panel && this.card) {
+      const card = this.card;
+      const foot = this.foot;
+      void runCommand(m, {
+        show: (content) => {
+          card.replaceChildren(content);
+          if (foot) foot.innerHTML = '';
+          this.root?.classList.add('has-card');
+        },
+      });
+      return;
+    }
     this.close(false);
     void runCommand(m);
   }

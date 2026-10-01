@@ -12,6 +12,7 @@ import { upgradeLeaf } from '~/draw/doc/legacy.ts';
 import { NOTE_HEIGHT, NOTE_WIDTH } from '~/draw/material/note/model.ts';
 import type { ShapeBlock } from '~/draw/shape/render.ts';
 import {
+  calendarMonth,
   dayKey,
   gatherToday,
   type TodayAct,
@@ -71,6 +72,19 @@ function drawn(sources: TodaySource[], day: Date): { html?: string } {
 
 export async function today(ask: Ask, live: Live): Promise<boolean> {
   const { path, req, res, url } = ask;
+
+  // A month of days, as data: how many things fall on each and how many are done.
+  if (path === '/api/calendar' && req.method === 'GET') {
+    const now = new Date();
+    const year = Number(url.searchParams.get('year')) || now.getFullYear();
+    const month = Math.min(
+      12,
+      Math.max(1, Number(url.searchParams.get('month')) || now.getMonth() + 1),
+    );
+    const { days } = calendarMonth(await todaySources(live, ask.board), year, month - 1, now);
+    send(res, 200, { year, month, today: dayKey(now), days });
+    return true;
+  }
 
   // For an agent: the same day, as data -- what to remind someone of, what to plan around.
   if (path === '/api/today' && req.method === 'GET') {

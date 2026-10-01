@@ -23,7 +23,11 @@ export type CommandId =
   | 'connect'
   | 'remind-device'
   | 'backup'
-  | 'sign-out';
+  | 'sign-out'
+  | 'issue-list'
+  | 'issue-close'
+  | 'issue-reopen'
+  | 'issue-comment';
 
 export interface Command {
   id: CommandId;
@@ -38,6 +42,10 @@ export interface Command {
   takes?: boolean;
   /** Where it goes, for the ones that go somewhere. */
   href?: string;
+  /** What its argument must have for the line to be this command: an issue's number. */
+  needs?: RegExp;
+  /** Shown in the box, which stays open, rather than done and gone. */
+  panel?: boolean;
 }
 
 export const COMMANDS: readonly Command[] = [
@@ -89,6 +97,7 @@ export const COMMANDS: readonly Command[] = [
     ru: 'Открыть календарь',
     icon: 'today',
     href: '/today',
+    panel: true,
     names: [
       'calendar',
       'open the calendar',
@@ -111,6 +120,7 @@ export const COMMANDS: readonly Command[] = [
     ru: 'Открыть блокноты',
     icon: 'book',
     href: '/shelf',
+    panel: true,
     names: [
       'notebooks',
       'library',
@@ -134,6 +144,7 @@ export const COMMANDS: readonly Command[] = [
     ru: 'Открыть настройки',
     icon: 'settings',
     href: '/settings',
+    panel: true,
     names: [
       'settings',
       'preferences',
@@ -287,6 +298,79 @@ export const COMMANDS: readonly Command[] = [
     ],
   },
   {
+    id: 'issue-list',
+    label: 'My open issues',
+    fa: 'ایشوهای باز من',
+    ru: 'Мои открытые задачи',
+    icon: 'branch',
+    takes: true,
+    panel: true,
+    names: [
+      'my issues',
+      'open issues',
+      'issues in',
+      'list issues',
+      'issues',
+      'ایشوهای من',
+      'ایشو های من',
+      'ایشوها',
+      'ایشو های',
+      'мои задачи',
+      'открытые задачи',
+      'задачи в',
+      'мои issues',
+    ],
+  },
+  {
+    id: 'issue-close',
+    label: 'Close an issue',
+    fa: 'بستن ایشو',
+    ru: 'Закрыть задачу',
+    icon: 'check',
+    takes: true,
+    needs: /#?\d+/,
+    names: [
+      'close',
+      'close issue',
+      'ببند',
+      'ایشو رو ببند',
+      'بستن ایشو',
+      'закрой',
+      'закрыть',
+      'закрой задачу',
+    ],
+  },
+  {
+    id: 'issue-reopen',
+    label: 'Reopen an issue',
+    fa: 'باز کردن دوباره‌ی ایشو',
+    ru: 'Открыть задачу снова',
+    icon: 'restore',
+    takes: true,
+    needs: /#?\d+/,
+    names: ['reopen', 'reopen issue', 'دوباره باز کن', 'переоткрой', 'открой снова'],
+  },
+  {
+    id: 'issue-comment',
+    label: 'Comment on an issue',
+    fa: 'نظر روی ایشو',
+    ru: 'Комментарий к задаче',
+    icon: 'pencil',
+    takes: true,
+    needs: /#?\d+/,
+    names: [
+      'comment',
+      'comment on',
+      'reply to',
+      'کامنت',
+      'نظر بذار',
+      'نظر بده روی',
+      'комментарий',
+      'ответь на',
+      'прокомментируй',
+    ],
+  },
+  {
     id: 'sign-out',
     label: 'Sign out',
     fa: 'خروج از حساب',
@@ -304,6 +388,8 @@ export interface CommandMatch {
   /** True when the line says the command outright, and Enter does it. */
   sure: boolean;
   score: number;
+  /** The name it was called by, as written. */
+  said?: string;
 }
 
 const fold = (s: string): string =>
@@ -322,12 +408,22 @@ export function matchCommands(text: string, most = 3): CommandMatch[] {
     for (const raw of command.names) {
       const name = fold(raw);
       let m: CommandMatch | undefined;
-      if (line === name) m = { command, arg: '', sure: true, score: 1 };
-      else if (command.takes && line.startsWith(`${name} `))
-        m = { command, arg: text.trim().slice(raw.length).trim(), sure: true, score: 0.95 };
+      if (line === name) m = { command, arg: '', sure: true, score: 1, said: raw };
+      else if (command.takes && line.startsWith(`${name} `)) {
+        const arg = text.trim().slice(raw.length).trim();
+        // A command that needs a number is only sure of itself once it has one.
+        const ok = !command.needs || command.needs.test(arg);
+        m = { command, arg, sure: ok, score: ok ? 0.95 : 0.5, said: raw };
+      }
       // A name being typed: offered, not done.
       else if (name.startsWith(line) && line.length >= 3)
-        m = { command, arg: '', sure: false, score: 0.4 + 0.5 * (line.length / name.length) };
+        m = {
+          command,
+          arg: '',
+          sure: false,
+          score: 0.4 + 0.5 * (line.length / name.length),
+          said: raw,
+        };
       if (m && (!best || m.score > best.score)) best = m;
     }
     if (best) out.push(best);
@@ -345,4 +441,25 @@ export function languageOf(text: string): 'en' | 'fa' | 'ru' {
   if (/[؀-ۿ]/.test(text)) return 'fa';
   if (/[Ѐ-ӿ]/.test(text)) return 'ru';
   return 'en';
+}
+
+/**
+ * An issue named in a command's words: "#12 in web", "12 aturzone/grimstroke: thanks, fixed",
+ * "#7 روی ریپو api". The number, the repository if one is named, and what follows a colon.
+ */
+export function issueRef(arg: string): {
+  number: string | null;
+  repo: string | null;
+  words: string;
+} {
+  const colon = arg.indexOf(':');
+  const head = colon >= 0 ? arg.slice(0, colon) : arg;
+  const words = colon >= 0 ? arg.slice(colon + 1).trim() : '';
+  const n = /#?(\d+)/.exec(head);
+  const rest = n ? `${head.slice(0, n.index)} ${head.slice(n.index + n[0].length)}` : head;
+  const repo =
+    /(?:^|\s)((?:[\w-]+\/)+[\w.-]+)(?=$|\s)/.exec(rest)?.[1] ??
+    /(?:^|\s)(?:in|on|ریپو(?:ی)?|در|روی|в|во)\s+([\w.-]+)/u.exec(rest)?.[1] ??
+    (/^\s*([\w.-]+)\s*$/.exec(rest)?.[1] || null);
+  return { number: n ? (n[1] as string) : null, repo, words };
 }
