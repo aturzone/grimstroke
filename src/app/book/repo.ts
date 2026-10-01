@@ -16,7 +16,7 @@
  * A host that already has a key skips step 3; a connected notebook opens on its settings.
  */
 
-import { toast } from '~/app/chrome.ts';
+import { toast } from '~/app/toast.ts';
 import type { BookSpec } from '~/draw/doc/book/model.ts';
 import type { Provider, RemoteLink } from '~/draw/doc/remote/model.ts';
 import { renderStickerFace } from '~/draw/material/sticker/render.ts';

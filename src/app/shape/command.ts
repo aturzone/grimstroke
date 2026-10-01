@@ -4,8 +4,8 @@
  */
 
 import { RepoSetup } from '~/app/book/repo.ts';
-import { toast } from '~/app/chrome.ts';
 import { remindHere } from '~/app/remind.ts';
+import { toast } from '~/app/toast.ts';
 import type { CommandMatch } from '~/draw/shape/commands.ts';
 
 async function post(url: string, body: unknown): Promise<Response> {

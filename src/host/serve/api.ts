@@ -14,8 +14,8 @@ import { apply as applyBook, type BookOp, BookPatchError } from '~/draw/doc/book
 import { search } from '~/draw/doc/search.ts';
 import { BACKS, type Decal, type ShelfLayout, settle, WOODS } from '~/draw/doc/shelf/model.ts';
 import { hashString } from '~/draw/look/rng.ts';
-import { DECOR } from '~/draw/material/decor/art.ts';
-import { COATS } from '~/draw/material/pet/art.ts';
+import { DECOR } from '~/draw/material/decor/kinds.ts';
+import { COATS } from '~/draw/material/pet/coats.ts';
 import {
   DEFAULT_PET,
   type Pet,

@@ -6,8 +6,8 @@
  * the model picked, Details changes any of them, and what is shown is what is sent.
  */
 
-import { toast } from '~/app/chrome.ts';
 import { play } from '~/app/feel.ts';
+import { toast } from '~/app/toast.ts';
 import type { Fields } from '~/draw/shape/fields.ts';
 import { type KnownRepo, parseIssue, resolveRepo } from '~/draw/shape/issue.ts';
 import { chooseLabels } from '~/draw/shape/labels.ts';

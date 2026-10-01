@@ -18,7 +18,7 @@
 import { randomBytes } from 'node:crypto';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { extname } from 'node:path';
+import { extname, join } from 'node:path';
 import { api } from '~/host/serve/api.ts';
 import { type Face, face, useFace } from '~/host/serve/face.ts';
 import {
@@ -190,7 +190,9 @@ function serveApp(
   name: string,
   versioned: boolean,
 ): void {
-  const file = bundle(name);
+  // The face's own script comes from the face's own build; the box's from the core's.
+  const own = name === 'app.js' ? face()?.files : undefined;
+  const file = own && existsSync(join(own, name)) ? join(own, name) : bundle(name);
   if (!file) {
     send(res, 500, { error: `dist/${name} is missing. Run \`pnpm build\` first.` });
     return;

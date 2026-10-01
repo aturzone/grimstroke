@@ -13,27 +13,20 @@ import {
   type Issue,
   type Merge,
   type Pipeline,
+  type RemoteBlock,
   type RemoteQuery,
   type RemoteRef,
-  type Seen,
   webUrl,
 } from '~/draw/doc/remote/model.ts';
+import { queryTitle, remoteText } from '~/draw/doc/remote/text.ts';
 import { renderMarkdown } from '~/draw/material/note/markdown.ts';
+
+export { queryTitle, remoteText };
+
 import { renderStickerFace, withShortcodes } from '~/draw/material/sticker/render.ts';
 import { escapeHtml } from '~/draw/type/text.ts';
 
-export interface RemoteBlock {
-  ref?: RemoteRef | undefined;
-  query?: RemoteQuery | undefined;
-  seen?: Seen | undefined;
-  /** For a query: the rows, as last seen. */
-  rows?: Array<Issue | Merge> | undefined;
-  seenAt?: string | undefined;
-  /** What went wrong the last time it was asked, in the service's own words. */
-  error?: string | undefined;
-  /** A commit on the same page that says it closes this issue. */
-  fixedBy?: string | undefined;
-}
+export type { RemoteBlock } from '~/draw/doc/remote/model.ts';
 
 const esc = escapeHtml;
 
@@ -204,19 +197,6 @@ function pipelineCard(ref: RemoteRef, pipeline: Pipeline, block: RemoteBlock): s
   );
 }
 
-/** What a query asks for, in a few words: "open · bug · assigned to me". */
-export function queryTitle(q: RemoteQuery): string {
-  if (q.title) return q.title;
-  const parts = [
-    q.state === 'all' ? 'all' : (q.state ?? 'open'),
-    q.of === 'merges' ? 'merge requests' : 'issues',
-    ...(q.labels ?? []),
-    ...(q.assignee ? [q.assignee === 'me' ? 'assigned to me' : `for ${q.assignee}`] : []),
-    ...(q.search ? [`“${q.search}”`] : []),
-  ];
-  return parts.join(' · ');
-}
-
 function queryCard(q: RemoteQuery, block: RemoteBlock): string {
   const rows = (block.rows ?? [])
     .slice(0, q.limit ?? 8)
@@ -278,16 +258,4 @@ export function renderRemote(block: RemoteBlock): string {
             : pipelineCard(ref, seen as Pipeline, block);
   }
   return `<div class="block remote-block">${card}</div>`;
-}
-
-/** The words on a card, for search. */
-export function remoteText(block: RemoteBlock): string[] {
-  const out: string[] = [];
-  const seen = block.seen as Partial<Issue & Commit> | undefined;
-  if (seen?.title) out.push(seen.title);
-  if (seen?.message) out.push(seen.message);
-  if (seen?.body) out.push(seen.body);
-  for (const row of block.rows ?? []) out.push(row.title);
-  if (block.query) out.push(queryTitle(block.query));
-  return out;
 }

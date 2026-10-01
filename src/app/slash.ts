@@ -6,10 +6,10 @@
  * Nothing is drawn here. Finding and the kind chips only show and hide what was drawn.
  */
 
-import { toast } from '~/app/chrome.ts';
 import { appear, play } from '~/app/feel.ts';
 import { pickPage } from '~/app/pick.ts';
 import { type PlacedBlock, ShapeIsland } from '~/app/shape/island.ts';
+import { toast } from '~/app/toast.ts';
 import type { ShapeBlock } from '~/draw/shape/render.ts';
 
 interface Where {

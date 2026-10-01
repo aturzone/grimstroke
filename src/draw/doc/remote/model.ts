@@ -217,3 +217,17 @@ export function webUrl(ref: RemoteRef): string {
 export function sameRef(a: RemoteRef, b: RemoteRef): boolean {
   return a.host === b.host && a.repo === b.repo && a.kind === b.kind && a.id === b.id;
 }
+
+/** A repository card's block: what it points at or asks for, and what it last saw. */
+export interface RemoteBlock {
+  ref?: RemoteRef | undefined;
+  query?: RemoteQuery | undefined;
+  seen?: Seen | undefined;
+  /** For a query: the rows, as last seen. */
+  rows?: Array<Issue | Merge> | undefined;
+  seenAt?: string | undefined;
+  /** What went wrong the last time it was asked, in the service's own words. */
+  error?: string | undefined;
+  /** A commit on the same page that says it closes this issue. */
+  fixedBy?: string | undefined;
+}

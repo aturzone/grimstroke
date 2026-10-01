@@ -28,6 +28,11 @@ export interface Drawn {
 }
 
 export interface Face {
+  /**
+   * Where its browser files are (app.js, and what it loads): served by the core at /app.js. A
+   * face built on its own keeps them beside itself; one in the core's tree, in the core's dist.
+   */
+  files?: string;
   /** Before a request is answered: the workspace's look (its palettes, its light or dark). */
   prepare?(look: Look): void;
   /** The face's own pages and routes, asked before the core's. */

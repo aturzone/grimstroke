@@ -2,7 +2,6 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { desk } from '~/face/index.ts';
 import { checkPassword, hashPassword } from '~/host/serve/login.ts';
 import { type Serving, serve } from '~/host/serve/server.ts';
 
@@ -23,7 +22,6 @@ describe('the login door', () => {
   beforeAll(async () => {
     dir = mkdtempSync(join(tmpdir(), 'gs-login-'));
     serving = await serve({
-      face: desk,
       dir,
       port: 0,
       token: 'agent-key',
@@ -59,7 +57,7 @@ describe('the login door', () => {
     expect(right.status).toBe(303);
     const cookie = right.headers.get('set-cookie') ?? '';
     expect(cookie).toContain('HttpOnly');
-    const inside = await fetch(`${base}/today`, {
+    const inside = await fetch(`${base}/slash`, {
       headers: { cookie: cookie.split(';')[0] ?? '' },
     });
     expect(inside.status).toBe(200);

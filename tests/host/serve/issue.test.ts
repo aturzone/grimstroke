@@ -10,7 +10,6 @@ import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { desk } from '~/face/index.ts';
 import { type Serving, serve } from '~/host/serve/server.ts';
 
 let running: Serving;
@@ -97,7 +96,6 @@ beforeAll(async () => {
   running = await serve({
     dir: mkdtempSync(join(tmpdir(), 'grimstroke-issue-')),
     port: 0,
-    face: desk,
   });
   base = `http://127.0.0.1:${running.port}`;
   const key = await ask('/api/remote/keys', {

@@ -13,7 +13,7 @@
 
 import { type BookSpec, spineWidth } from '~/draw/doc/book/model.ts';
 import { Rng } from '~/draw/look/rng.ts';
-import { decorOf } from '~/draw/material/decor/art.ts';
+import { decorOf } from '~/draw/material/decor/kinds.ts';
 
 /** The inside width of a shelf, in the bookcase's own pixels. */
 export const SHELF_WIDTH = 1040;

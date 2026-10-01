@@ -15,12 +15,12 @@
  * patch per tick.
  */
 
-import { toast } from '~/app/chrome.ts';
 import { typing } from '~/app/dom.ts';
 import { comingFrom, moving, play } from '~/app/feel.ts';
 import { runCommand } from '~/app/shape/command.ts';
 import { fieldEditor, openFieldEditor } from '~/app/shape/editor.ts';
 import { IssueDraft, openIssue } from '~/app/shape/issue.ts';
+import { toast } from '~/app/toast.ts';
 import { icon } from '~/draw/chrome/icons.ts';
 import { NOTE_HEIGHT, NOTE_WIDTH } from '~/draw/material/note/model.ts';
 import { classify, type ShapeResult } from '~/draw/shape/classify.ts';
