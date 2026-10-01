@@ -10,6 +10,7 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { desk } from '~/face/index.ts';
 import { type Serving, serve } from '~/host/serve/server.ts';
 
 let running: Serving;
@@ -27,7 +28,11 @@ const json = async <T>(path: string, body?: unknown): Promise<T> =>
 let book = '';
 
 beforeAll(async () => {
-  running = await serve({ dir: mkdtempSync(join(tmpdir(), 'grimstroke-custom-')), port: 0 });
+  running = await serve({
+    dir: mkdtempSync(join(tmpdir(), 'grimstroke-custom-')),
+    port: 0,
+    face: desk,
+  });
   base = `http://127.0.0.1:${running.port}`;
   book = (await json<{ id: string }>('/api/books', { title: 'Made my own' })).id;
 });

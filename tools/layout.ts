@@ -15,6 +15,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { BookSpec } from '~/draw/doc/book/model.ts';
+import { desk } from '~/face/index.ts';
 import { serve } from '~/host/serve/server.ts';
 
 const SIZES: Array<[number, number]> = [
@@ -27,7 +28,7 @@ const SIZES: Array<[number, number]> = [
 ];
 
 const dir = mkdtempSync(join(tmpdir(), 'grimstroke-layout-'));
-const serving = await serve({ dir, port: 0, token: 'layout' });
+const serving = await serve({ dir, port: 0, token: 'layout', face: desk });
 
 const en: BookSpec = {
   id: 'field',

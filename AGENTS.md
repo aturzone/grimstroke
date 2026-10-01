@@ -70,6 +70,12 @@ src/app/                THE LIVE SURFACE. A browser, no disk, no framework.
   note/                 a live note: grab, edit, format chords
   motion/               springs and poses, for things that move
 
+src/face/               THE FACE: everything that draws a document for a person -- the
+                        desk's pages, the day page, the exports, the measured writing. It
+                        keeps host/serve/face.ts and nothing more, is built to dist/face.js
+                        and loaded by `serve`; the core never imports it (docs/split.md).
+                        With GRIMSTROKE_FACE=none the core runs alone: data, and the / board.
+
 src/host/               NOT pure. The outside world.
   cli.ts                write a JSON file, run one command, get PNGs; search
   export.ts             HTML -> PNG, through Playwright, which is optional; measuring
@@ -77,8 +83,8 @@ src/host/               NOT pure. The outside world.
   remote/               GitHub, GitLab, Gitea adapters; keys (0600); sign-in; webhooks
   redact.ts             redaction, from a file and back to one
   serve/                the workspace on a port
-    server.ts           auth and static files, then the routes
-    pages.ts            the HTML surfaces
+    server.ts           auth and static files, then the face's routes, then the core's
+    face.ts             the contract a face keeps, and the face in use
     api.ts              the JSON API: patch, state, events, search, archive
     live.ts             the documents held in memory, and who is watching
   store/                boards, notebooks, assets by content hash; the archive

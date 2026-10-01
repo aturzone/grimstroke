@@ -15,8 +15,11 @@ grimstroke is becoming two things, the way git is plumbing and porcelain.
 ## Stages
 
 1. **The / board in the core** -- done: `/slash`, `GET /api/slash`, `POST /api/slash/{add,save,delete,restore}`.
-2. **The API is all a face needs.** Every route answers in data; markup that the API returns
-   today (`html` beside a patch, the rendered leaf in an event) is drawn by the front instead.
+2. **The API is all a face needs** -- done. The core answers every route in data; markup beside
+   a patch, a leaf in an event, the bookcase, the profile card and the day are asked of the face
+   (host/serve/face.ts), and are left out when there is none. The face lives in src/face, built
+   to dist/face.js, loaded by `serve`; `GRIMSTROKE_FACE=none` runs the core alone, whose own
+   page is the / board in a frame of its own (draw/slash/page.ts, dist/box.js).
 3. **The front moves out.** `draw/` (all but the / card faces and what the core needs to read
    cards), `app/` (all but the box and the / board) and the HTML pages move to
    `../grimstroke-front`, which runs as its own server against the core's API.

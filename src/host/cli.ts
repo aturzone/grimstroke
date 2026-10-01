@@ -7,10 +7,10 @@
  */
 
 import { randomBytes } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { NotebookSpec, PageSpec } from '~/draw/doc/page/model.ts';
 import { renderPage } from '~/draw/doc/page/render.ts';
 import { search } from '~/draw/doc/search.ts';
@@ -18,6 +18,7 @@ import { check as checkPalette, PALETTES, palette } from '~/draw/look/palette.ts
 import { fontDirectory, verifyFaces } from '~/draw/type/faces.ts';
 import { exportPages } from '~/host/export.ts';
 import { redactImage } from '~/host/redact.ts';
+import type { Face } from '~/host/serve/face.ts';
 import { gateway, readUsers } from '~/host/serve/gateway.ts';
 import { hashPassword, type Login, loginFromEnv } from '~/host/serve/login.ts';
 import { serve } from '~/host/serve/server.ts';
@@ -386,7 +387,9 @@ async function main(argv: string[]): Promise<number> {
   }
 
   if (verb === 'serve') {
+    const drawing = await loadFace();
     const running = await serve({
+      ...(drawing ? { face: drawing } : {}),
       ...(options.port === undefined ? {} : { port: options.port }),
       ...(options.host === undefined ? {} : { host: options.host }),
       ...(options.dir === undefined ? {} : { dir: options.dir }),
@@ -494,4 +497,29 @@ try {
 } catch (error) {
   process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
   process.exitCode = 1;
+}
+
+/**
+ * The face to draw with: GRIMSTROKE_FACE names a module (or "none" for the core alone); else
+ * the one built beside this file, dist/face.js, or from the source tree, src/face.
+ */
+async function loadFace(): Promise<Face | undefined> {
+  const asked = process.env.GRIMSTROKE_FACE?.trim();
+  if (asked === 'none') return undefined;
+  const here = dirname(fileURLToPath(import.meta.url));
+  const candidates = asked
+    ? [resolve(asked)]
+    : [join(here, 'face.js'), join(here, '..', 'face', 'index.ts')];
+  for (const path of candidates) {
+    if (!existsSync(path)) continue;
+    const mod = (await import(pathToFileURL(path).href)) as {
+      face?: Face;
+      desk?: Face;
+      default?: Face;
+    };
+    const found = mod.face ?? mod.desk ?? mod.default;
+    if (found) return found;
+  }
+  if (asked) throw new Error(`no face in ${asked}: it should export \`face\``);
+  return undefined;
 }

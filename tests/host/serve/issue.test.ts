@@ -10,6 +10,7 @@ import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { desk } from '~/face/index.ts';
 import { type Serving, serve } from '~/host/serve/server.ts';
 
 let running: Serving;
@@ -93,7 +94,11 @@ beforeAll(async () => {
   });
   await new Promise<void>((done) => github.listen(0, '127.0.0.1', done));
   process.env.GRIMSTROKE_REMOTE_BASES = `github.com=http://127.0.0.1:${(github.address() as AddressInfo).port}`;
-  running = await serve({ dir: mkdtempSync(join(tmpdir(), 'grimstroke-issue-')), port: 0 });
+  running = await serve({
+    dir: mkdtempSync(join(tmpdir(), 'grimstroke-issue-')),
+    port: 0,
+    face: desk,
+  });
   base = `http://127.0.0.1:${running.port}`;
   const key = await ask('/api/remote/keys', {
     method: 'POST',

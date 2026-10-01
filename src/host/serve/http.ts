@@ -111,25 +111,40 @@ export async function readBody(req: IncomingMessage): Promise<unknown> {
  * so it works from source during development and from the package once it is
  * installed.
  */
-export function appBundle(): string | undefined {
+/** A browser bundle the build wrote: dist/app.js (the face's) or dist/box.js (the core's). */
+export function bundle(name = 'app.js'): string | undefined {
   let dir = dirname(fileURLToPath(import.meta.url));
   for (let i = 0; i < 8; i += 1) {
-    const candidate = join(dir, 'dist', 'app.js');
+    const candidate = join(dir, 'dist', name);
     if (existsSync(candidate)) return candidate;
     dir = dirname(dir);
   }
   return undefined;
 }
 
+export function appBundle(): string | undefined {
+  return bundle('app.js');
+}
+
 /**
- * The app script's address, with its version in it: a phone keeps it until the next build
- * instead of fetching half a megabyte again on every page it opens.
+ * A bundle's address, with its version in it: a phone keeps it until the next build instead of
+ * fetching half a megabyte again on every page it opens.
  */
-export function appUrl(): string {
-  const file = appBundle();
-  if (!file) return '/app.js';
+function versioned(name: string): string {
+  const file = bundle(name);
+  if (!file) return `/${name}`;
   const stamp = statSync(file);
-  return `/app.js?v=${stamp.size.toString(36)}${Math.round(stamp.mtimeMs).toString(36)}`;
+  return `/${name}?v=${stamp.size.toString(36)}${Math.round(stamp.mtimeMs).toString(36)}`;
+}
+
+/** The face's app script. */
+export function appUrl(): string {
+  return versioned('app.js');
+}
+
+/** The core's own script: the / box and the / board, and nothing else. */
+export function boxUrl(): string {
+  return versioned('box.js');
 }
 
 /** One request, with everything a route needs to answer it. */

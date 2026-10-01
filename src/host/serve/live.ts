@@ -9,16 +9,16 @@
 
 import type { ServerResponse } from 'node:http';
 import { resolve } from 'node:path';
+import { workspaceExtent } from '~/draw/doc/board/extent.ts';
 import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import { onSheet } from '~/draw/doc/board/patch.ts';
-import { workspaceExtent } from '~/draw/doc/board/render.ts';
 import { type BookSpec, bookTitle, boundLeaves, leafSize } from '~/draw/doc/book/model.ts';
 import { apply as applyBook } from '~/draw/doc/book/patch.ts';
-import { renderOneLeaf } from '~/draw/doc/book/render.ts';
 import { upgradeLeaf } from '~/draw/doc/legacy.ts';
 import { dropInto, readLayout, type ShelfLayout, settle } from '~/draw/doc/shelf/model.ts';
 import { DEFAULT_PET, type Pet } from '~/draw/material/profile/model.ts';
 import { RemoteService } from '~/host/remote/service.ts';
+import { face } from '~/host/serve/face.ts';
 import type { Store } from '~/host/store/store.ts';
 
 interface Client {
@@ -182,13 +182,17 @@ export class Live {
     ]);
     await this.commitBook(result.spec);
     const index = result.spec.leaves.findIndex((one) => one.id === leafId);
-    const drawn = index < 0 ? undefined : renderOneLeaf(result.spec, index);
-    if (drawn) this.allow(drawn.assets);
+    const drawn = index < 0 ? undefined : face()?.leaf?.(result.spec, index);
+    if (drawn?.assets) this.allow(drawn.assets);
     this.broadcast(`book:${bookId}`, 'patch', {
       version: result.spec.version ?? 0,
       removed: [],
       reset: result.reset,
-      changed: drawn ? [{ id: leafId, html: drawn.html }] : [],
+      changed: drawn
+        ? [{ id: leafId, html: drawn.html }]
+        : face()?.leaf || index < 0
+          ? []
+          : [{ id: leafId }],
     });
   }
 

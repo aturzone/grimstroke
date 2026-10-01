@@ -8,12 +8,20 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { capabilities, ENDPOINTS } from '~/host/serve/capabilities.ts';
 
-const SERVE = join(import.meta.dirname, '../../../src/host/serve');
+// The core's routes, and the face's own (src/face): together, what this server answers.
+const SERVE = [
+  join(import.meta.dirname, '../../../src/host/serve'),
+  join(import.meta.dirname, '../../../src/face'),
+];
 
 function routes(): Set<string> {
   const found = new Set<string>();
-  for (const file of readdirSync(SERVE).filter((f) => f.endsWith('.ts'))) {
-    const text = readFileSync(join(SERVE, file), 'utf8');
+  for (const [dir, file] of SERVE.flatMap((d) =>
+    readdirSync(d)
+      .filter((f) => f.endsWith('.ts'))
+      .map((f) => [d, f] as const),
+  )) {
+    const text = readFileSync(join(dir, file), 'utf8');
     for (const m of text.matchAll(/path === '(\/api\/[a-z/_.-]+)'/g)) found.add(m[1] as string);
     // The bookcase's objects share one handler, named in a list.
     const shelf = text.match(/\['style', 'decor', 'remove', 'decal'\]/);

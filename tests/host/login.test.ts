@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { desk } from '~/face/index.ts';
 import { checkPassword, hashPassword } from '~/host/serve/login.ts';
 import { type Serving, serve } from '~/host/serve/server.ts';
 
@@ -22,6 +23,7 @@ describe('the login door', () => {
   beforeAll(async () => {
     dir = mkdtempSync(join(tmpdir(), 'gs-login-'));
     serving = await serve({
+      face: desk,
       dir,
       port: 0,
       token: 'agent-key',

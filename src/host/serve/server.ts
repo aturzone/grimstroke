@@ -19,14 +19,12 @@ import { randomBytes } from 'node:crypto';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { extname } from 'node:path';
-import { useClock } from '~/draw/doc/surface.ts';
-import { useDefaultPalette, usePalettes } from '~/draw/look/palette.ts';
 import { api } from '~/host/serve/api.ts';
+import { type Face, face, useFace } from '~/host/serve/face.ts';
 import {
   type Ask,
   accepted,
-  appBundle,
-  appUrl,
+  bundle,
   cookie,
   header,
   listen,
@@ -37,8 +35,7 @@ import {
 import { issueApi } from '~/host/serve/issue.ts';
 import { Live } from '~/host/serve/live.ts';
 import { type Login, loginDoor } from '~/host/serve/login.ts';
-import { lookOf, THEME_PALETTE } from '~/host/serve/look.ts';
-import { pages } from '~/host/serve/pages.ts';
+import { lookOf } from '~/host/serve/look.ts';
 import { Push } from '~/host/serve/push.ts';
 import { keepFresh, oauthCallback, remoteApi } from '~/host/serve/remote.ts';
 import { publicFile } from '~/host/serve/shell.ts';
@@ -56,6 +53,8 @@ export interface ServeOptions {
   board?: string;
   /** A name and password to sign in with, for a workspace served beyond this computer. */
   login?: Login;
+  /** What draws it for a person (host/serve/face.ts); without one, the core and the / board. */
+  face?: Face;
 }
 
 export interface Serving {
@@ -67,8 +66,7 @@ export interface Serving {
 }
 
 export async function serve(options: ServeOptions = {}): Promise<Serving> {
-  // Cards that count days, and say "today", are drawn against the real time here.
-  useClock(Date.now);
+  useFace(options.face);
   const store = new Store(options.dir === undefined ? {} : { dir: options.dir });
   await store.ready();
 
@@ -136,8 +134,8 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
       res.setHeader('Set-Cookie', `gs=${token}; Path=/; SameSite=Strict; HttpOnly`);
     }
 
-    if (path === '/app.js') {
-      serveApp(req, res, url.searchParams.has('v'));
+    if (path === '/app.js' || path === '/box.js') {
+      serveApp(req, res, path.slice(1), url.searchParams.has('v'));
       return;
     }
 
@@ -156,15 +154,14 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
       return;
     }
 
-    // The owner's colours for the palettes, for every page drawn in this request.
-    const look = await lookOf(store);
-    usePalettes(look.palettes);
-    useDefaultPalette(THEME_PALETTE[look.theme]);
     const ask: Ask = { req, res, url, path, board: options.board ?? 'workspace' };
+    // The face first: its pages, and its own routes. Then the core.
+    const drawing = face();
+    drawing?.prepare?.(await lookOf(store));
+    if (drawing?.route && (await drawing.route(ask, live))) return;
     if (await pushApi(ask, push, live)) return;
-    if (await pages(ask, live)) return;
-    if (await today(ask, live, [appUrl()])) return;
-    if (await slash(ask, live, [appUrl()])) return;
+    if (await today(ask, live)) return;
+    if (await slash(ask, live)) return;
     if (await issueApi(ask, live)) return;
     if (await remoteApi(ask, live)) return;
     if (await api(ask, live)) return;
@@ -187,10 +184,15 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
   };
 }
 
-function serveApp(req: IncomingMessage, res: ServerResponse, versioned: boolean): void {
-  const file = appBundle();
+function serveApp(
+  req: IncomingMessage,
+  res: ServerResponse,
+  name: string,
+  versioned: boolean,
+): void {
+  const file = bundle(name);
   if (!file) {
-    send(res, 500, { error: 'dist/app.js is missing. Run `pnpm build` first.' });
+    send(res, 500, { error: `dist/${name} is missing. Run \`pnpm build\` first.` });
     return;
   }
   /*

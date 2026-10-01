@@ -34,6 +34,17 @@ async function run(): Promise<void> {
       outfile: 'dist/cli.js',
       banner: { js: '#!/usr/bin/env node' },
     },
+    // The face: everything that draws a document for a person, loaded by `serve` from beside
+    // the CLI. It is meant to leave for a repository of its own (docs/split.md).
+    { entryPoints: ['src/face/index.ts'], outfile: 'dist/face.js' },
+    // The core's own page script: the / box and the / board, and nothing of any face.
+    {
+      entryPoints: ['src/app/box.ts'],
+      outfile: 'dist/box.js',
+      platform: 'browser' as const,
+      external: [] as string[],
+      minify: !dev,
+    },
     // The app. Browser platform, and nothing external: the page must need
     // nothing from anywhere else, which is what makes the product a URL.
     {

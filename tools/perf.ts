@@ -17,6 +17,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { BoardItem, BoardSpec } from '~/draw/doc/board/model.ts';
+import { desk } from '~/face/index.ts';
 import { serve } from '~/host/serve/server.ts';
 import { Store } from '~/host/store/store.ts';
 
@@ -83,7 +84,7 @@ async function main(): Promise<void> {
   const dir = mkdtempSync(join(tmpdir(), 'grimstroke-perf-'));
   const store = new Store({ dir });
   await store.writeBoard(board());
-  const serving = await serve({ dir, token: 'perf', board: 'perf' });
+  const serving = await serve({ dir, token: 'perf', board: 'perf', face: desk });
   const { firefox } = await import('playwright');
   const browser = await firefox.launch({ headless: !headed });
   const page = await (

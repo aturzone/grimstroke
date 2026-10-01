@@ -10,6 +10,7 @@ import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { desk } from '~/face/index.ts';
 import { type Serving, serve } from '~/host/serve/server.ts';
 import { Store } from '~/host/store/store.ts';
 
@@ -28,7 +29,7 @@ const ask = (path: string, init?: RequestInit): Promise<Response> =>
 
 beforeAll(async () => {
   dir = mkdtempSync(join(tmpdir(), 'grimstroke-'));
-  running = await serve({ dir, port: 0 });
+  running = await serve({ dir, port: 0, face: desk });
   base = `http://127.0.0.1:${running.port}`;
 });
 

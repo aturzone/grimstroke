@@ -8,10 +8,6 @@
  */
 
 import { icon } from '~/draw/chrome/icons.ts';
-import { helpDialog, searchDialog, topBar } from '~/draw/chrome/top.ts';
-import { renderHead } from '~/draw/doc/head.ts';
-import type { RenderedPage } from '~/draw/doc/model.ts';
-import { surface } from '~/draw/doc/surface.ts';
 import { INTENTS, type ShapeIntent } from '~/draw/shape/intents.ts';
 import { renderShape, type ShapeBlock, summarize } from '~/draw/shape/render.ts';
 import { escapeHtml } from '~/draw/type/text.ts';
@@ -96,37 +92,4 @@ export function renderSlashMain(entries: SlashEntry[], now: Date): string {
         '“dinner friday 8pm”, “milk, eggs, bread”, “25 min focus”, “gym mon wed fri”.</p></section>') +
     `<script type="application/json" data-sl="blocks">${data}</script>`
   );
-}
-
-export interface SlashPageOptions {
-  live?: { scripts?: string[] } | undefined;
-  palette?: string | undefined;
-}
-
-export function renderSlashPage(main: string, options: SlashPageOptions = {}): RenderedPage {
-  const ctx = surface('slash', { palette: options.palette ?? 'studio' });
-  const head = renderHead(ctx, 'ltr', { paper: 'blank', grain: 0.7 });
-  const html = [
-    '<!doctype html>',
-    '<html lang="en" dir="ltr" data-script="latin">',
-    head,
-    '<body class="is-live on-today on-slash">',
-    topBar({ place: 'slash', title: 'everything made with /', short: 'made with /', saved: false }),
-    `<main class="td-page sl-page" data-gs="slash">${main}</main>`,
-    searchDialog(),
-    helpDialog(),
-    ...(options.live?.scripts ?? []).map(
-      (src) => `<script type="module" src="${escapeHtml(src)}"></script>`,
-    ),
-    '</body>',
-    '</html>',
-  ].join('\n');
-  return {
-    id: 'slash',
-    html: `${html}\n`,
-    assets: ctx.assets,
-    width: 560,
-    selector: '.sl-page',
-    warnings: ctx.warnings,
-  };
 }

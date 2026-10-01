@@ -1,6 +1,6 @@
 /**
- * The day, served: the page a person opens first thing, GET /api/today for an agent, and the
- * few taps the page can make on a card.
+ * The day, as data: GET /api/today for an agent, and the few taps the day page can make on a
+ * card. The page itself is the face's (face/today.ts), and so is the markup a tap answers with.
  *
  * Every board and every page of every notebook in use is read, and the pure gathering in
  * draw/today does the rest. A tap is applied as the card's own patch, through the same path
@@ -12,18 +12,16 @@ import { upgradeLeaf } from '~/draw/doc/legacy.ts';
 import { NOTE_HEIGHT, NOTE_WIDTH } from '~/draw/material/note/model.ts';
 import type { ShapeBlock } from '~/draw/shape/render.ts';
 import {
-  calendarMonth,
   dayKey,
   gatherToday,
   type TodayAct,
   type TodaySource,
   todayAct,
 } from '~/draw/today/gather.ts';
-import { renderTodayMain, renderTodayPage } from '~/draw/today/render.ts';
 import { applyBoard } from '~/host/serve/api.ts';
-import { type Ask, html, readBody, send } from '~/host/serve/http.ts';
+import { face } from '~/host/serve/face.ts';
+import { type Ask, readBody, send } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
-import { lookOf, THEME_PALETTE, withLook } from '~/host/serve/look.ts';
 
 /** Every place a card can be: each board, and each page of each notebook still in use. */
 export async function todaySources(live: Live, home: string): Promise<TodaySource[]> {
@@ -56,7 +54,7 @@ export async function todaySources(live: Live, home: string): Promise<TodaySourc
 }
 
 /** The day asked for (YYYY-MM-DD), at the moment it is if it is today and at noon if not. */
-function dayOf(asked: string | null | undefined): Date {
+export function dayOf(asked: string | null | undefined): Date {
   const now = new Date();
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(asked ?? '');
   if (!m) return now;
@@ -65,37 +63,14 @@ function dayOf(asked: string | null | undefined): Date {
   return dayKey(d) === dayKey(now) ? now : d;
 }
 
-/** The day and the month it sits in, drawn: what the page shows, and what a tap draws again. */
-function drawn(sources: TodaySource[], day: Date): string {
-  const month = calendarMonth(sources, day.getFullYear(), day.getMonth(), new Date());
-  return renderTodayMain(gatherToday(sources, day), day, {
-    today: new Date(),
-    days: month.days,
-    year: day.getFullYear(),
-    month: day.getMonth(),
-  });
+/** The day drawn again by the face, for the page that tapped; nothing without a face. */
+function drawn(sources: TodaySource[], day: Date): { html?: string } {
+  const html = face()?.day?.(sources, day);
+  return html === undefined ? {} : { html };
 }
 
-export async function today(ask: Ask, live: Live, scripts: string[]): Promise<boolean> {
+export async function today(ask: Ask, live: Live): Promise<boolean> {
   const { path, req, res, url } = ask;
-
-  if (path === '/calendar') {
-    res.writeHead(302, { location: `/today${url.search}` });
-    res.end();
-    return true;
-  }
-
-  if (path === '/today') {
-    const day = dayOf(url.searchParams.get('date'));
-    const look = await lookOf(live.store);
-    const rendered = renderTodayPage(drawn(await todaySources(live, ask.board), day), dayKey(day), {
-      live: { scripts },
-      palette: THEME_PALETTE[look.theme],
-    });
-    live.allow(rendered.assets);
-    html(res, withLook(rendered.html, look, 'board', false));
-    return true;
-  }
 
   // For an agent: the same day, as data -- what to remind someone of, what to plan around.
   if (path === '/api/today' && req.method === 'GET') {
@@ -143,7 +118,7 @@ export async function today(ask: Ask, live: Live, scripts: string[]): Promise<bo
         },
       },
     ]);
-    send(res, 200, { html: drawn(await todaySources(live, ask.board), new Date()) });
+    send(res, 200, { id, ...drawn(await todaySources(live, ask.board), new Date()) });
     return true;
   }
 
@@ -177,7 +152,7 @@ export async function today(ask: Ask, live: Live, scripts: string[]): Promise<bo
     await applyBoard(live, address, [
       { op: 'update', id: item.id, patch: { block: { ...block, state } as never } },
     ]);
-    send(res, 200, { html: drawn(await todaySources(live, ask.board), day) });
+    send(res, 200, { state, ...drawn(await todaySources(live, ask.board), day) });
     return true;
   }
 

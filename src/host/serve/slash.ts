@@ -11,9 +11,11 @@ import { topZ } from '~/draw/doc/board/patch.ts';
 import { NOTE_HEIGHT, NOTE_WIDTH } from '~/draw/material/note/model.ts';
 import type { ShapeBlock } from '~/draw/shape/render.ts';
 import { summarize } from '~/draw/shape/render.ts';
-import { isDone, renderSlashMain, renderSlashPage, type SlashEntry } from '~/draw/slash/render.ts';
+import { slashDocument } from '~/draw/slash/page.ts';
+import { isDone, renderSlashMain, type SlashEntry } from '~/draw/slash/render.ts';
 import { applyBoard } from '~/host/serve/api.ts';
-import { type Ask, html, readBody, send } from '~/host/serve/http.ts';
+import { type Drawn, face } from '~/host/serve/face.ts';
+import { type Ask, boxUrl, html, readBody, send } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
 import { lookOf, THEME_PALETTE, withLook } from '~/host/serve/look.ts';
 import { todaySources } from '~/host/serve/today.ts';
@@ -57,17 +59,32 @@ async function slashBoard(live: Live): Promise<void> {
     await applyBoard(live, SLASH_BOARD, [{ op: 'board', patch: { title: 'made with /' } }]);
 }
 
-export async function slash(ask: Ask, live: Live, scripts: string[]): Promise<boolean> {
+export async function slash(ask: Ask, live: Live): Promise<boolean> {
   const { path, req, res } = ask;
+
+  // The core alone has one page, and it is the way in.
+  if ((path === '/' || path === '/index.html') && !face()) {
+    res.writeHead(302, { location: '/slash' });
+    res.end();
+    return true;
+  }
 
   if (path === '/slash') {
     const look = await lookOf(live.store);
-    const rendered = renderSlashPage(await drawn(live, ask.board), {
-      live: { scripts },
-      palette: THEME_PALETTE[look.theme],
-    });
-    live.allow(rendered.assets);
-    html(res, withLook(rendered.html, look, 'board', false));
+    const main = await drawn(live, ask.board);
+    // In the face's frame when there is a face; in the core's own page when there is not.
+    const frame = face()?.frame;
+    const page: Drawn = frame
+      ? frame({
+          id: 'slash',
+          title: 'everything made with /',
+          short: 'made with /',
+          main,
+          palette: THEME_PALETTE[look.theme],
+        })
+      : { html: slashDocument(main, { scripts: [boxUrl()], theme: look.theme }) };
+    if (page.assets) live.allow(page.assets);
+    html(res, withLook(page.html, look, 'board', false));
     return true;
   }
 
