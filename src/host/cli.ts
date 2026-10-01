@@ -332,8 +332,9 @@ try {
 }
 
 /**
- * The face to draw with: GRIMSTROKE_FACE names a module (or "none" for the core alone); else
- * the one built beside this file, dist/face.js, or from the source tree, src/face.
+ * The face to draw with: GRIMSTROKE_FACE names a module (or "none" for the core alone); else a
+ * face installed with the core (face/face.js, beside dist/), or built in a checkout beside this
+ * one (../grimstroke-face/dist/face.js). None found: the core alone.
  */
 async function loadFace(): Promise<Face | undefined> {
   const asked = process.env.GRIMSTROKE_FACE?.trim();
@@ -341,7 +342,10 @@ async function loadFace(): Promise<Face | undefined> {
   const here = dirname(fileURLToPath(import.meta.url));
   const candidates = asked
     ? [resolve(asked)]
-    : [join(here, 'face.js'), join(here, '..', 'face', 'index.ts')];
+    : [
+        join(here, '..', 'face', 'face.js'),
+        join(here, '..', '..', 'grimstroke-face', 'dist', 'face.js'),
+      ];
   for (const path of candidates) {
     if (!existsSync(path)) continue;
     const mod = (await import(pathToFileURL(path).href)) as {

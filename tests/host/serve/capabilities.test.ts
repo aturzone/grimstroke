@@ -8,11 +8,8 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { capabilities, ENDPOINTS } from '~/host/serve/capabilities.ts';
 
-// The core's routes, and the face's own (src/face): together, what this server answers.
-const SERVE = [
-  join(import.meta.dirname, '../../../src/host/serve'),
-  join(import.meta.dirname, '../../../src/face'),
-];
+// The core's routes. A face's own are its to list.
+const SERVE = [join(import.meta.dirname, '../../../src/host/serve')];
 
 function routes(): Set<string> {
   const found = new Set<string>();

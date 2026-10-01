@@ -111,7 +111,7 @@ export async function readBody(req: IncomingMessage): Promise<unknown> {
  * so it works from source during development and from the package once it is
  * installed.
  */
-/** A browser bundle the build wrote: dist/app.js (the face's) or dist/box.js (the core's). */
+/** A browser bundle the core's build wrote: dist/box.js. (A face's are in its own files.) */
 export function bundle(name = 'app.js'): string | undefined {
   let dir = dirname(fileURLToPath(import.meta.url));
   for (let i = 0; i < 8; i += 1) {
@@ -120,10 +120,6 @@ export function bundle(name = 'app.js'): string | undefined {
     dir = dirname(dir);
   }
   return undefined;
-}
-
-export function appBundle(): string | undefined {
-  return bundle('app.js');
 }
 
 /**
@@ -135,11 +131,6 @@ function versioned(name: string): string {
   if (!file) return `/${name}`;
   const stamp = statSync(file);
   return `/${name}?v=${stamp.size.toString(36)}${Math.round(stamp.mtimeMs).toString(36)}`;
-}
-
-/** The face's app script. */
-export function appUrl(): string {
-  return versioned('app.js');
 }
 
 /** The core's own script: the / box and the / board, and nothing else. */

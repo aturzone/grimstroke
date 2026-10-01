@@ -33,6 +33,8 @@ export interface Face {
    * face built on its own keeps them beside itself; one in the core's tree, in the core's dist.
    */
   files?: string;
+  /** Its own routes, for GET /api/capabilities: group -> "METHOD /path" -> what it does. */
+  endpoints?: Readonly<Record<string, Readonly<Record<string, string>>>>;
   /** Before a request is answered: the workspace's look (its palettes, its light or dark). */
   prepare?(look: Look): void;
   /** The face's own pages and routes, asked before the core's. */

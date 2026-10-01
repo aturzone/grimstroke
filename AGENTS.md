@@ -1,107 +1,68 @@
 # grimstroke, for an agent
 
-You are working on **grimstroke**, a notebook for agents. It draws pages: a
-screenshot with the wrong thing circled, the measured numbers beside it, a note
-stuck on the corner.
+You are working on the **core** of grimstroke: what is kept and what is understood. Boards and
+notebooks as data and the patches that change them, the / box's reading of a line of text (its
+own model), the day, reminders, logins, repositories, and the server that answers all of it in
+data. It never draws a document. What draws is a **face** -- `../grimstroke-face` is the one
+there is -- plugged in through `src/host/serve/face.ts`. The core's own face is the smallest
+complete one: the / box and the / board.
 
-It is a drawing tool and nothing else. It does not know what a bug is, what a
-severity means, or what a report should contain. Every time it has been asked to
-learn one of those, the right answer has been that the caller owns it.
+Keep it that way: nothing here imports a face, and a route that needs markup asks the face for
+it and answers without it when there is none (`GRIMSTROKE_FACE=none` runs the core alone, and
+tests/host/serve/core.test.ts holds it to that).
 
 ## Orientation
 
-The tree has one axis, and that axis is **purity**. `draw/` never opens a
-browser, never touches the network, never reads a clock; `host/` is where all
-three are allowed. `app/` is a third thing: it runs in a browser and touches no
-disk. Anything you add belongs in one of the three, and which one is not a
-matter of taste — see the first of the rules below.
+The tree has one axis, and that axis is **purity**. `draw/` never opens a browser, never touches
+the network, never reads a clock; `host/` is where all three are allowed. `app/` runs in a
+browser and touches no disk. (`draw/` keeps its name from before the split: here it is the
+documents as data and the / box's understanding, plus the box's own card faces.)
 
 ```
-src/index.ts            the whole public API. Nothing else is exported, so the
-                        tree below can be rearranged without breaking a caller.
+src/index.ts            the core's public API: models, patches, the box's model, serve, Store
 
-src/draw/               PURE. No browser, no network, no clock.
-  look/                 the visual vocabulary, shared by everything drawn
-    colour.ts           contrast arithmetic -- the measurement
-    palette.ts          the palettes and their floors -- the policy
-    rng.ts              seeded randomness, so a page always looks like itself
-    paper.ts            torn edges and tape, as geometry
-    grain.ts, png.ts    the paper-tooth tile, baked to a PNG
-    grid.ts             ruled, squared, graph and dotted paper
-    hand.ts             marks a hand makes: arrows, circles, swipes, bands
-    frame.ts            how a picture is mounted: polaroid, taped, torn, pinned
-  type/                 letters: the vendored faces, what they cover, escaping
-  material/             the things placed on a document, whatever the document
-    model.ts            Block, as data
-    block.ts            one block -> HTML, dispatching on kind
-    words.ts, read.ts   headings and text; the text of any block, for search
-    plate/              the picture, and what is drawn on it
-      coords.ts         the space-prefixed coordinate contract
-      redact.ts         destructive redaction, on raw pixels
-    note/               the sticky note: model, markdown body, render
-    profile/            the one profile: the drawn portrait and the card
-    sticker/            die-cut stickers: the sheet of marks (stamps, symbols, the
-                        services' logos), emoji, :shortcodes:
-    remote/             repository cards: issue, merge request, commit, pipeline, list
-    css.ts              each folder keeps its own stylesheet piece beside it
-  doc/                  the documents, each a model, a builder or patch, a render
-    page/               a column of blocks
-    board/              a plane with things placed on it
-    book/               a sequence you turn through: cover, leaves, stickers;
-                        each leaf is a small board of placed items
-    shelf/              the bookcase: where each notebook stands, leans or lies
-                        flat (a pure layout), and the bookcase drawn from it
-    remote/             a repository's things as data, whichever service sent them
-    legacy.ts           old stored shapes, upgraded as they are read
-    search.ts           Persian-aware folding and ranking, over all of them
-    style.ts            the stylesheet: only the ORDER of the pieces lives here
-  chrome/               the controls around a document, as markup: the top bar,
-                        the tray, the turner, the page nav, the profile page
-    css/                their stylesheet pieces
+src/draw/               PURE.
+  doc/                  boards, notebooks, the bookcase, repositories: models and patches;
+                        board/extent.ts is a board's geometry; search.ts; legacy.ts
+  look/                 the vocabulary the models name: palettes, rulings, templates, paper
+  material/             the blocks as data (model.ts), and the vocabularies they name:
+                        decor kinds, pet coats, sticker packs and marks; read.ts, any block's words
+  shape/                THE / BOX: classify.ts (the model) and weights.ts (its weights, from
+                        tools/train-shape.ts), rules.ts, parse.ts and the readers beside it
+                        (issue.ts, when.ts, units.ts, zones.ts), labels.ts (choosing a
+                        repository's labels), commands.ts (what the box does besides cards),
+                        fields.ts, decide.ts (the box's calm state machine), render.ts (the
+                        card faces) and css.ts
+  slash/                the / board: render.ts (its column), page.ts (its page with no face)
+  today/                gather.ts: the day, from every card; css.ts
+  chrome/               the few chrome pieces the box shares: icons, tokens and kit, the box css
+  type/text.ts          escaping
 
-src/app/                THE LIVE SURFACE. A browser, no disk, no framework.
-  main.ts               which surface this page is
-  net.ts                the transport, the outbox and the undo stack
-  chrome.ts             toasts, menus, confirm cards, search, help
-  board/                camera, gestures, handles, arrange, ink, notes, export
-  book/                 turning, jumping, the cover editor, connecting a repository
-  shelf/                the bookcase: carrying books, the preview, choosing, the cat
-  profile.ts            the easel: drawing the portrait
-  note/                 a live note: grab, edit, format chords
-  motion/               springs and poses, for things that move
+src/app/                THE BOX IN THE BROWSER (dist/box.js): shape/ (island.ts the box,
+                        issue.ts, command.ts, editor.ts), slash.ts (the / board, and the box on a
+                        page with no place of its own), pick.ts, toast.ts, feel.ts, remind.ts,
+                        book/repo.ts (connecting an account or a notebook to a repository)
 
-src/face/               THE FACE: everything that draws a document for a person -- the
-                        desk's pages, the day page, the exports, the measured writing. It
-                        keeps host/serve/face.ts and nothing more, is built to dist/face.js
-                        and loaded by `serve`; the core never imports it (docs/split.md).
-                        With GRIMSTROKE_FACE=none the core runs alone: data, and the / board.
-
-src/host/               NOT pure. The outside world.
-  cli.ts                write a JSON file, run one command, get PNGs; search
-  export.ts             HTML -> PNG, through Playwright, which is optional; measuring
-  write.ts              measured flow across pages, layout reports, tidying
+src/host/               NOT pure.
+  cli.ts                serve, gateway, hash-password, save/open, search, trash, history; it
+                        loads the face (face/face.js beside the install, or a checkout beside)
   remote/               GitHub, GitLab, Gitea adapters; keys (0600); sign-in; webhooks
-  redact.ts             redaction, from a file and back to one
-  serve/                the workspace on a port
-    server.ts           auth and static files, then the face's routes, then the core's
+  serve/
+    server.ts           the door: the token or the login, static files, then the face's
+                        routes, then the core's
     face.ts             the contract a face keeps, and the face in use
-    api.ts              the JSON API: patch, state, events, search, archive
+    api.ts              the JSON API: patch, state, events, search, archive, the bookcase
     live.ts             the documents held in memory, and who is watching
+    slash.ts, issue.ts  the / board; issues from the box
+    today.ts, push.ts   the day as data; reminders to a phone (Web Push)
+    gateway.ts, login.ts  several people behind one login; the login page
   store/                boards, notebooks, assets by content hash; the archive
 
-tests/                  mirrors src/: tests/draw/..., tests/host/...
-  fixtures/index.ts     every fixture path, resolved once
-tools/                  build.ts, look.ts, and the TypeScript loader they need
-assets/fonts/           the vendored faces. Nothing is resolved from the system.
-docs/api.md             every endpoint and operation an agent can use (GET /api/capabilities lists them live)
-docs/writing.md         how an agent writes a page that reads well
+tests/                  mirrors src/
+tools/                  build.ts, train-shape.ts and shape-data.ts (the model), the TS loader
+docs/api.md             every endpoint and operation an agent can use
+docs/split.md           the core and the face
 ```
-
-It is deliberately a deep tree and not a wide one. A folder holds few enough
-entries to read at a glance, and the nesting carries the meaning instead: the
-path `draw/material/plate/coords.ts` tells you it is pure, that it is something
-placed on a document rather than a document, and that it is about the picture — before
-you have opened it.
 
 ## Before you change anything
 
@@ -109,9 +70,8 @@ you have opened it.
 pnpm check
 ```
 
-It types, lints, tests, builds, and then runs the responsive audit (`pnpm layout`, about a
-minute in Firefox): every surface at six sizes from a phone to a desktop, failing on chrome that
-overlaps, runs off the window or scrolls sideways.
+It types, lints, tests and builds. (The responsive audit of every surface, `pnpm layout`, is the
+face's.)
 
 Commit only on a green check, gated on its exit code -- `pnpm check && git commit`, never a
 pipe through grep that swallows the failure. A red commit got in exactly that way.
@@ -129,12 +89,6 @@ its own browser can use the HTML directly. This is what the `draw/` and `host/`
 split is for: if an import crosses from `draw/` into `host/`, the rule has
 already been broken.
 
-**The plate is an LTR island.** Image space has no reading direction. Marks are
-positioned with physical `left`/`top` inside `.plate { direction: ltr }`. Using
-logical properties there sent every box to the far side of the picture in a
-right-to-left page — a plausible-looking and completely wrong result. Chrome
-mirrors; the plate never does.
-
 **The app does not render.** Every item on screen was drawn by the same code
 that draws an export, and when one changes the server sends back its new markup.
 An app that re-rendered items in the browser would be a second renderer, and a
@@ -147,53 +101,6 @@ not a line you drew.
 stylesheet. The zoom button was called `.zoom`, which is also the magnified
 inset on a picture, and it arrived wearing a seven-pixel hard black shadow that
 read as a rendering fault.
-
-**Texture never touches the picture.** Halftone and grain are chrome only, below
-the plate in the stacking order. A page must not alter the image it is showing,
-and a test asserts the pixels come out exactly as they went in.
-
-The same rule governs frames. A mount is a card the picture sits ON: the tilt,
-the tape and the tear all belong to the card. The tear is painted on a backing
-element *behind* the picture rather than clipped around it, because a nick can
-be deeper than the mat is wide -- and it was, and it bit a notch out of a
-screenshot. Cropping evidence to make it look nicer is the worst thing this
-library could do, so the geometry makes it impossible rather than unlikely.
-
-## When you change how the board moves
-
-```sh
-pnpm build && pnpm perf            # headless: software rendering, the worst case
-pnpm build && pnpm perf --headed   # a real window, so this machine's GPU does the drawing
-```
-
-A board of 200 items and 2000 strokes, panned and zoomed by script, frames counted as the
-browser paints them. Measured on 2026-09-24, Firefox 155, integrated Intel graphics:
-headless 36 fps panning at fit / 43 at 100% / 39 zooming; headed 77 / 60 / 51 -- and after
-zooming was drawn from a held layer (view.ts), headed 85 / 99 / 67. Keep panning and zooming at
-60 or better on real hardware. `--probe` reruns the zoom with filters, shadows, grain or masks
-switched off, to see what a change costs.
-
-## When you change how it looks
-
-```sh
-pnpm look
-```
-
-Then look at the output. Every palette, every block, every frame, every paper,
-both directions. This is the only check for the things that do not reduce to a
-number, and an agent that can see images can do it itself.
-
-It has earned its keep. Looking at the sheet is what found the tape drawn
-through the title, the tear biting into a screenshot, two callouts numbered 1,
-and a 'none' frame that rendered an identical border to 'keyline'.
-
-**Judge it by looking, but diagnose it by measuring.** Three separate faults in
-the paper texture were invisible to the eye and obvious to a number: a gradient
-that silently drew nothing, a filter reference escaped twice, and a blend mode
-that was the identity against the tile it was given. Crop a patch, take the
-standard deviation, and compare it against the same patch with the effect off.
-A layer that is doing nothing measures zero, and no amount of squinting at a
-screenshot will tell you that.
 
 ## When you move files
 
@@ -224,25 +131,6 @@ it silently overrode `position: fixed` on every piece of chrome and laid the
 tool tray and the page turner out in the flow, full width. Lift the content
 containers by name.
 
-**The grain tile is translucent, and it is not blended.** It used to be opaque,
-which forced a `mix-blend-mode` on every layer that used it -- and every blended
-layer is an extra offscreen pass the size of the layer. On a board that was a
-measurable share of each frame. It is now sparse RGBA specks composited plainly.
-If you ever make a texture opaque again, it will paint solid noise over whatever
-was underneath; that has cost a desk, a leather cover and a sheet of paper.
-
-**Nothing on the board gets a big `box-shadow` or filter.** The board is a
-10,000px element under a transform; a 70px blurred shadow on it was the single
-largest cost of panning. The shadow is now a separate `.gs-shadow` rectangle
-moved by the camera. Measure a pan's frame rate before and after adding
-anything that paints the whole plane.
-
-**The camera writes one inline transform.** Not custom properties that every
-item inherits: changing an inherited property restyles every descendant, and
-at 200 items and 2,000 strokes that alone missed the frame. Items carry a
-transform only when they are rotated; a note gets a 3D context only while it is
-lifted.
-
 **`null` clears a field in a patch; `undefined` does not exist.** JSON drops
 `undefined` keys, so a patch that "cleared" a title with it arrived as a patch
 that changed nothing, and its inverse could not restore the title either.
@@ -253,10 +141,6 @@ were absent.
 `x-grimstroke-client` on patches and `?client=` on the event stream. Without it,
 every drag came back as an event and re-rendered the item under the pointer.
 Position-only changes reply with `placed: [{id, at, z}]`, not re-rendered HTML.
-
-**A note only takes the pointer under the select tool.** `canGrab` decides.
-Notes used to grab every press, so a pen stroke that began on a note moved the
-note instead. Links and checkboxes in a note's body still get their clicks.
 
 **A backslash-u escape typed into a tool writes the literal character.** When
 generating source that must contain `\u0627`-style escapes (the Persian
@@ -272,8 +156,3 @@ is that every board tool works on a page because it is the same code.
 shapes (characters, face stickers, columns of blocks on a leaf) into current ones in memory. A
 file is only written when its content actually changes, and nothing deletes what a user left
 on disk -- the old `faces/` directory is read once for the profile and then left alone.
-
-**The golden check is the proof a refactor changed nothing.** `tests/golden/` holds every
-surface to a fingerprint. When a change is meant to alter output, run `pnpm golden before` on
-the old code and `pnpm golden after` on the new, diff them, and only then `pnpm test -u`.
-

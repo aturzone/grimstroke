@@ -20,6 +20,7 @@ import { ACCENTS, PAPERS as PHOTO_PAPERS } from '~/draw/material/profile/model.t
 import { MARKS } from '~/draw/material/sticker/marks.ts';
 import { PACKS } from '~/draw/material/sticker/packs.ts';
 import { SHAPE_INTENTS } from '~/draw/shape/intents.ts';
+import { face } from '~/host/serve/face.ts';
 import { FONT_CHOICES, SECTIONS } from '~/host/serve/look.ts';
 
 /** One line per route: `METHOD path` and what it does. */
@@ -29,19 +30,13 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
     'GET /api/boards': 'every board',
     'GET /api/state?board=<address>': 'a board or a page: its spec and markup',
     'GET /api/state?kind=book&id=<notebook>': 'a notebook',
-    'GET /api/leaf?id=&index=': 'one leaf of a notebook, drawn',
-    'GET /api/cover?id=': 'a notebook cover, drawn',
     'GET /api/search?q=': 'find words anywhere',
     'GET /api/events?kind=&id=': 'a server-sent event stream of changes to a surface',
-    'GET /api/layout?board=': 'where everything on a page is, measured, and what overlaps',
   },
   writing: {
     'POST /api/patch':
       'change a board, a page ({ board, ops }) or a notebook ({ kind: "book", id, ops })',
     'POST /api/items/move': 'move items from one surface to another',
-    'POST /api/write':
-      'flow blocks across pages, measured: one column or two, numbered figures kept with their captions, {ref: words} turned into page numbers',
-    'POST /api/tidy': 'move apart what overlaps on a page',
     'POST /api/assets': 'upload a picture; answers with its src',
   },
   notebooks: {
@@ -51,11 +46,6 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
     'POST /api/books/batch': 'archive, unarchive or delete several { ids, action }',
     'GET /api/trash': 'what is in the trash',
     'POST /api/trash/restore': 'bring one back { name } or { id }',
-    'POST /api/export': 'a PNG of a board, or of chosen items on it',
-    'GET /api/export/book.pdf?id=':
-      'the notebook as one PDF file, printed on the server by Chromium',
-    'GET /api/export/book?id=':
-      'a notebook as one PDF: its contents, and /print?book= -- the page a browser prints to PDF',
   },
   shapes: {
     'GET /api/shape/kinds': 'every kind of card a typed line can become, with an example of each',
@@ -137,8 +127,9 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
 
 export function capabilities(): Record<string, unknown> {
   return {
-    docs: ['docs/api.md', 'docs/writing.md'],
-    endpoints: ENDPOINTS,
+    docs: ['docs/api.md', 'docs/split.md'],
+    // The core's, and the face's own when there is one.
+    endpoints: { ...ENDPOINTS, ...(face()?.endpoints ?? {}) },
     vocabulary: {
       blocks: [
         'heading',
