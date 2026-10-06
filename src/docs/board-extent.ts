@@ -74,3 +74,16 @@ export function extentOf(spec: BoardSpec): [number, number, number, number] {
     Math.round(bottom - top + MARGIN * 2),
   ];
 }
+
+/**
+ * Where a new card goes when nobody said: under everything already there, at the left edge of
+ * what is there -- on a page at its margin, on a board where the things on it begin. Never on
+ * top of another card. Every place the core puts a card down asks this one rule.
+ */
+export function nextSpot(spec: BoardSpec, gap = 40): [number, number] {
+  const placed = spec.items.filter((i) => Array.isArray(i.at));
+  if (!placed.length) return spec.sheet ? [40, 40] : [80, 80];
+  const bottom = Math.max(...placed.map((i) => i.at[1] + (i.size?.[1] ?? ITEM_HEIGHT)));
+  const left = spec.sheet ? 40 : Math.min(...placed.map((i) => i.at[0]));
+  return [Math.round(left), Math.round(bottom + (spec.sheet ? 16 : gap))];
+}

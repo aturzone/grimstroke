@@ -35,6 +35,29 @@ const DURATION = new RegExp(
   'u',
 );
 
+/** How many different weekdays a line names, in English, Persian or Russian. */
+function weekdays(t: string): number {
+  const found = new Set<string>();
+  for (const m of t.matchAll(
+    /\b(mon|tue|wed|thu|fri|sat|sun)(?:day|s|nesday|sday|rsday|urday)?\b/g,
+  ))
+    found.add(`en${m[1]}`);
+  // Persian: the numbered days first, so that یکشنبه is not also read as شنبه.
+  let fa = t.replace(/(یک|دو|سه|چهار|پنج) ?شنبه/g, (_w, n: string) => {
+    found.add(`fa${n}`);
+    return ' ';
+  });
+  fa = fa.replace(/شنبه|جمعه/g, (w) => {
+    found.add(`fa${w}`);
+    return ' ';
+  });
+  for (const m of t.matchAll(
+    /(?<![а-я])(пн|вт|ср|чт|пт|сб|вс|понедельник|вторник|сред|четверг|пятниц|суббот|воскресень)/g,
+  ))
+    found.add(`ru${(m[1] as string).slice(0, 3)}`);
+  return found.size;
+}
+
 /** Every named fact about the text, 0 or 1 (or a small count). */
 export function ruleFeatures(t: string): Record<string, number> {
   const f: Record<string, number> = {};
@@ -268,6 +291,9 @@ export function ruleFeatures(t: string): Record<string, number> {
       /\b(repo|repository|github|gitlab|gitea)\b|ریپو|مخزن|گیت ?هاب|گیت ?لب|репозитор/.test(t),
   );
   set('issue.label', /\b(labels?|tags?)\b|لیبل|برچسب|(^|[^а-я])метк|ярлык/.test(t));
+  // Two or more weekdays in one line ("gym mon wed fri", "شنبه و سه‌شنبه", "пн ср пт"): a habit.
+  // Days joined by "or" are a choice between them (a poll), not a routine on all of them.
+  set('habit.days', weekdays(t) >= 2 && !/\bor\b|\bvs\b|\sیا\s|\sили\s|\?/.test(t));
   set('fa', /[؀-ۿ]/.test(t));
   set('ru', /[а-я]/.test(t));
   return f;
@@ -332,6 +358,7 @@ export function ruleScores(t: string): Partial<Record<ShapeIntent | 'none', numb
   if (on('event.date')) add('event', on('event.gather') || !on('len.long') ? 2.5 : 1);
   if (on('event.gather')) add('event', 3);
   if (on('event.call')) add('event', 2);
+  if (on('habit.days')) add('habit', 6);
   if (on('issue.say')) add('issue', 6);
   if (on('issue.fault')) add('issue', 2.5);
   if (on('issue.repo')) add('issue', 3);
@@ -377,6 +404,8 @@ export function ruleScores(t: string): Partial<Record<ShapeIntent | 'none', numb
   if (on('random.between')) cap('split', 1);
   if (on('calc.divide')) cap('split', 2);
   if ((s.reminder ?? 0) >= 4.5) cap('event', 3);
+  // "gym mon wed fri 7am" happens every week on those days: not one event on the first of them.
+  if (on('habit.days')) cap('event', 2);
   // "bug: the date picker shows tomorrow" is about a date, not on one.
   if ((s.issue ?? 0) >= 6) {
     cap('event', 2);

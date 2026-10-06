@@ -11,6 +11,7 @@
 import type { ShapeBlock } from '@core/box/card.ts';
 import { summarize } from '@core/box/card.ts';
 import { isDone, type SlashEntry } from '@core/box/slash.ts';
+import { nextSpot } from '@core/docs/board-extent.ts';
 import { topZ } from '@core/docs/board-patch.ts';
 import { NOTE_HEIGHT, NOTE_WIDTH } from '@core/docs/note.ts';
 import { applyBoard } from '@core/serve/api.ts';
@@ -109,9 +110,6 @@ export async function slash(ask: Ask, live: Live): Promise<boolean> {
     }
     await slashBoard(live);
     const spec = await live.board(SLASH_BOARD);
-    const bottom = spec.items.length
-      ? Math.max(...spec.items.map((i) => i.at[1] + (i.size?.[1] ?? 240)))
-      : 0;
     const id = `card-${Date.now().toString(36)}`;
     const width = Math.min(560, Math.max(280, Number(body.width) || 360));
     await applyBoard(live, SLASH_BOARD, [
@@ -119,7 +117,7 @@ export async function slash(ask: Ask, live: Live): Promise<boolean> {
         op: 'add',
         item: {
           id,
-          at: [80, Math.round(bottom + 40)],
+          at: nextSpot(spec),
           z: topZ(spec) + 1,
           size: block.kind === 'note' ? [NOTE_WIDTH, NOTE_HEIGHT] : [width],
           block: block as never,

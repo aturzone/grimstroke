@@ -13,11 +13,12 @@ import type { ShapeBlock } from '@core/box/card.ts';
 import { readShape } from '@core/box/fields.ts';
 import { type KnownRepo, resolveRepo } from '@core/box/issue.ts';
 import { chooseLabels, labelWords } from '@core/box/labels.ts';
-import type { BoardItem } from '@core/docs/board.ts';
+import type { BoardItem, BoardSpec } from '@core/docs/board.ts';
+import { nextSpot } from '@core/docs/board-extent.ts';
 import { topZ } from '@core/docs/board-patch.ts';
 import { RemoteError } from '@core/git/http.ts';
 import type { Provider } from '@core/git/model.ts';
-import { applyBoard } from '@core/serve/api.ts';
+import { applyBoard, onBoardChange } from '@core/serve/api.ts';
 import { type Ask, readBody, send } from '@core/serve/http.ts';
 import type { Live } from '@core/serve/live.ts';
 import { SLASH_BOARD } from '@core/serve/slash.ts';
@@ -284,12 +285,9 @@ export async function issueApi(ask: Ask, live: Live): Promise<boolean> {
       } else {
         const spec = await live.board(address);
         id = `card-${Date.now().toString(36)}`;
-        const bottom = spec.items.length
-          ? Math.max(...spec.items.map((i) => i.at[1] + (i.size?.[1] ?? 240)))
-          : 0;
         const item: BoardItem = {
           id,
-          at: spec.sheet ? [40, Math.round(bottom + 16)] : [80, Math.round(bottom + 40)],
+          at: nextSpot(spec),
           z: topZ(spec) + 1,
           size: [spec.sheet ? 300 : 360],
           block: sent as never,
@@ -313,3 +311,41 @@ export async function issueApi(ask: Ask, live: Live): Promise<boolean> {
 
   return false;
 }
+
+/*
+ * A card whose issue is open on its service follows its card: a title, a description or labels
+ * changed on the card (by hand, in Details) are changed on the issue too, so the two never say
+ * different things. In the background: a board is not held up by a service.
+ */
+function followEdits(live: Live, address: string, before: BoardSpec, after: BoardSpec): void {
+  for (const item of after.items) {
+    const block = item.block as unknown as ShapeBlock | undefined;
+    const sent =
+      block?.kind === 'shape' && block.intent === 'issue' ? block.state?.issue : undefined;
+    if (!block || !sent) continue;
+    const old = before.items.find((i) => i.id === item.id)?.block as unknown as
+      | ShapeBlock
+      | undefined;
+    if (!old || old.kind !== 'shape' || JSON.stringify(old) === JSON.stringify(block)) continue;
+    const was = readShape('issue', old.text, new Date(old.made ?? 0), old.state ?? {});
+    const now = readShape('issue', block.text, new Date(block.made ?? 0), block.state ?? {});
+    const add = now.labels.filter((l) => !was.labels.includes(l));
+    const remove = was.labels.filter((l) => !now.labels.includes(l));
+    const patch = {
+      ...(now.title !== was.title && now.title.trim() ? { title: now.title } : {}),
+      ...(now.body !== was.body ? { body: now.body } : {}),
+      ...(add.length ? { addLabels: add } : {}),
+      ...(remove.length ? { removeLabels: remove } : {}),
+    };
+    if (!Object.keys(patch).length) continue;
+    void (async () => {
+      const target = resolveRepo(now.repo, await targets(live));
+      if (!target) return;
+      await (await live.remote.adapter(target)).update(target.repo, String(sent.number), patch);
+    })().catch(() => {
+      // The service did not take it; the card keeps what was written, and says so next time.
+    });
+    void address;
+  }
+}
+onBoardChange(followEdits);

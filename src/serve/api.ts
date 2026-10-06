@@ -11,9 +11,10 @@ import { type ShapeBlock, type ShapeState, summarize } from '@core/box/card.ts';
 import { classify } from '@core/box/classify.ts';
 import { FIELDS, readFields } from '@core/box/fields.ts';
 import { INTENTS, isIntent, SHAPE_INTENTS } from '@core/box/intents.ts';
-import { extentOf } from '@core/docs/board-extent.ts';
+import type { BoardSpec } from '@core/docs/board.ts';
+import { extentOf, nextSpot } from '@core/docs/board-extent.ts';
 import { apply, type Op, PatchError, topZ } from '@core/docs/board-patch.ts';
-import { bookTitle, LEAF_MARGIN } from '@core/docs/book.ts';
+import { bookTitle } from '@core/docs/book.ts';
 import { apply as applyBook, type BookOp, BookPatchError } from '@core/docs/book-patch.ts';
 import { DEFAULT_PET, type Pet, type Profile, readPet, readProfile } from '@core/docs/profile.ts';
 import { search } from '@core/docs/search.ts';
@@ -252,7 +253,8 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
       made: new Date().toISOString(),
       ...(Object.keys(state).length ? { state } : {}),
     };
-    const at: [number, number] = body.at ?? [LEAF_MARGIN[0], LEAF_MARGIN[1]];
+    // Under what is there, never on it: a second card placed by an agent no longer hides the first.
+    const at: [number, number] = body.at ?? nextSpot(spec);
     const reply = await applyBoard(live, address, [
       { op: 'add', item: { id, at, size: [body.width ?? 360], z: topZ(spec) + 1, block } },
     ]);
@@ -710,6 +712,18 @@ function drawnShelf(input: Parameters<NonNullable<ReturnType<typeof face>>['shel
   return html === undefined ? {} : { html };
 }
 
+/** Told of every change to a board or page, before and after: for what must follow a card. */
+export type BoardListener = (
+  live: Live,
+  address: string,
+  before: BoardSpec,
+  after: BoardSpec,
+) => void;
+const listeners: BoardListener[] = [];
+export function onBoardChange(listener: BoardListener): void {
+  if (!listeners.includes(listener)) listeners.push(listener);
+}
+
 export async function applyBoard(
   live: Live,
   id: string,
@@ -757,6 +771,7 @@ export async function applyBoard(
       }),
   };
   live.broadcast(`board:${id}`, 'patch', payload, exceptTab);
+  for (const listener of listeners) listener(live, id, spec, result.spec);
   return payload;
 }
 

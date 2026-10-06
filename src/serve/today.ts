@@ -16,6 +16,7 @@ import {
   type TodaySource,
   todayAct,
 } from '@core/day/gather.ts';
+import { nextSpot } from '@core/docs/board-extent.ts';
 import { bookTitle, boundLeaves } from '@core/docs/book.ts';
 import { upgradeLeaf } from '@core/docs/legacy.ts';
 import { NOTE_HEIGHT, NOTE_WIDTH } from '@core/docs/note.ts';
@@ -113,10 +114,6 @@ export async function today(ask: Ask, live: Live): Promise<boolean> {
     }
     const spec = await live.board(ask.board);
     const placed = spec.items.filter((i) => Array.isArray(i.at));
-    const left = placed.length ? Math.min(...placed.map((i) => i.at[0])) : 0;
-    const bottom = placed.length
-      ? Math.max(...placed.map((i) => i.at[1] + (i.size?.[1] ?? 240)))
-      : 0;
     const id = `day-${Date.now().toString(36)}`;
     const z = placed.reduce((m, i) => Math.max(m, i.z ?? 0), 0) + 1;
     const width = Math.min(560, Math.max(280, Number(body.width) || 360));
@@ -125,7 +122,7 @@ export async function today(ask: Ask, live: Live): Promise<boolean> {
         op: 'add',
         item: {
           id,
-          at: [Math.round(left), Math.round(bottom + 60)],
+          at: nextSpot(spec, 60),
           z,
           size: block.kind === 'note' ? [NOTE_WIDTH, NOTE_HEIGHT] : [width],
           block: block as never,

@@ -31,3 +31,19 @@ describe('a page has an edge', () => {
     expect(lost?.at).toEqual([320, 300]);
   });
 });
+
+describe('where a new card goes', () => {
+  it('is under everything already there, never on top of it', async () => {
+    const { nextSpot } = await import('@core/docs/board-extent.ts');
+    const empty = { id: 'b', items: [] } as never;
+    expect(nextSpot(empty)).toEqual([80, 80]);
+    const one = { id: 'b', items: [{ id: 'a', at: [100, 50], size: [300, 200] }] } as never;
+    expect(nextSpot(one)).toEqual([100, 290]);
+    const page = {
+      id: 'p',
+      sheet: true,
+      items: [{ id: 'a', at: [40, 40], size: [300, 100] }],
+    } as never;
+    expect(nextSpot(page)).toEqual([40, 156]);
+  });
+});

@@ -632,6 +632,12 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => faDigits(`${n(r, 10, 59)} ثانیه`, r),
   ],
   habit: [
+    (r) =>
+      `${pick(r, HABITS)} ${pick(r, ['mon wed fri', 'tue and thu', 'mon, wed and fri', 'tuesdays and thursdays', 'sat sun', 'mon tue thu'])} ${pick(r, ['', '7am', 'at 6', '6:30', 'morning', 'evening'])}`,
+    (r) =>
+      `${pick(r, FA_HABITS)} ${pick(r, ['شنبه و دوشنبه', 'یکشنبه و سه شنبه', 'شنبه دوشنبه چهارشنبه', 'سه شنبه و پنج شنبه'])} ${pick(r, ['', 'ساعت ۷', 'صبح', 'عصر'])}`,
+    (r) =>
+      `${pick(r, RU_HABITS)} ${pick(r, ['пн ср пт', 'вт чт', 'по вторникам и четвергам', 'сб вс'])} ${pick(r, ['', 'в 7', 'утром', 'в 19:00'])}`,
     (r) => `${pick(r, RU_HABITS)} каждый день`,
     (r) =>
       `${pick(r, RU_HABITS)} по ${pick(r, ['пн ср пт', 'вт и чт', 'понедельникам и средам', 'будням'])}`,

@@ -241,4 +241,35 @@ describe('an issue from the / box', () => {
       seen.some((s) => s.path.endsWith('/issues/42/comments') && s.body.body === 'fixed in 0.7'),
     ).toBe(true);
   });
+
+  it("carries an edit to an opened issue's card over to the issue", async () => {
+    const { cards } = (await (await ask('/api/slash')).json()) as {
+      cards: Array<{
+        address: string;
+        id: string;
+        block: { state?: { issue?: unknown; fields?: Record<string, unknown> } };
+      }>;
+    };
+    const card = cards.find((c) => c.block.state?.issue) as (typeof cards)[number];
+    const before = seen.length;
+    const block = {
+      ...card.block,
+      state: {
+        ...card.block.state,
+        fields: { ...card.block.state?.fields, title: 'Save is slow on phones' },
+      },
+    };
+    await ask('/api/patch', {
+      method: 'POST',
+      body: JSON.stringify({
+        board: card.address,
+        ops: [{ op: 'update', id: card.id, patch: { block } }],
+      }),
+    });
+    for (let i = 0; i < 40 && !seen.slice(before).some((s) => s.method === 'PATCH'); i++)
+      await new Promise((done) => setTimeout(done, 25));
+    const sent = seen.slice(before).find((s) => s.method === 'PATCH');
+    expect(sent?.path).toBe('/repos/acme/web/issues/42');
+    expect(sent?.body.title).toBe('Save is slow on phones');
+  });
 });
