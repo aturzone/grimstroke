@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.7.0 — 2026-10-06
+
+The core, on its own: no appearance, a command line like git's, and repositories in eleven
+languages. Everything drawn is now grimstroke-face.
+
+- **Two parts.** This repository is the core: documents as data and their patches, the / box
+  and its own model, the day, reminders, logins, repositories, served as data. It draws nothing
+  -- no pages, no styles, no script -- and runs on almost anything. Everything a person sees is
+  the face, a separate repository plugged in through one contract (src/serve/face.ts); the
+  server finds it beside its install or its checkout. Folders are named for what they hold
+  (box, docs, day, git, vocab, serve, store) and the core is imported as `@core/`.
+- **A command line for the box and the repositories**, on the workspace's files with no server:
+  `read`, `add`, `cards`, `done`, `today`, `connect`, `repos`, `issue` (with `--image`),
+  `issues`, `close`, `reopen`, `comment` -- each in words, or JSON with `--json`.
+- **Issues from the / box**: a sentence becomes an issue with its title, kind, description and
+  repository, and that repository's own labels chosen from what it says (an archive of what
+  labels mean, matched to however a repository spells them); pasted pictures go with it. An
+  opened issue follows its card when the card is edited. "my issues", "close #12", "reopen
+  #12", "comment #12: ..." work from the box too.
+- **Eleven languages for repositories**: English, Persian and Russian, and German, French,
+  Spanish, Portuguese, Italian, Turkish, Arabic and Chinese -- one lexicon entry each.
+- **Russian everywhere in the box**: dates, times, every kind of card, the cards' words.
+- **The box does things by name**, in three languages: open a place, light or dark, a new
+  notebook, search, connect an account, reminders on this device, a backup, sign out; the
+  calendar, the notebooks and the settings open as panels in the box.
+- **The / board**: everything the box made, wherever it lives, in one place.
+- **Fixed**: a sticky note's Enter keeps its empty lines and the editor grows as it is typed;
+  a note made in the box is a real sticky note; cards an agent puts down no longer land on top
+  of each other; "gym mon wed fri 7am" is a habit on those days, not one event.
+- The model is trained on all of it: held-out accuracy 96.3%.
+
 ## 0.6.1 — 2026-09-29
 
 The phone, for real this time.

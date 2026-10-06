@@ -17,9 +17,9 @@ grimstroke is becoming two things, the way git is plumbing and porcelain.
 1. **The / board in the core** -- done: `/slash`, `GET /api/slash`, `POST /api/slash/{add,save,delete,restore}`.
 2. **The API is all a face needs** -- done. The core answers every route in data; markup beside
    a patch, a leaf in an event, the bookcase, the profile card and the day are asked of the face
-   (host/serve/face.ts), and are left out when there is none. The face lives in src/face, built
+   (src/serve/face.ts), and are left out when there is none. The face lives in src/face, built
    to dist/face.js, loaded by `serve`; `GRIMSTROKE_FACE=none` runs the core alone, whose own
-   page is the / board in a frame of its own (draw/slash/page.ts, dist/box.js).
+   page is the / board in a frame of its own (no page: the core draws nothing).
 3. **The face moves out** -- done. It is its own repository, `grimstroke-face`, beside this one:
    the desk, the notebooks, the bookcase, the settings, the day page, the exports, the drawing
    command line (`grimstroke-face render|html|check|redact|palettes|doctor`) and the library an
@@ -30,9 +30,9 @@ grimstroke is becoming two things, the way git is plumbing and porcelain.
 
 4. **Everything through /** -- the box is on every page (a / button in every top bar), and
    besides cards it does what it is asked by name, in English, Persian or Russian
-   (draw/shape/commands.ts): dark or light, a new notebook, search, connect a GitHub, GitLab
+   (src/box/commands.ts): dark or light, a new notebook, search, connect a GitHub, GitLab
    or Gitea account, reminders on this device, a backup, sign out. The calendar, the notebooks
-   and the settings open as panels in the box itself (app/shape/panels.ts) -- a month with each
+   and the settings open as panels in the box itself (the face's app/shape/panels.ts) -- a month with each
    day's things, the notebooks to open, the look, sounds and reminders -- with the face's whole
    page a tap further. Not done: the bookcase and the settings page themselves redrawn in the
    box's style.
@@ -49,3 +49,12 @@ grimstroke is becoming two things, the way git is plumbing and porcelain.
    the repository's own, a pasted picture carried with it; "my issues" (or "issues in web")
    listed in the box; "close #12", "reopen #12", "comment #12: fixed" done on the service; and
    every repository of every connected account is the box's the moment the account is connected.
+
+## Since: no appearance at all, and folders named for what they hold
+
+The core then gave up everything that drew: the cards' faces, the / board's page, the box in
+the browser and the palettes, paper, frames and templates as drawings all went to the face. The
+core keeps names (src/vocab) and data, answers in data, and with no face has no pages at all.
+Its folders say what they hold -- box, docs, day, git, vocab, serve, store -- and it imports
+itself as `@core/`, which is how the face imports it too. Its command line does everything the
+box does, on the workspace's files, with no server (src/work.ts).

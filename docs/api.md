@@ -224,7 +224,7 @@ connected account's own and each connected notebook's -- so an account connected
 the next time. `GET /api/remote/labels?host=&repo=` gives a repository's labels.
 `POST /api/remote/issue { block, address?, id?, images? }` opens it: the repository is the one the
 sentence names (by whole name, short name or nearest), the labels are the repository's own,
-chosen from what the sentence says (draw/shape/labels.ts: an archive of what labels stand for, in
+chosen from what the sentence says (src/box/labels.ts: an archive of what labels stand for, in
 English, Persian and Russian, matched to however a repository spells them), and `images` are
 assets (`POST /api/assets`) carried into the issue -- an upload on GitLab, an attachment on
 Gitea, and on GitHub, which has no API for it, a file on the branch `grimstroke-uploads`. The

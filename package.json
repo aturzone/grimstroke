@@ -1,6 +1,6 @@
 {
   "name": "grimstroke",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "The grimstroke core: notebooks and boards as data, the / box that understands what is typed, the day, reminders and repositories, served as an API. A face draws it.",
   "author": "Atur Dana",
   "license": "MPL-2.0",
