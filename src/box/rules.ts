@@ -10,6 +10,7 @@
 
 import { COLOR_WORD_PATTERN } from '@core/box/colors.ts';
 import type { ShapeIntent } from '@core/box/intents.ts';
+import { allWords, wordsPattern } from '@core/box/lexicon.ts';
 import { UNIT_PATTERN } from '@core/box/units.ts';
 import { ZONE_RE } from '@core/box/zones.ts';
 
@@ -34,6 +35,21 @@ const DURATION = new RegExp(
   `\\b\\d+\\s*(h|hr|hrs|hours?|m|min|mins|minutes?|s|sec|secs|seconds?)\\b|${FA_NUM}\\s*(دقیقه|ثانیه)|\\d+\\s*ساعت(?!\\s*(دیگه|بعد))|نیم ?ساعت|\\bhalf an? hour\\b|\\d+\\s*(мин|минут|сек|секунд|ч|час)(?![\\p{L}])|полчаса`,
   'u',
 );
+
+/** The lexicon's languages, for the issue rules: asking, naming, faults, labels, repositories. */
+const LEX_ISSUE = new RegExp(
+  `^(?:${allWords((w) => w.make).join('|')})|${wordsPattern(allWords((w) => w.issue))}|^(?:${allWords((w) => Object.values(w.types).flat()).join('|')})\\s*[:：]`,
+  'u',
+);
+const LEX_FAULT = new RegExp(
+  [
+    wordsPattern(allWords((w) => w.fault)),
+    ...allWords((w) => w.faultStems).map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+  ].join('|'),
+  'u',
+);
+const LEX_LABEL = new RegExp(wordsPattern(allWords((w) => w.label)), 'u');
+const LEX_REPO = new RegExp(wordsPattern(allWords((w) => w.repo)), 'u');
 
 /** How many different weekdays a line names, in English, Persian or Russian. */
 function weekdays(t: string): number {
@@ -65,7 +81,13 @@ export function ruleFeatures(t: string): Record<string, number> {
     const v = typeof on === 'number' ? on : on ? 1 : 0;
     if (v) f[k] = v;
   };
-  const words = t.split(/\s+/).filter(Boolean);
+  // Chinese and Japanese have no spaces: two characters make about a word there.
+  const cjk = (t.match(/[\u3040-\u30ff\u4e00-\u9fff]/g) ?? []).length;
+  const spaced = t
+    .replace(/[\u3040-\u30ff\u4e00-\u9fff]+/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+  const words = [...spaced, ...Array.from({ length: Math.ceil(cjk / 2) }, () => '字')];
   const num = /\d/.test(t);
   const nums = t.match(/\d[\d,.]*/g)?.length ?? 0;
 
@@ -277,24 +299,31 @@ export function ruleFeatures(t: string): Record<string, number> {
     'issue.say',
     /\b(issue|bug report|ticket|work ?item|feature request|pull request)\b|\b(make|create|open|file|raise|log|report)\s+(me\s+)?(an?\s+)?(new\s+)?(bug|issue|ticket)\b|^(bug|issue|feature|task|ticket)\s*:|ایشو|تیکت|ورک ?آیتم|^باگ|باگ\s*:|задач[ауи]?\s*:|^баг|тикет|создай задачу|заведи баг/.test(
       t,
-    ),
+    ) || LEX_ISSUE.test(t),
   );
   set(
     'issue.fault',
     /\b(crash(es|ed)?|broken|throws|exception|stack ?trace|regression|doesn'?t work|does not work|not working|fails? to|error when)\b|کار نمی ?کن|کرش|ارور میده|خطا میده|не работает|падает|ошибка при/.test(
       t,
-    ),
+    ) || LEX_FAULT.test(t),
   );
   set(
     'issue.repo',
     (/(^|\s)[\w-]+\/[\w.-]+($|\s)/.test(t) && !/\d+\/\d+/.test(t)) ||
-      /\b(repo|repository|github|gitlab|gitea)\b|ریپو|مخزن|گیت ?هاب|گیت ?لب|репозитор/.test(t),
+      /\b(repo|repository|github|gitlab|gitea)\b|ریپو|مخزن|گیت ?هاب|گیت ?لب|репозитор/.test(t) ||
+      LEX_REPO.test(t),
   );
-  set('issue.label', /\b(labels?|tags?)\b|لیبل|برچسب|(^|[^а-я])метк|ярлык/.test(t));
+  set(
+    'issue.label',
+    /\b(labels?|tags?)\b|لیبل|برچسب|(^|[^а-я])метк|ярлык/.test(t) || LEX_LABEL.test(t),
+  );
   // Two or more weekdays in one line ("gym mon wed fri", "شنبه و سه‌شنبه", "пн ср пт"): a habit.
   // Days joined by "or" are a choice between them (a poll), not a routine on all of them.
   set('habit.days', weekdays(t) >= 2 && !/\bor\b|\bvs\b|\sیا\s|\sили\s|\?/.test(t));
   set('fa', /[؀-ۿ]/.test(t));
+  // Persian and Arabic share a script: the letters only one of them uses tell them apart.
+  set('fa.own', /[پچژگ]/.test(t));
+  set('ar.own', /[ةأإؤئ]/.test(t));
   set('ru', /[а-я]/.test(t));
   return f;
 }

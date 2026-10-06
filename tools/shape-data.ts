@@ -420,6 +420,100 @@ const LABEL_WORDS = [
   'security',
 ];
 
+/** Faults and wishes in the lexicon's languages (src/box/lexicon.ts), for the issue kind. */
+const MORE_FAULTS: Record<
+  string,
+  { fault: string[]; lead: string[]; label: string; thought: string[] }
+> = {
+  de: {
+    fault: [
+      'der login funktioniert nicht auf safari',
+      'die app stürzt beim öffnen ab',
+      'speichern geht nicht',
+      'die suche findet nichts',
+    ],
+    lead: ['fehler:', 'erstelle ein issue:', 'neues ticket:', 'bug:'],
+    label: 'label',
+    thought: [
+      'heute war ein ruhiger tag in der stadt',
+      'vielleicht sollten wir das projekt vereinfachen',
+    ],
+  },
+  fr: {
+    fault: [
+      'la connexion ne fonctionne pas sur safari',
+      "l'application plante au démarrage",
+      "l'enregistrement ne marche pas",
+      'la recherche ne trouve rien',
+    ],
+    lead: ['bogue :', 'crée une issue :', 'nouveau ticket :', 'bug :'],
+    label: 'étiquette',
+    thought: ['la ville était calme ce matin', 'peut-être devrions-nous simplifier le projet'],
+  },
+  es: {
+    fault: [
+      'el inicio de sesión no funciona en safari',
+      'la app se cuelga al abrir',
+      'guardar no funciona',
+      'la búsqueda no encuentra nada',
+    ],
+    lead: ['error:', 'crea un issue:', 'nueva incidencia:', 'bug:'],
+    label: 'etiqueta',
+    thought: ['la ciudad estaba muy tranquila hoy', 'quizás deberíamos simplificar el proyecto'],
+  },
+  pt: {
+    fault: [
+      'o login não funciona no safari',
+      'o app trava ao abrir',
+      'salvar não funciona',
+      'a busca não encontra nada',
+    ],
+    lead: ['erro:', 'crie uma issue:', 'novo chamado:', 'bug:'],
+    label: 'etiqueta',
+    thought: ['a cidade estava tranquila hoje', 'talvez devêssemos simplificar o projeto'],
+  },
+  it: {
+    fault: [
+      'il login non funziona su safari',
+      "l'app si blocca all'avvio",
+      'il salvataggio non funziona',
+      'la ricerca non trova nulla',
+    ],
+    lead: ['errore:', 'crea una issue:', 'nuovo ticket:', 'bug:'],
+    label: 'etichetta',
+    thought: ['oggi la città era tranquilla', 'forse dovremmo semplificare il progetto'],
+  },
+  tr: {
+    fault: [
+      'giriş safaride çalışmıyor',
+      'uygulama açılırken çöküyor',
+      'kaydet butonu çalışmıyor',
+      'arama hiçbir şey bulmuyor',
+    ],
+    lead: ['hata:', 'issue aç:', 'yeni kayıt:', 'bug:'],
+    label: 'etiket',
+    thought: ['bugün şehir çok sakindi', 'belki projeyi sadeleştirmeliyiz'],
+  },
+  ar: {
+    fault: [
+      'تسجيل الدخول لا يعمل على سفاري',
+      'التطبيق يتعطل عند الفتح',
+      'زر الحفظ لا يعمل',
+      'البحث لا يجد شيئا',
+    ],
+    lead: ['خطأ:', 'أنشئ تذكرة:', 'تذكرة جديدة:', 'مشكلة:'],
+    label: 'وسم',
+    thought: ['كانت المدينة هادئة اليوم', 'ربما يجب أن نبسط المشروع'],
+  },
+  zh: {
+    fault: ['登录在safari上无法使用', '应用打开时崩溃', '保存按钮不工作', '搜索什么都找不到'],
+    lead: ['错误:', '创建工单:', '新建问题:', '缺陷:'],
+    label: '标签',
+    thought: ['今天城市很安静', '也许我们应该简化这个项目'],
+  },
+};
+const LANGS = Object.keys(MORE_FAULTS);
+
 function pick<T>(r: () => number, list: readonly T[]): T {
   return list[Math.floor(r() * list.length)] as T;
 }
@@ -835,6 +929,7 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => `تا ${pick(r, ['نوروز', 'یلدا'])} چند روز مونده`,
   ],
   timezone: [
+    (r) => `الان ساعت ${pick(r, ['لندن', 'پاریس', 'دبی', 'نیویورک', 'استانبول'])} چنده`,
     (r) => `который час в ${pick(r, ['токио', 'лондоне', 'нью-йорке', 'дубае'])}`,
     (r) =>
       `${n(r, 1, 12)}${pick(r, ['pm', 'am'])} ${pick(r, ['pst', 'est', 'ist', 'utc', 'london', 'tokyo'])} in ${pick(r, ['ist', 'pst', 'berlin', 'tehran', 'sydney', 'est'])}`,
@@ -890,6 +985,15 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => faDigits(`هدف: ${n(r, 100, 900)} کیلومتر دویدن، ${n(r, 10, 99)} تا انجام دادم`, r),
   ],
   issue: [
+    (r) => {
+      const l = MORE_FAULTS[pick(r, LANGS)] as (typeof MORE_FAULTS)[string];
+      return `${pick(r, l.lead)} ${pick(r, l.fault)}`;
+    },
+    (r) => {
+      const l = MORE_FAULTS[pick(r, LANGS)] as (typeof MORE_FAULTS)[string];
+      return `${pick(r, l.lead)} ${pick(r, l.fault)} ${l.label} ${pick(r, ['mobile', 'ui', 'bug', 'frontend'])}`;
+    },
+    (r) => pick(r, (MORE_FAULTS[pick(r, LANGS)] as (typeof MORE_FAULTS)[string]).fault),
     (r) => `bug: ${pick(r, FAULTS)}`,
     (r) => `${pick(r, ['issue', 'new issue', 'ticket', 'work item'])}: ${pick(r, FAULTS)}`,
     (r) =>
@@ -914,6 +1018,7 @@ const T: Record<IntentKey, Gen[]> = {
     (r) => `${pick(r, RU_FAULTS)}, метки ${pick(r, ['ui', 'backend', 'срочно', 'mobile', 'docs'])}`,
   ],
   note: [
+    (r) => pick(r, (MORE_FAULTS[pick(r, LANGS)] as (typeof MORE_FAULTS)[string]).thought),
     (r) => pick(r, RU_THOUGHTS),
     (r) => `${pick(r, RU_THOUGHTS)}. ${pick(r, RU_THOUGHTS)}`,
     (r) => `заметка: ${pick(r, RU_THOUGHTS)}`,

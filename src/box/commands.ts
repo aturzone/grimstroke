@@ -8,6 +8,7 @@
  * offered as a chip beside the card.
  */
 
+import { GIT_WORDS } from '@core/box/lexicon.ts';
 import { norm } from '@core/box/text.ts';
 
 export type CommandId =
@@ -381,6 +382,18 @@ export const COMMANDS: readonly Command[] = [
   },
 ];
 
+// The repository commands are also said in the lexicon's languages (lexicon.ts).
+const SAID_IN: Partial<Record<CommandId, 'list' | 'close' | 'reopen' | 'comment'>> = {
+  'issue-list': 'list',
+  'issue-close': 'close',
+  'issue-reopen': 'reopen',
+  'issue-comment': 'comment',
+};
+for (const c of COMMANDS) {
+  const which = SAID_IN[c.id];
+  if (which) c.names.push(...GIT_WORDS.flatMap((w) => w.commands[which]));
+}
+
 export interface CommandMatch {
   command: Command;
   /** What follows the name, for a command that takes something: "travel" in "new notebook travel". */
@@ -462,4 +475,11 @@ export function issueRef(arg: string): {
     /(?:^|\s)(?:in|on|ریپو(?:ی)?|در|روی|в|во)\s+([\w.-]+)/u.exec(rest)?.[1] ??
     (/^\s*([\w.-]+)\s*$/.exec(rest)?.[1] || null);
   return { number: n ? (n[1] as string) : null, repo, words };
+}
+
+/** Whether a list was asked for as one's own: "my issues", "ایشوهای من", "мои задачи", "meine issues"... */
+export function saysMine(said: string): boolean {
+  return /(?<![\p{L}])(?:my|мои|meine|mes|mis|minhas|meus|mie|miei)(?![\p{L}])|من(?![\p{L}])|lerim|larım|تذاكري|مشاكلي|我的/iu.test(
+    said,
+  );
 }

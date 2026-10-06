@@ -10,6 +10,7 @@
  * repository's own list in labels.ts. What is read here is what the sentence itself says.
  */
 
+import { allWords, wordsPattern } from '@core/box/lexicon.ts';
 import { norm } from '@core/box/text.ts';
 
 export const ISSUE_TYPES = ['bug', 'feature', 'task', 'docs', 'question'] as const;
@@ -25,8 +26,8 @@ export interface IssueData {
   repo: string | null;
 }
 
-/** Words that say which kind an issue is, in English, Persian and Russian. */
-const TYPE_WORDS: Record<IssueType, RegExp> = {
+/** Words that say which kind an issue is: English, Persian and Russian here, the rest from the lexicon. */
+const OWN_TYPE_WORDS: Record<IssueType, RegExp> = {
   bug: /\b(bug|bugs|defect|broken|crash(es|ed)?|error|fails?|failing|regression|doesn'?t work|does not work|not working)\b|باگ|خطا|ارور|کار\s*نمی\s*‌?کن[هد]|خراب|مشکل|ошибк|баг|не работает|сломал|падает/u,
   feature:
     /\b(feature|enhancement|request|add support|would be nice|support for|new option)\b|قابلیت|فیچر|ویژگی|اضافه\s*(کن|شود|بشه)|امکان|фич|функци|добав|улучшени/u,
@@ -36,6 +37,19 @@ const TYPE_WORDS: Record<IssueType, RegExp> = {
     /\b(question|how do i|how to|why does|is it possible)\b|سوال|سؤال|چطور|چرا|вопрос|как\s/u,
 };
 
+const TYPE_WORDS = Object.fromEntries(
+  ISSUE_TYPES.map((k) => [
+    k,
+    new RegExp(
+      `${OWN_TYPE_WORDS[k].source}|${wordsPattern(
+        // A fault described is a bug, in any language, as it is in the three above.
+        allWords((w) => (k === 'bug' ? [...w.types[k], ...w.fault] : w.types[k])),
+      )}${k === 'bug' ? `|${allWords((w) => w.faultStems).join('|')}` : ''}`,
+      'iu',
+    ),
+  ]),
+) as Record<IssueType, RegExp>;
+
 /** "type bug", "تایپ باگ", "тип баг": a kind named outright. */
 const TYPE_NAMED: Array<[RegExp, IssueType]> = [
   [/^(bug|باگ|баг|ошибка)$/u, 'bug'],
@@ -43,6 +57,10 @@ const TYPE_NAMED: Array<[RegExp, IssueType]> = [
   [/^(task|chore|تسک|وظیفه|کار|задача)$/u, 'task'],
   [/^(docs?|documentation|مستندات|مستند|документация)$/u, 'docs'],
   [/^(question|سوال|سؤال|вопрос)$/u, 'question'],
+  ...ISSUE_TYPES.map(
+    (k) =>
+      [new RegExp(`^(?:${allWords((w) => w.types[k]).join('|')})$`, 'u'), k] as [RegExp, IssueType],
+  ),
 ];
 
 /** The words an issue is asked for with, taken off the front of the title. */
@@ -52,20 +70,38 @@ const LEAD = new RegExp(
     String.raw`^(new\s+)?(issue|bug|ticket|work\s*item|feature( request)?|task|docs|question)\s*[:\-–—]\s*`,
     String.raw`^(یه|یک)?\s*(ایشو|باگ|تیکت|ورک\s*آیتم|تسک)\s*(جدید)?\s*(بساز|درست\s*کن|ثبت\s*کن|باز\s*کن|بزن)?\s*(که|برای|درباره)?\s*[:\-–—]?\s*`,
     String.raw`^(создай|создать|открой|заведи|новая|новый)?\s*(issue|задач[уа]|баг|ошибк[уа]|тикет)\s*[:\-–—]?\s*`,
+    `^(?:${allWords((w) => w.make).join('|')})\\s*[:\\-–—]?\\s*`,
+    `^(?:${allWords((w) => [...w.issue, ...Object.values(w.types).flat()]).join('|')})\\s*[:：\\-–—]\\s*`,
   ].join('|'),
   'iu',
 );
 
-const DESCRIPTION =
-  /\s*(?:description|details|desc|body|توضیحات|توضیح|شرح|описание|подробности)\s*[:：]\s*/iu;
-const LABELS =
-  /(?:^|[\s,،;])(?:labels?|tags?|لیبل(?:\s*ها|‌ها)?|برچسب(?:\s*ها|‌ها)?|метк[аи]|ярлык[иа]?)\s*[:：]?\s*([^\n.;:]+?)(?=$|\s+(?:type|تایپ|نوع|тип|in|on|repo|ریپو|در|روی|توی|в|description|توضیحات|описание)(?![\p{L}])|[.;\n]|:)/iu;
-const TYPE_SAID = /(?:^|[\s,،;])(?:type|kind|تایپ|نوع|тип)\s*[:：]?\s*([^\s,،;:.]+)/iu;
+const DESCRIPTION = new RegExp(
+  `\\s*(?:description|details|desc|body|توضیحات|توضیح|شرح|описание|подробности|${allWords((w) => w.description).join('|')})\\s*[:：]\\s*`,
+  'iu',
+);
+const LABEL_WORDS = allWords((w) => w.label).join('|');
+const AFTER_LABELS = allWords((w) => [...w.type, ...w.repo, ...w.description, ...w.in]).join('|');
+const LABELS = new RegExp(
+  `(?:^|[\\s,،;])(?:labels?|tags?|لیبل(?:\\s*ها|‌ها)?|برچسب(?:\\s*ها|‌ها)?|метк[аи]|ярлык[иа]?|${LABEL_WORDS})\\s*[:：]?\\s*([^\\n.;:]+?)(?=$|\\s+(?:type|تایپ|نوع|тип|in|on|repo|ریپو|در|روی|توی|в|description|توضیحات|описание|${AFTER_LABELS})(?![\\p{L}])|[.;\\n]|:)`,
+  'iu',
+);
+const TYPE_SAID = new RegExp(
+  `(?:^|[\\s,،;])(?:type|kind|تایپ|نوع|тип|${allWords((w) => w.type).join('|')})\\s*[:：]?\\s*([^\\s,،;:.]+)`,
+  'iu',
+);
 /** owner/name, or "repo name", "in the name repo", "ریپو name", "в репозитории name". */
 // An owner has no dots (a domain does: docs.rs/serde is an address, not a repository).
 const REPO_PATH = /(?:^|[\s(])((?:[\w-]+\/)+[\w.-]+)(?=$|[\s),.;:،])/u;
-const REPO_SAID =
-  /(?:^|[\s,،])(?:(?:in|on|for|to)\s+(?:the\s+)?)?(?:repo(?:sitory)?|ریپو(?:ی)?|مخزن|репо(?:зитори[йия])?)\s*[:：]?\s*([\w.-]+)|(?:^|\s)(?:in|on)\s+(?:the\s+)?([\w.-]+)\s+repo(?:sitory)?\b|(?:در|روی|توی|تو)\s+(?:ریپو|مخزن)(?:ی)?\s+([\w.-]+)/iu;
+const REPO_SAID = new RegExp(
+  [
+    String.raw`(?:^|[\s,،])(?:(?:in|on|for|to)\s+(?:the\s+)?)?(?:repo(?:sitory)?|ریپو(?:ی)?|مخزن|репо(?:зитори[йия])?)\s*[:：]?\s*([\w.-]+)`,
+    String.raw`(?:^|\s)(?:in|on)\s+(?:the\s+)?([\w.-]+)\s+repo(?:sitory)?\b`,
+    String.raw`(?:در|روی|توی|تو)\s+(?:ریپو|مخزن)(?:ی)?\s+([\w.-]+)`,
+    `(?:(?:${allWords((w) => w.in).join('|')})\\s+)?(?:${allWords((w) => w.repo).join('|')})(?![\\p{L}])\\s*[:：]?\\s*([\\w.-]+)`,
+  ].join('|'),
+  'iu',
+);
 
 function splitList(raw: string): string[] {
   return raw
@@ -113,7 +149,7 @@ export function parseIssue(text: string): IssueData {
   } else {
     const said = REPO_SAID.exec(rest);
     if (said) {
-      repo = (said[1] ?? said[2] ?? said[3] ?? null) as string | null;
+      repo = (said[1] ?? said[2] ?? said[3] ?? said[4] ?? null) as string | null;
       rest = cut(rest, said);
     }
   }

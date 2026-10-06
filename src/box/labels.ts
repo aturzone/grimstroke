@@ -13,6 +13,7 @@
  */
 
 import type { IssueType } from '@core/box/issue.ts';
+import { GIT_WORDS } from '@core/box/lexicon.ts';
 import { norm } from '@core/box/text.ts';
 
 export interface Concept {
@@ -566,6 +567,11 @@ export const CONCEPTS: readonly Concept[] = [
     says: ['duplicate', 'same as', 'already reported', 'تکراری', 'дубликат', 'дубль'],
   },
 ];
+
+// Every concept is also said in the lexicon's languages (lexicon.ts): its words join the ones above.
+for (const c of CONCEPTS as Concept[])
+  for (const lang of GIT_WORDS)
+    c.says.push(...(lang.concepts[c.id] ?? []), ...(c.type ? lang.types[c.type] : []));
 
 /** A label's name as words: case, emoji, prefixes and separators folded away. */
 export function labelWords(name: string): string {
