@@ -19,6 +19,7 @@ import { randomBytes } from 'node:crypto';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { extname, join } from 'node:path';
+import { hushed } from '~/draw/look/vocab.ts';
 import { api } from '~/host/serve/api.ts';
 import { type Face, face, useFace } from '~/host/serve/face.ts';
 import {
@@ -81,14 +82,8 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
   const remind = setInterval(() => {
     void (async () => {
       const look = await lookOf(store);
-      const q = look.feel.quiet;
-      const h = new Date().getHours();
-      const hushed = q
-        ? q.from < q.to
-          ? h >= q.from && h < q.to
-          : h >= q.from || h < q.to
-        : false;
-      await push.tick(await todaySources(live, board), new Date(), hushed);
+      const quiet = hushed(new Date().getHours(), look.feel.quiet);
+      await push.tick(await todaySources(live, board), new Date(), quiet);
     })().catch(() => {});
   }, 60_000);
   remind.unref();

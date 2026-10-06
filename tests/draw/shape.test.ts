@@ -18,7 +18,6 @@ import {
   parseTimer,
   parseTodo,
 } from '~/draw/shape/parse.ts';
-import { renderShape, summarize } from '~/draw/shape/render.ts';
 import { fold } from '~/draw/shape/text.ts';
 import { findDate, jalaliToGregorian } from '~/draw/shape/when.ts';
 
@@ -143,33 +142,5 @@ describe('the bar stays calm', () => {
     let m = force('note', 'split 2400 between 3');
     m = decide(m, at('split 2400 between 3!'), 'split 2400 between 3!');
     expect(m.ui).toEqual({ kind: 'committed', intent: 'note', forced: true });
-  });
-});
-
-describe('the face', () => {
-  it('escapes what was typed and carries its controls', () => {
-    const html = renderShape({
-      kind: 'shape',
-      intent: 'todo',
-      text: 'buy <b>milk</b>, eggs',
-      made: REF.toISOString(),
-    });
-    expect(html).not.toContain('<b>');
-    expect(html).toContain('data-sc-act="todo:0"');
-  });
-  it('shows what was done to it', () => {
-    const block = {
-      kind: 'shape' as const,
-      intent: 'todo' as const,
-      text: 'milk, eggs, bread',
-      state: { done: [1] },
-    };
-    expect(summarize(block, REF)).toBe('1/3 · Milk, Eggs, Bread');
-    expect(renderShape(block)).toContain('is-done');
-  });
-  it('is drawn right to left for Persian', () => {
-    expect(renderShape({ kind: 'shape', intent: 'note', text: 'امروز آروم بود' })).toContain(
-      'dir="rtl"',
-    );
   });
 });

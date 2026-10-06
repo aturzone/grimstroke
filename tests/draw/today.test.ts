@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { BoardItem } from '~/draw/doc/board/model.ts';
-import type { ShapeBlock } from '~/draw/shape/render.ts';
+import type { ShapeBlock } from '~/draw/shape/card.ts';
 import { dayKey, gatherToday, todayAct } from '~/draw/today/gather.ts';
 
 // A Monday morning, local time.

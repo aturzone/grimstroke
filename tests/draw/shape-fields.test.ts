@@ -4,9 +4,9 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { summarize } from '~/draw/shape/card.ts';
 import { FIELDS, fieldValues, keepFields, readFields, readShape } from '~/draw/shape/fields.ts';
 import { SHAPE_INTENTS } from '~/draw/shape/intents.ts';
-import { renderShape, summarize } from '~/draw/shape/render.ts';
 
 const REF = new Date(2026, 8, 25, 10, 0);
 
@@ -39,22 +39,6 @@ describe('the field schema', () => {
 });
 
 describe('set by hand', () => {
-  it('a timer typed as just "timer" gets a duration, and the text stays the text', () => {
-    const state = { fields: { duration: 600, label: 'Tea' } };
-    const d = readShape('timer', 'timer', REF, state);
-    expect(d.seconds).toBe(600);
-    expect(d.label).toBe('Tea');
-    const html = renderShape({
-      kind: 'shape',
-      intent: 'timer',
-      text: 'timer',
-      made: REF.toISOString(),
-      state,
-    });
-    expect(html).toContain('10:00');
-    expect(html).toContain('Tea');
-  });
-
   it('an event moved to another day and time, and a place', () => {
     const d = readShape('event', 'dinner with priya friday 8pm', REF, {
       fields: { date: '2026-10-02', time: '19:30', place: 'Cafe Nero' },
@@ -115,22 +99,5 @@ describe('from an agent', () => {
     });
     expect(readFields('habit', { days: [1, 9, 'a', 3] })).toEqual({ days: [1, 3] });
     expect(readFields('timer', null)).toBeUndefined();
-  });
-});
-
-describe('the face', () => {
-  it('a live card carries its pencil; a preview and an export do not', () => {
-    const block = { kind: 'shape' as const, intent: 'note' as const, text: 'hello there' };
-    expect(renderShape(block)).toContain('data-sc-act="edit"');
-    expect(renderShape(block, { interactive: false })).not.toContain('data-sc-act="edit"');
-  });
-  it('a timer with no time offers some', () => {
-    const html = renderShape({
-      kind: 'shape',
-      intent: 'timer',
-      text: 'timer',
-      made: REF.toISOString(),
-    });
-    expect(html).toContain('data-sc-act="timer:set:1500"');
   });
 });

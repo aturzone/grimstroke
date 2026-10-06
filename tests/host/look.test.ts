@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hushed } from '~/app/feel.ts';
+import { hushed } from '~/draw/look/vocab.ts';
 import { DEFAULT_LOOK, readLook, withLook } from '~/host/serve/look.ts';
 
 describe('quiet hours', () => {

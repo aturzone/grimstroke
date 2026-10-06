@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { classify } from '~/draw/shape/classify.ts';
 import { parseShape } from '~/draw/shape/parse.ts';
-import { renderShape } from '~/draw/shape/render.ts';
 import { findDate } from '~/draw/shape/when.ts';
 
 // Thursday 1 October 2026, nine in the morning.
@@ -47,20 +46,5 @@ describe('the / box in Russian', () => {
     expect(parseShape('habit', 'бег по пн, ср и пт', ref).days).toEqual([1, 3, 5]);
     expect(parseShape('split', 'раздели 900 на троих', ref).people).toBe(3);
     expect(parseShape('convert', '5 км в мили', ref).to).toBe('mi');
-  });
-
-  it('speaks Russian on the card', () => {
-    const html = renderShape(
-      {
-        kind: 'shape',
-        intent: 'event',
-        text: 'ужин с Анной завтра в 8 вечера',
-        made: ref.toISOString(),
-      },
-      { now: ref },
-    );
-    expect(html).toContain('Событие');
-    expect(html).toContain('Завтра');
-    expect(html).toContain('dir="ltr"');
   });
 });

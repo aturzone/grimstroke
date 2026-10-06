@@ -16,6 +16,8 @@
  * page as `<meta name="gs-feel">`; Settings changes them for this tab at once.
  */
 
+import { hushed as quietHour } from '~/draw/look/vocab.ts';
+
 export type SoundName =
   | 'tap'
   | 'pop'
@@ -69,10 +71,7 @@ export function setFeel(next: Partial<Feel>): void {
 
 /** Inside the quiet hours, which may run across midnight. */
 export function hushed(now: number, quiet = feel.quiet): boolean {
-  if (!quiet) return false;
-  return quiet.from < quiet.to
-    ? now >= quiet.from && now < quiet.to
-    : now >= quiet.from || now < quiet.to;
+  return quietHour(now, quiet);
 }
 
 /** Full motion: the flourishes -- a tilt, a wobble -- that calm leaves out. */

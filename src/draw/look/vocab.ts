@@ -54,3 +54,17 @@ export const PALETTE_IDS: Readonly<Record<string, { dark: boolean }>> = {
   newsprint: { dark: false },
   carbon: { dark: true },
 };
+
+/** Quiet hours: two whole hours of the day, from and to, which may run across midnight. */
+export interface Quiet {
+  from: number;
+  to: number;
+}
+
+/** Whether this hour of the day is inside the quiet hours. One rule, for the server and a page. */
+export function hushed(hour: number, quiet: Quiet | null | undefined): boolean {
+  if (!quiet) return false;
+  return quiet.from < quiet.to
+    ? hour >= quiet.from && hour < quiet.to
+    : hour >= quiet.from || hour < quiet.to;
+}
