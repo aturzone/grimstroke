@@ -7,7 +7,7 @@
  * honest number for text a person has not typed yet.
  */
 
-import type { IntentKey } from '~/draw/shape/classify.ts';
+import type { IntentKey } from '@core/box/classify.ts';
 
 export interface Example {
   text: string;

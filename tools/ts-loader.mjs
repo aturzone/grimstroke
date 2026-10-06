@@ -6,8 +6,8 @@
  * the kind of machine an agent ends up on. Rather than making the build depend
  * on a lucky binary, esbuild (already a dependency) transforms on the fly.
  *
- * It also resolves the `~/` alias, so the same import paths work when running a
- * file directly, under vitest, and inside the bundle. Without that, `~/` is a
+ * It also resolves the `@core/` alias, so the same import paths work when running a
+ * file directly, under vitest, and inside the bundle. Without that, `@core/` is a
  * bundler-only convenience that breaks the moment anyone runs a script.
  */
 
@@ -19,8 +19,8 @@ import { transform } from 'esbuild';
 const SRC = resolvePath(dirname(fileURLToPath(import.meta.url)), '..', 'src');
 
 export async function resolve(specifier, context, nextResolve) {
-  if (specifier.startsWith('~/')) {
-    return { url: pathToFileURL(resolvePath(SRC, specifier.slice(2))).href, shortCircuit: true };
+  if (specifier.startsWith('@core/')) {
+    return { url: pathToFileURL(resolvePath(SRC, specifier.slice(6))).href, shortCircuit: true };
   }
   return nextResolve(specifier, context);
 }

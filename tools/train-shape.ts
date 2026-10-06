@@ -6,7 +6,7 @@
  * Softmax regression by SGD on the generated sentences (tools/shape-data.ts). It first trains
  * with a fifth of the TEMPLATES held out and reports accuracy on them, next to the hand-weighted
  * rules on the same held-out set -- the model has to beat the rules to be worth shipping -- and
- * then trains on everything and writes src/draw/shape/weights.ts as int8.
+ * then trains on everything and writes src/box/weights.ts as int8.
  */
 
 import { writeFileSync } from 'node:fs';
@@ -17,9 +17,9 @@ import {
   type IntentKey,
   probabilities,
   type Weights,
-} from '~/draw/shape/classify.ts';
-import { ruleFeatures } from '~/draw/shape/rules.ts';
-import { norm } from '~/draw/shape/text.ts';
+} from '@core/box/classify.ts';
+import { ruleFeatures } from '@core/box/rules.ts';
+import { norm } from '@core/box/text.ts';
 import { type Example, examples } from './shape-data.ts';
 
 const BUCKETS = 2048;
@@ -162,7 +162,7 @@ const final = pack(train(all, rules));
 const fit = accuracy(all, final);
 console.log(`trained on everything: ${(fit.acc * 100).toFixed(1)}% on the training sentences`);
 
-const out = join(import.meta.dirname, '../src/draw/shape/weights.ts');
+const out = join(import.meta.dirname, '../src/box/weights.ts');
 writeFileSync(
   out,
   `/**\n * The trained weights of the shape classifier. Written by tools/train-shape.ts; do not edit.\n *\n` +

@@ -20,7 +20,7 @@ const shared = {
   // stay a runtime import so a consumer without it can still render.
   external: ['playwright'],
   define: { __VERSION__: JSON.stringify(process.env.npm_package_version ?? '0.0.0') },
-  alias: { '~': './src' },
+  alias: { '@core': './src' },
 };
 
 async function run(): Promise<void> {
@@ -30,18 +30,9 @@ async function run(): Promise<void> {
   const targets = [
     { entryPoints: ['src/index.ts'], outfile: 'dist/index.js' },
     {
-      entryPoints: ['src/host/cli.ts'],
+      entryPoints: ['src/cli.ts'],
       outfile: 'dist/cli.js',
       banner: { js: '#!/usr/bin/env node' },
-    },
-    // The core's own page script: the / box and the / board, and nothing of any face. A face
-    // brings its own app (its files, served at /app.js).
-    {
-      entryPoints: ['src/app/box.ts'],
-      outfile: 'dist/box.js',
-      platform: 'browser' as const,
-      external: [] as string[],
-      minify: !dev,
     },
   ];
 
