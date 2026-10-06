@@ -28,6 +28,8 @@ export interface GitExample {
   /** action id (or other:object) / language / index: what is held out together. */
   template: string;
   lang: string;
+  /** Git said in a word or two (tools/git-gate.json): taught to the git model, and to the gate apart. */
+  terse: boolean;
 }
 
 type Lang = 'en' | 'fa' | 'ru' | 'de' | 'fr' | 'es' | 'pt' | 'it' | 'tr' | 'ar' | 'zh';
@@ -1656,7 +1658,10 @@ export function expand(template: string, lang: Lang, r: () => number): string {
 export function gitExamples(perTemplate = 24, seed = 11): GitExample[] {
   const r = rng(seed);
   const out: GitExample[] = [];
-  for (const [key, says] of Object.entries(SAYS)) {
+  for (const [key, says, terse] of [
+    ...Object.entries(SAYS).map(([k, v]) => [k, v, false] as const),
+    ...Object.entries(TERSE).map(([k, v]) => [`${k}`, v, true] as const),
+  ]) {
     const [object, verb] = key.startsWith('other:')
       ? [key.slice(6) as GitObject, 'other' as VerbClass]
       : (key.split('.') as [GitObject, VerbClass]);
@@ -1669,7 +1674,14 @@ export function gitExamples(perTemplate = 24, seed = 11): GitExample[] {
           seen.add(text);
           // Sloppy typing: no capitals, sometimes no final punctuation.
           const sloppy = r() < 0.3 ? text.toLowerCase().replace(/[?.!؟]$/, '') : text;
-          out.push({ text: sloppy, verb, object, template: `${key}/${lang}/${i}`, lang });
+          out.push({
+            text: sloppy,
+            verb,
+            object,
+            template: `${key}/${lang}/${terse ? 't' : ''}${i}`,
+            lang,
+            terse,
+          });
         }
       });
     }
@@ -2051,3 +2063,14 @@ const { _not_git: notGitPhrases, ...phrases } = PHRASES;
 addSays(phrases);
 /** Everyday sentences that only sound like git, by language. */
 export const NOT_GIT_PHRASES: Says = notGitPhrases ?? {};
+
+// The gate's own: everyday sentences that only sound like git, and git said in two words
+// (tools/git-gate.json, written apart from everything else here).
+const GATE = JSON.parse(readFileSync(join(import.meta.dirname, 'git-gate.json'), 'utf8')) as {
+  not_git: Says;
+  terse: Record<string, Says>;
+};
+/** More everyday sentences, by language: never git. */
+export const NOT_GIT_MORE: Says = GATE.not_git;
+/** Git said in a word or two -- "push", "مرجش کن", "апрувни" -- by action. */
+export const TERSE: Record<string, Says> = GATE.terse;

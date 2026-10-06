@@ -9,7 +9,7 @@
  */
 
 import { GATE_WEIGHTS } from '@core/box/git/gate-weights.ts';
-import { gitFeatures, type Head, headProbabilities } from '@core/box/git/model.ts';
+import { gitFacts, gitFeatures, type Head, headProbabilities } from '@core/box/git/model.ts';
 import { spansOf } from '@core/box/git/slots.ts';
 
 export interface GateWeights {
@@ -22,6 +22,15 @@ export interface GateWeights {
 /** How likely a line is something to do with git: 0..1. */
 export function gitChance(text: string, weights: GateWeights | null = GATE_WEIGHTS): number {
   if (!weights || text.trim().length < 2) return 0;
-  const f = gitFeatures(spansOf(text), weights.buckets);
+  const spans = spansOf(text);
+  // Nothing git says, nothing git looks like: not git, however short and terse it is. A model
+  // that learnt "push" and "lgtm" would otherwise take "dinn" -- half of "dinner" -- for one.
+  const facts = gitFacts(spans);
+  const said = Object.keys(facts).some((k) => /^[vo]:/.test(k));
+  const shaped =
+    spans.hashes.length + spans.shas.length + spans.urls.length > 0 ||
+    spans.paths.some((p) => /^[\w.-]+\/[\w.-]+$/.test(p));
+  if (!said && !shaped) return 0;
+  const f = gitFeatures(spans, weights.buckets);
   return headProbabilities(weights.head, f, weights.buckets).git ?? 0;
 }

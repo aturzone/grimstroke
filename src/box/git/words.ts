@@ -14,7 +14,10 @@
  */
 
 import type { GitObject, GitVerb } from '@core/box/git/actions.ts';
+import { GIT_WORDS } from '@core/box/lexicon.ts';
 import { fold } from '@core/box/text.ts';
+
+const lexiconOf = (lang: string) => GIT_WORDS.find((w) => w.lang === lang);
 
 export interface GitSpeech {
   lang: string;
@@ -50,6 +53,9 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
     lang: 'en',
     verbs: {
       create: [
+        'up for review',
+        'send it up for review',
+        'put it up for review',
         'create',
         'make',
         'new ',
@@ -68,6 +74,8 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'draft',
       ],
       list: [
+        'on my plate',
+        "with '",
         'last ',
         'latest ',
         'list',
@@ -118,6 +126,9 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'wontfix',
       ],
       reopen: [
+        'open it again',
+        'open that again',
+        'open this again',
         'bring it back',
         'bring back pull',
         'we need it after all',
@@ -130,6 +141,10 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'undo close',
       ],
       comment: [
+        "say '",
+        "say '",
+        "write '",
+        "write '",
         "write '",
         "write '",
         'write on it',
@@ -147,7 +162,20 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'note on',
         'add a comment',
       ],
-      assign: ['assign', 'give ', 'hand ', 'hand over', 'delegate', 'put on', 'take ', 'owner'],
+      assign: [
+        'should own',
+        'own ticket',
+        'owns',
+        'take over',
+        'assign',
+        'give ',
+        'hand ',
+        'hand over',
+        'delegate',
+        'put on',
+        'take ',
+        'owner',
+      ],
       unassign: ['unassign', 'take off', 'remove assignee', 'drop assignee', 'unset owner'],
       label: ['label', 'tag as', 'mark as', 'add label', 'add the label', 'categorize'],
       unlabel: [
@@ -187,7 +215,17 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'changes in',
         'what files',
       ],
-      merge: ['merge', 'land', 'squash and merge', 'squash-merge', 'rebase and merge', 'ship '],
+      merge: [
+        'accept mr',
+        'accept merge request',
+        'accept the mr',
+        'merge',
+        'land',
+        'squash and merge',
+        'squash-merge',
+        'rebase and merge',
+        'ship ',
+      ],
       approve: ['approve', 'lgtm', 'sign off', 'looks good', 'accept'],
       'request-changes': [
         'request changes',
@@ -198,6 +236,8 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'reject',
       ],
       'request-review': [
+        'ping',
+        'for a review',
         'ask for review',
         'and ask',
         'request review',
@@ -211,6 +251,9 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'reviewer',
       ],
       ready: [
+        "isn't a draft",
+        'not a draft anymore',
+        'no longer draft',
         'ready for review',
         'mark ready',
         'mark as ready',
@@ -221,6 +264,8 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
       ],
       checkout: ['check out', 'checkout', 'try locally', 'test locally', 'pull down'],
       delete: [
+        'clean up',
+        'prune',
         'delete',
         'remove',
         'drop ',
@@ -243,6 +288,9 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
       ],
       rename: ['rename', 'call it'],
       compare: [
+        'since',
+        "what's new on",
+        'new since',
         "that isn't in",
         'that is not in',
         'not in',
@@ -254,6 +302,10 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'how far',
       ],
       status: [
+        "what's changed",
+        'what changed here',
+        'anything uncommitted',
+        'changed here',
         'which files did i',
         'what did i touch',
         'what files did i',
@@ -284,11 +336,31 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'run the',
       ],
       cancel: ['cancel', 'stop', 'abort', 'kill'],
-      fork: ['fork'],
+      fork: ['own copy', 'my own copy', 'copy of it to my account', 'fork'],
       star: ['star ', 'star the', 'favorite', 'give a star', 'like the repo'],
       unstar: ['unstar', 'remove star', 'remove my star', 'take back my star'],
-      clone: ['clone', 'download the repo', 'get a copy', 'git clone'],
-      search: ['search', 'find', 'grep', 'where is', 'look for', 'which file'],
+      clone: [
+        'local copy',
+        'a copy here',
+        'get me a copy',
+        'clone',
+        'download the repo',
+        'get a copy',
+        'git clone',
+      ],
+      search: [
+        'where do we call',
+        'where do we use',
+        'where is it called',
+        'who calls',
+        'usages of',
+        'search',
+        'find',
+        'grep',
+        'where is',
+        'look for',
+        'which file',
+      ],
       read: ['mark as read', 'mark read', 'mark all read', 'clear', 'dismiss'],
       connect: [
         'log in to',
@@ -328,7 +400,13 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'add the file',
         'add file',
       ],
-      unstage: ['unstage', 'remove from staging', 'reset head'],
+      unstage: [
+        'out of the index',
+        'take everything out of the index',
+        'unstage',
+        'remove from staging',
+        'reset head',
+      ],
       commit: [
         'commit with message',
         'commit with the message',
@@ -338,7 +416,15 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'save changes as',
       ],
       amend: ['amend', 'fix the last commit', 'change the last commit', 'edit the last commit'],
-      push: ['push', 'publish the branch', 'send it up', 'upload my'],
+      push: [
+        'send my commits up',
+        'send up',
+        'ship my commits',
+        'push',
+        'publish the branch',
+        'send it up',
+        'upload my',
+      ],
       pull: ['pull', 'sync', 'get the latest', 'update from', 'bring in the latest'],
       fetch: ["but don't merge", 'without merging', 'fetch'],
       rebase: ['rebase'],
@@ -373,6 +459,8 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
       revert: ['revert', 'undo commit', 'back out'],
       blame: ['blame', 'who wrote', 'who changed', 'who touched'],
       init: [
+        'init a repository',
+        'init a repo',
         'init',
         'initialize',
         'initialise',
@@ -391,6 +479,8 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
     },
     objects: {
       issue: [
+        'tracker',
+        'backlog',
         'issue',
         'bug',
         'ticket',
@@ -444,6 +534,15 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
       notification: ['notification', 'inbox', 'mention', 'pings', 'alerts'],
       account: ['account', 'token', 'github', 'gitlab', 'gitea', 'login', 'access'],
       local: [
+        'git',
+        'reflog',
+        'bisect',
+        'submodule',
+        'lfs',
+        'wiki',
+        'github pages',
+        'webhook',
+        'index',
         'changes',
         'working tree',
         'working copy',
@@ -544,6 +643,10 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'بازش کن',
       ],
       list: [
+        'چیان',
+        'کدوما',
+        'تو اسمشونه',
+        'که دارن',
         'اخیر',
         'این اواخر',
         'لیست',
@@ -616,6 +719,10 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'یادداشت بذار',
       ],
       assign: [
+        'بده به',
+        'مسئولش',
+        'مسئول باشن',
+        'مسئول باشه',
         'بدش به',
         'بده ش به',
         'اساینش',
@@ -644,6 +751,8 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'از روی',
       ],
       label: [
+        'بچسبون',
+        'بچسبان',
         'بهش بزن',
         'روش بزن',
         'لیبل بزن',
@@ -669,6 +778,8 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'برچسب حذف',
       ],
       edit: [
+        'رنگ لیبل',
+        'رنگش',
         'عنوانشو بکن',
         'عنوانش رو بکن',
         'اسمشو بکن',
@@ -698,8 +809,20 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
       ],
       lock: ['کامنتا رو ببند', 'بحث رو ببند', 'قفل کن', 'قفلش'],
       unlock: ['دوباره بتونن کامنت', 'قفلشو بردار', 'قفلشو باز', 'قفل رو باز', 'از قفل'],
-      diff: ['دیف', 'تغییرات', 'چی عوض', 'چه فایل', 'فایلای عوض', 'چیا تغییر'],
+      diff: [
+        'دست زده',
+        'دست خورده',
+        'دیف',
+        'تغییرات',
+        'چی عوض',
+        'چه فایل',
+        'فایلای عوض',
+        'چیا تغییر',
+      ],
       merge: [
+        'بریزش',
+        'بریز تو',
+        'بریزش تو',
         'بیار تو برنچ',
         'بریز تو',
         'مرج کن تو',
@@ -734,7 +857,17 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'نگاه کنه',
         'ریویوئر',
       ],
-      ready: ['آماده ریویو', 'آماده بررسی', 'از درفت', 'از حالت پیش نویس', 'ردی کن', 'آمادش کن'],
+      ready: [
+        'از درافت',
+        'درش بیار',
+        'دیگه درفت نیست',
+        'آماده ریویو',
+        'آماده بررسی',
+        'از درفت',
+        'از حالت پیش نویس',
+        'ردی کن',
+        'آمادش کن',
+      ],
       checkout: [
         'بیارش رو لوکال',
         'رو لوکال',
@@ -758,6 +891,8 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'حذفش',
       ],
       switch: [
+        'برو روش',
+        'برو رو',
         'منو ببر رو',
         'ببر رو برنچ',
         'برو تو برنچ',
@@ -783,6 +918,9 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'اسم برنچ',
       ],
       compare: [
+        'جلوئه',
+        'عقبه',
+        'جلوتره',
         'تو اون نیست',
         'که تو',
         'مقایسه',
@@ -794,6 +932,11 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'کامپیر',
       ],
       status: [
+        'تغییر کرده',
+        'استتوس',
+        'استاتوس',
+        'کامیت نشده',
+        'نکردم هنوز',
         'وضعیت',
         'پاس شد',
         'پاس شده',
@@ -822,7 +965,7 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
       ],
       cancel: ['کنسل', 'لغو', 'متوقف کن', 'وایسون', 'استاپ'],
       fork: ['فورک'],
-      star: ['ستاره بده', 'ستاره بزن', 'استار کن', 'ستاره کن'],
+      star: ['استارش', 'ستاره بزن', 'ستاره بده', 'ستاره بزن', 'استار کن', 'ستاره کن'],
       unstar: [
         'پس بگیر',
         'ستاره ام رو',
@@ -913,6 +1056,8 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'آپلود کن',
       ],
       pull: [
+        'گیت پول',
+        'پول بگیر',
         'پول کن',
         'پولش کن',
         'آخرین تغییرات',
@@ -966,6 +1111,9 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
     objects: {
       issue: ['ایشو', 'ایشیو', 'باگ', 'تیکت', 'تسک', 'مشکل', 'مسئله', 'ورک آیتم'],
       pr: [
+        'پی آر',
+        'پی‌آر',
+        'پی آرها',
         'پول ریکوئست',
         'پولریکوئستو',
         'پی ار',
@@ -1005,6 +1153,12 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
       notification: ['نوتیف', 'اعلان', 'نوتیفیکیشن', 'منشن'],
       account: ['حساب', 'اکانت', 'گیت هاب', 'گیتهاب', 'گیت لب', 'گیتلب', 'گیتی', 'توکن'],
       local: [
+        'گیت',
+        'سابماژول',
+        'ساب ماژول',
+        'ویکی',
+        'وب هوک',
+        'ال اف اس',
         'تغییرات',
         'تغییراتم',
         'لوکال',
@@ -1066,6 +1220,7 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
     lang: 'ru',
     verbs: {
       create: [
+        'отбранч',
         'созда',
         'сдела',
         'заведи',
@@ -1105,6 +1260,9 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'готово',
       ],
       reopen: [
+        'заново',
+        'опять вылез',
+        'снова вылез',
         'открой обратно',
         'обратно открой',
         'верни обратно',
@@ -1114,8 +1272,30 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'снова открой',
         'верни',
       ],
-      comment: ['коммент', 'ответь', 'напиши в', 'напиши под', 'отпиши', 'прокоммент', 'оставь'],
-      assign: ['назнач', 'отдай', 'повесь на', 'передай', 'поручи', 'на себя'],
+      comment: [
+        'напиши туда',
+        'напиши там',
+        'черкни',
+        'коммент',
+        'ответь',
+        'напиши в',
+        'напиши под',
+        'отпиши',
+        'прокоммент',
+        'оставь',
+      ],
+      assign: [
+        'повесь',
+        'займется',
+        'займётся',
+        'пусть',
+        'назнач',
+        'отдай',
+        'повесь на',
+        'передай',
+        'поручи',
+        'на себя',
+      ],
       unassign: ['сними', 'убери с', 'сними назначение', 'отвяжи'],
       label: [
         'добавь метку',
@@ -1142,9 +1322,31 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
       milestone: ['вех', 'майлстоун', 'милстоун', 'спринт'],
       lock: ['залочь', 'залочи', 'заблокир', 'запри'],
       unlock: ['разлочь', 'разлочи', 'разблокируй', 'разблокир'],
-      diff: ['дифф', 'диф', 'дифф', 'диф', 'изменения в', 'что поменял', 'какие файлы'],
-      merge: ['смерж', 'смёрж', 'мерж', 'мёрж', 'слей', 'слить', 'влей', 'вмерж'],
-      approve: ['апрув', 'одобр', 'аппрув', 'заапрув', 'лгтм', 'прими'],
+      diff: [
+        'трогает',
+        'трогал',
+        'затрагивает',
+        'дифф',
+        'диф',
+        'дифф',
+        'диф',
+        'изменения в',
+        'что поменял',
+        'какие файлы',
+      ],
+      merge: [
+        'вливай',
+        'вливаем',
+        'смерж',
+        'смёрж',
+        'мерж',
+        'мёрж',
+        'слей',
+        'слить',
+        'влей',
+        'вмерж',
+      ],
+      approve: ['апрувни', 'апрув', 'апрув', 'одобр', 'аппрув', 'заапрув', 'лгтм', 'прими'],
       'request-changes': [
         'запроси изменения',
         'нужны правки',
@@ -1156,6 +1358,7 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
       ready: ['готов к ревью', 'из черновика', 'сними черновик', 'отметь готовым'],
       checkout: ['чекаут', 'локально', 'вытяни', 'стяни себе'],
       delete: [
+        'удаля',
         'снес',
         'снести',
         'грохн',
@@ -1178,8 +1381,19 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'встань на',
       ],
       rename: ['переименуй', 'переименовать'],
-      compare: ['сравни', 'разница между', 'насколько отстает', 'опережает', 'отстает'],
+      compare: [
+        'убежал от',
+        'отстал от',
+        'ушел от',
+        'сравни',
+        'разница между',
+        'насколько отстает',
+        'опережает',
+        'отстает',
+      ],
       status: [
+        'незакоммичен',
+        'не закоммичен',
         'статус',
         'прош',
         'зелен',
@@ -1206,8 +1420,18 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
       fork: ['форкни', 'форк'],
       star: ['звезд', 'поставь звезду', 'застарь'],
       unstar: ['убери звезду', 'сними звезду'],
-      clone: ['клонир', 'склонируй', 'клонируй'],
-      search: ['поиск', 'найди', 'ищи', 'где в коде', 'где лежит', 'грепни'],
+      clone: ['клонни', 'склонь', 'клонир', 'склонируй', 'клонируй'],
+      search: [
+        'где вызывается',
+        'где используется',
+        'кто вызывает',
+        'поиск',
+        'найди',
+        'ищи',
+        'где в коде',
+        'где лежит',
+        'грепни',
+      ],
       read: ['прочитай', 'прочти', 'прочитан', 'отметь прочитан', 'очисти'],
       connect: ['подключ', 'привяж', 'залогин', 'войди', 'токен'],
       disconnect: ['отключ', 'отвяж', 'выйди из'],
@@ -1266,6 +1490,11 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
     objects: {
       issue: ['задач', 'issue', 'ишью', 'иссью', 'баг', 'тикет', 'ошибк', 'проблем'],
       pr: [
+        'мр',
+        'мр-ы',
+        'мры',
+        'пулреквест',
+        'пулреквесты',
         'пр',
         'пул-реквест',
         'пулл-реквест',
@@ -1303,6 +1532,12 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
       notification: ['уведомлени', 'уведомлен', 'нотификац', 'упоминани'],
       account: ['аккаунт', 'учетк', 'токен', 'github', 'gitlab', 'gitea', 'гитхаб', 'гитлаб'],
       local: [
+        'гит',
+        'рефлог',
+        'бисект',
+        'сабмодул',
+        'вики',
+        'вебхук',
         'изменения',
         'локальн',
         'стеш',
@@ -1351,7 +1586,7 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'de',
         {
           create: ['erstelle', 'neues', 'neuer', 'neue', 'lege', 'melde', 'mach'],
-          list: ['zeig alle', 'liste', 'welche', 'meine', 'offene'],
+          list: ['letzten', 'zeig alle', 'liste', 'welche', 'meine', 'offene'],
           show: ['zeig', 'zeige'],
           close: ['schließ', 'schliess', 'erledigt'],
           reopen: ['wieder öffnen', 'öffne wieder', 'erneut öffnen'],
@@ -1426,6 +1661,7 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
       [
         'es',
         {
+          search: ['busca', 'buscar en el código'],
           create: ['crea', 'nueva', 'nuevo', 'abre un', 'abre una', 'reporta'],
           list: ['lista', 'cuáles', 'cuales', 'mis'],
           show: ['muestra', 'enséñame', 'ver'],
@@ -1464,6 +1700,7 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
       [
         'pt',
         {
+          clone: ['clona', 'clone o'],
           create: ['crie', 'cria', 'novo', 'nova', 'abra um', 'abre um', 'reporte'],
           list: ['liste', 'lista', 'quais', 'meus', 'minhas'],
           show: ['mostre', 'mostra', 'ver'],
@@ -1480,7 +1717,7 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
           rerun: ['rode de novo', 'reexecute', 'execute novamente'],
           commit: ['commite', 'faça commit'],
           push: ['envie', 'push', 'suba'],
-          pull: ['puxe', 'atualize', 'pull'],
+          pull: ['puxa', 'puxe', 'puxe', 'atualize', 'pull'],
         },
         {
           issue: ['issue', 'chamado', 'erro', 'bug', 'tarefa'],
@@ -1579,7 +1816,7 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
         'ar',
         {
           create: ['أنشئ', 'انشئ', 'افتح', 'جديد', 'جديدة', 'أضف', 'سجل'],
-          list: ['اعرض كل', 'قائمة', 'ما هي', 'مشاكلي', 'تذاكري'],
+          list: ['آخر', 'اعرض كل', 'قائمة', 'ما هي', 'مشاكلي', 'تذاكري'],
           show: ['اعرض', 'أرني', 'ارني'],
           close: ['أغلق', 'اغلق', 'سكر'],
           reopen: ['أعد فتح', 'اعد فتح'],
@@ -1631,7 +1868,7 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
           status: ['状态', '通过了', '失败', '挂了', '绿', '红'],
           rerun: ['重新运行', '重跑', '重试'],
           commit: ['提交'],
-          push: ['推送', 'push'],
+          push: ['推上去', '推送上去', '推送', 'push'],
           pull: ['拉取', '拉一下', '更新'],
         },
         {
@@ -1667,8 +1904,24 @@ export const GIT_SPEECH: readonly GitSpeech[] = [
     ([lang, verbs, objects, toPerson, inRepo, from, into, mine]): GitSpeech => ({
       lang,
       ...(lang === 'zh' ? { dense: true } : {}),
-      verbs,
-      objects: { ...emptyObjects(), ...objects },
+      verbs: {
+        ...verbs,
+        // How the issue reader (lexicon.ts) already hears an issue asked for, in this language.
+        create: [...(verbs.create ?? []), ...(lexiconOf(lang)?.make ?? [])],
+      },
+      objects: {
+        ...emptyObjects(),
+        ...objects,
+        // ... and what a fault sounds like in it: a bug report is said to git too.
+        issue: [
+          ...(objects.issue ?? []),
+          ...(lexiconOf(lang)?.issue ?? []),
+          ...(lexiconOf(lang)?.types.bug ?? []),
+          ...(lexiconOf(lang)?.fault ?? []),
+        ],
+        label: [...(objects.label ?? []), ...(lexiconOf(lang)?.label ?? [])],
+        repo: [...(objects.repo ?? []), ...(lexiconOf(lang)?.repo ?? [])],
+      },
       toPerson,
       inRepo,
       from,

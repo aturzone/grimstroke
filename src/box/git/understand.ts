@@ -12,7 +12,7 @@
  * Pure: no network, no disk. git/do.ts does what a plan says.
  */
 
-import type { GitAction, SlotName, Weight } from '@core/box/git/actions.ts';
+import { type GitAction, gitAction, type SlotName, type Weight } from '@core/box/git/actions.ts';
 import { type GitGuess, guessAction } from '@core/box/git/model.ts';
 import { type GitSlots, placeSaid, readSlots, saysThat } from '@core/box/git/slots.ts';
 import { GIT_WEIGHTS } from '@core/box/git/weights.ts';
@@ -60,7 +60,7 @@ export function understandGit(text: string, ctx: GitContext = {}): GitPlan {
   const lang = langOf(text);
   const near = ctx.last?.object ? { object: ctx.last.object } : undefined;
   const guess: GitGuess = guessAction(text, GIT_WEIGHTS, near);
-  const action = guess.action;
+  const action = feasible(guess, ctx);
   if (!action)
     return {
       text,
@@ -130,6 +130,34 @@ export function understandGit(text: string, ctx: GitContext = {}): GitPlan {
     others: guess.others,
     says: describe(action, slots, where, lang),
   };
+}
+
+/**
+ * The likeliest action that can be done with what was said. "Open PRs?" reads a little like
+ * showing one pull request, but no number was said and none was talked about, so it is the list:
+ * an action whose number, commit or version the sentence lacks gives way to a near rival that
+ * needs none -- never to a far one.
+ */
+function feasible(guess: GitGuess, ctx: GitContext): GitAction | null {
+  const top = guess.action;
+  if (!top) return null;
+  const s = guess.spans;
+  const has: Partial<Record<SlotName, boolean>> = {
+    number:
+      s.hashes.length > 0 ||
+      s.numbers.length > 0 ||
+      Boolean(ctx.last?.number && ctx.last.object === top.object),
+    ref: s.shas.length > 0 || s.paths.length > 0 || Boolean(ctx.last?.ref),
+    tag: s.versions.length > 0 || Boolean(ctx.last?.tag),
+  };
+  const lacks = (a: GitAction): boolean => a.needs.some((n) => has[n] === false);
+  if (!lacks(top)) return top;
+  const best = guess.confidence;
+  for (const o of guess.others) {
+    const a = gitAction(o.id);
+    if (a && !lacks(a) && o.p >= best * 0.25) return a;
+  }
+  return top;
 }
 
 function notKnown(lang: Lang): string {

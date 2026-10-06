@@ -207,14 +207,13 @@ async function onService(plan: GitPlan, env: GitEnv): Promise<Done> {
 
   const { t, r } = await target(env, plan);
   const repo = t.repo;
-  const where = `${t.host}/${repo}`;
   const last = (more: NonNullable<GitResult['last']>): GitResult['last'] => ({ repo, ...more });
 
   switch (id) {
     // -------------------------------------------------- issues
     case 'issue.list': {
       const found = await listIssues(env.live, {
-        repo: where,
+        repo,
         mine: Boolean(s.mine),
         state: s.state === 'merged' ? 'closed' : (s.state ?? null),
       });

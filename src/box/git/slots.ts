@@ -105,7 +105,7 @@ export interface Spans {
 const SPAN = '';
 
 const SHAPES: Array<[SpanKind, RegExp, string, number]> = [
-  ['url', /\b(?:https?:\/\/|git@)[^\s<>"']+/giu, 'URL', 0],
+  ['url', /\b(?:(?:https?|ssh|file):\/\/|git@)[^\s<>"']+/giu, 'URL', 0],
   [
     'quoted',
     /"([^"]+)"|“([^”]+)”|«([^»]+)»|(?<![\p{L}])'([^']{2,})'(?![\p{L}])|`([^`]+)`|„([^“]+)“/gu,

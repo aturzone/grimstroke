@@ -23,7 +23,16 @@ import {
   VERB_CLASSES,
 } from '@core/box/git/model.ts';
 import { spansOf } from '@core/box/git/slots.ts';
-import { type GitExample, gitExamples, NOT_GIT, NOT_GIT_PHRASES } from './git-data.ts';
+import {
+  expand,
+  type GitExample,
+  gitExamples,
+  NOT_GIT,
+  NOT_GIT_MORE,
+  NOT_GIT_PHRASES,
+  rng,
+  TERSE,
+} from './git-data.ts';
 import { examples as shapeExamples } from './shape-data.ts';
 
 const BUCKETS = Number(process.env.GIT_BUCKETS ?? 4096);
@@ -208,9 +217,24 @@ for (const which of ['dev', 'test'] as const) {
  */
 const shape = shapeExamples();
 const gateRows: Array<{ text: string; y: number }> = [
-  ...all.filter((_, i) => i % 3 === 0).map((e) => ({ text: e.text, y: 1 })),
+  ...all.filter((e, i) => !e.terse && i % 2 === 0).map((e) => ({ text: e.text, y: 1 })),
   ...shape.map((e) => ({ text: e.text, y: e.label === 'issue' ? 1 : 0 })),
-  ...[...Object.values(NOT_GIT).flat(), ...Object.values(NOT_GIT_PHRASES).flat()].flatMap((text) =>
+  // Git in a word or two, expanded a few times each.
+  ...Object.entries(TERSE).flatMap(([, says]) =>
+    Object.entries(says).flatMap(([lang, list]) =>
+      (list ?? []).flatMap((tpl) =>
+        Array.from({ length: 3 }, (_, i) => ({
+          text: expand(tpl, lang as never, rng(i + tpl.length)),
+          y: 1,
+        })),
+      ),
+    ),
+  ),
+  ...[
+    ...Object.values(NOT_GIT).flat(),
+    ...Object.values(NOT_GIT_PHRASES).flat(),
+    ...Object.values(NOT_GIT_MORE).flat(),
+  ].flatMap((text) =>
     // The everyday sentences are few; each is seen as often as a template's.
     Array.from({ length: 6 }, () => ({ text, y: 0 })),
   ),

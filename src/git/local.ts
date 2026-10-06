@@ -56,7 +56,13 @@ export function git(
       },
       (error, stdout, stderr) => {
         if (error) {
-          const said = (stderr || stdout || error.message).trim().split('\n').slice(-6).join('\n');
+          // git's own words, without its hints on how to silence its hints.
+          const said = (stderr || stdout || error.message)
+            .split('\n')
+            .filter((l) => l.trim() && !/^hint:/.test(l))
+            .slice(-6)
+            .join('\n')
+            .trim();
           fail(new GitFailed(typeof error.code === 'number' ? error.code : 1, said));
         } else done(stdout);
       },
