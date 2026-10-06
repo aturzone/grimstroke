@@ -41,6 +41,11 @@ Repositories:
   grimstroke issues [repo] [--mine] [--closed]
   grimstroke close|reopen <n> [repo]
   grimstroke comment <n> [repo] -m <words>
+  grimstroke git <sentence>                 anything said to git, in any of eleven languages:
+                   "close #12", "squash-merge PR 14", "push", "ایشو ۱۲ رو ببند", "запушь"
+                   it shows what it will do and asks before changing anything (--yes to
+                   skip asking, --plan only to show it); inside a working copy, local git
+                   works on that copy
 
 The workspace, served:
 

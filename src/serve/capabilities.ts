@@ -89,6 +89,10 @@ export const ENDPOINTS: Readonly<Record<string, Readonly<Record<string, string>>
     'GET /api/remote/targets':
       "every repository an issue can be opened in: each connected account's and each connected notebook's",
     'GET /api/remote/labels': "a repository's labels { host, repo }",
+    'POST /api/git/understand':
+      'what a sentence asks of git { text, last? }: the action, what it names, what is missing, and whether it waits to be confirmed -- nothing done',
+    'POST /api/git/do':
+      'do what a sentence asks of git { text, last?, confirmed? }: anything that changes something is done only with confirmed: true',
     'POST /api/remote/issue':
       "open an issue from an issue card { block | address+id, address?, images?: [{ asset, name, type }] }: labels chosen from the repository's own, pictures carried with it",
     'GET /api/remote/issues':

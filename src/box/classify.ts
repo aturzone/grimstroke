@@ -15,6 +15,7 @@
  * weights of the rules, and says so in `model`.
  */
 
+import { gitChance } from '@core/box/git/gate.ts';
 import type { ShapeIntent } from '@core/box/intents.ts';
 import { completeness } from '@core/box/parse.ts';
 import { ruleFeatures, ruleScores } from '@core/box/rules.ts';
@@ -327,6 +328,14 @@ export function classify(
   if (trimmed.length < 2)
     return { intent: NONE, readiness: 0, signals: signalsOf(''), model: 'none' };
   const { probs, model } = probabilities(trimmed, weights);
+  // The first layer has the say on the repositories' kind -- everything said to git -- and the
+  // card model shares the rest out as it would have (git/gate.ts).
+  if (weights) {
+    const git = gitChance(trimmed);
+    const rest = 1 - (probs.issue ?? 0);
+    for (const k of INTENT_KEYS)
+      probs[k] = k === 'issue' ? git : rest > 0 ? ((probs[k] ?? 0) / rest) * (1 - git) : 0;
+  }
   let value: IntentKey = 'none';
   for (const k of INTENT_KEYS) if ((probs[k] ?? 0) > (probs[value] ?? 0)) value = k;
   const readiness = value === 'none' ? 0 : Math.min(2, completeness(value, trimmed, ref) * 2);

@@ -6,7 +6,17 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["src/**", "tests/**", "tools/**", "*.json", "!dist", "!node_modules", "!.claude"]
+    "includes": [
+      "src/**",
+      "tests/**",
+      "tools/**",
+      "*.json",
+      "!dist",
+      "!node_modules",
+      "!.claude",
+      "!src/box/git/weights.ts",
+      "!src/box/git/gate-weights.ts"
+    ]
   },
   "formatter": {
     "enabled": true,

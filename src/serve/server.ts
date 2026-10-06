@@ -21,6 +21,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { extname, join } from 'node:path';
 import { api } from '@core/serve/api.ts';
 import { type Face, face, useFace } from '@core/serve/face.ts';
+import { gitApi } from '@core/serve/git.ts';
 import {
   type Ask,
   accepted,
@@ -156,6 +157,7 @@ export async function serve(options: ServeOptions = {}): Promise<Serving> {
     if (await pushApi(ask, push, live)) return;
     if (await today(ask, live)) return;
     if (await slash(ask, live)) return;
+    if (await gitApi(ask, live)) return;
     if (await issueApi(ask, live)) return;
     if (await remoteApi(ask, live)) return;
     if (await api(ask, live)) return;

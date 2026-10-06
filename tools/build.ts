@@ -27,25 +27,25 @@ async function run(): Promise<void> {
   await rm('dist', { recursive: true, force: true });
   await mkdir('dist', { recursive: true });
 
-  const targets = [
-    { entryPoints: ['src/index.ts'], outfile: 'dist/index.js' },
-    {
-      entryPoints: ['src/cli.ts'],
-      outfile: 'dist/cli.js',
-      banner: { js: '#!/usr/bin/env node' },
-    },
-  ];
+  // One build for both, split: what is loaded on demand (the git model, box/git/understand.ts)
+  // is a chunk of its own, read from disk the first time it is asked for and not before.
+  const target = {
+    entryPoints: { index: 'src/index.ts', cli: 'src/cli.ts' },
+    outdir: 'dist',
+    splitting: true,
+    chunkNames: 'chunks/[name]-[hash]',
+    // Every output may be run, so each starts as a script; Node reads the line as a comment.
+    banner: { js: '#!/usr/bin/env node' },
+  };
 
   if (watch) {
-    const contexts = await Promise.all(targets.map((t) => context({ ...shared, ...t })));
-    await Promise.all(contexts.map((c) => c.watch()));
+    const ctx = await context({ ...shared, ...target });
+    await ctx.watch();
     console.warn('watching');
     return;
   }
 
-  for (const target of targets) {
-    await build({ ...shared, ...target });
-  }
+  await build({ ...shared, ...target });
   console.warn(`built${dev ? ' (dev)' : ''}`);
 }
 

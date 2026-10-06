@@ -1,0 +1,6735 @@
+[
+  {
+    "text": "ship it",
+    "lang": "en",
+    "action": "pr.merge",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "203",
+      "repo": "storefront"
+    }
+  },
+  {
+    "text": "nah close it, not needed anymore",
+    "lang": "en",
+    "action": "pr.close",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "64"
+    }
+  },
+  {
+    "text": "what does it change in src/app.tsx",
+    "lang": "en",
+    "action": "pr.diff",
+    "slots": {
+      "path": "src/app.tsx"
+    },
+    "ctx": {
+      "object": "pr",
+      "number": "19",
+      "repo": "portal"
+    }
+  },
+  {
+    "text": "ping @hiro for a review on that",
+    "lang": "en",
+    "action": "pr.request-review",
+    "slots": {
+      "people": ["hiro"]
+    },
+    "ctx": {
+      "object": "pr",
+      "number": "311"
+    }
+  },
+  {
+    "text": "say 'thanks, merging after CI' on it",
+    "lang": "en",
+    "action": "pr.comment",
+    "slots": {
+      "body": "thanks, merging after CI"
+    },
+    "ctx": {
+      "object": "pr",
+      "number": "72"
+    }
+  },
+  {
+    "text": "open it again",
+    "lang": "en",
+    "action": "issue.reopen",
+    "slots": {},
+    "ctx": {
+      "object": "issue",
+      "number": "418",
+      "repo": "helpdesk"
+    }
+  },
+  {
+    "text": "put it in Sprint 9",
+    "lang": "en",
+    "action": "issue.milestone",
+    "slots": {
+      "milestone": "Sprint 9"
+    },
+    "ctx": {
+      "object": "issue",
+      "number": "96"
+    }
+  },
+  {
+    "text": "drop the needs-info label",
+    "lang": "en",
+    "action": "issue.unlabel",
+    "slots": {
+      "labels": ["needs-info"]
+    },
+    "ctx": {
+      "object": "issue",
+      "number": "40",
+      "repo": "sdk-python"
+    }
+  },
+  {
+    "text": "and its latest release?",
+    "lang": "en",
+    "action": "release.show",
+    "slots": {},
+    "ctx": {
+      "object": "repo",
+      "repo": "denoland/deno"
+    }
+  },
+  {
+    "text": "fork that",
+    "lang": "en",
+    "action": "repo.fork",
+    "slots": {},
+    "ctx": {
+      "object": "repo",
+      "repo": "helix-editor/helix"
+    }
+  },
+  {
+    "text": "switch to it",
+    "lang": "en",
+    "action": "branch.switch",
+    "slots": {},
+    "ctx": {
+      "object": "branch",
+      "branch": "fix/race-in-queue"
+    }
+  },
+  {
+    "text": "show me the open ones there",
+    "lang": "en",
+    "action": "issue.list",
+    "slots": {
+      "state": "open"
+    },
+    "ctx": {
+      "object": "repo",
+      "repo": "billing"
+    }
+  },
+  {
+    "text": "squash my last two commits into one",
+    "lang": "en",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "rotate the deploy key on this repo",
+    "lang": "en",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "can you push my dentist appointment back a week",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "the merge onto the highway was terrible today",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "open the pull request form for the library book",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "tag along with me to the store?",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "close my netflix subscription",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "star wars marathon this weekend, list the films in order",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "open an issue in grimstroke: login button does nothing on safari",
+    "lang": "en",
+    "action": "issue.create",
+    "slots": {
+      "repo": "grimstroke",
+      "title": "login button does nothing on safari"
+    }
+  },
+  {
+    "text": "new bug for payments-api titled Refund fires twice, label it regression",
+    "lang": "en",
+    "action": "issue.create",
+    "slots": {
+      "repo": "payments-api",
+      "title": "Refund fires twice",
+      "labels": ["regression"]
+    }
+  },
+  {
+    "text": "file a ticket: dark mode toggle forgets its state",
+    "lang": "en",
+    "action": "issue.create",
+    "slots": {
+      "title": "dark mode toggle forgets its state"
+    }
+  },
+  {
+    "text": "can u make an issue 'export to csv drops accents' and give it to @nadia",
+    "lang": "en",
+    "action": "issue.create",
+    "slots": {
+      "title": "export to csv drops accents",
+      "people": ["nadia"]
+    }
+  },
+  {
+    "text": "jot down an issue so we dont forget -> onboarding email has broken link",
+    "lang": "en",
+    "action": "issue.create",
+    "slots": {
+      "title": "onboarding email has broken link"
+    }
+  },
+  {
+    "text": "report a problem on infra-terraform: state lock never released",
+    "lang": "en",
+    "action": "issue.create",
+    "slots": {
+      "repo": "infra-terraform",
+      "title": "state lock never released"
+    }
+  },
+  {
+    "text": "what issues are open on infra-terraform?",
+    "lang": "en",
+    "action": "issue.list",
+    "slots": {
+      "repo": "infra-terraform",
+      "state": "open"
+    }
+  },
+  {
+    "text": "show me my issues",
+    "lang": "en",
+    "action": "issue.list",
+    "slots": {
+      "mine": true
+    }
+  },
+  {
+    "text": "closed issues labelled ui in dashboard",
+    "lang": "en",
+    "action": "issue.list",
+    "slots": {
+      "state": "closed",
+      "labels": ["ui"],
+      "repo": "dashboard"
+    }
+  },
+  {
+    "text": "last 5 tickets opened by kmorozov",
+    "lang": "en",
+    "action": "issue.list",
+    "slots": {
+      "count": "5",
+      "author": "kmorozov"
+    }
+  },
+  {
+    "text": "anything on my plate in the tracker?",
+    "lang": "en",
+    "action": "issue.list",
+    "slots": {
+      "mine": true
+    }
+  },
+  {
+    "text": "issues mentioning timeout",
+    "lang": "en",
+    "action": "issue.list",
+    "slots": {
+      "query": "timeout"
+    }
+  },
+  {
+    "text": "whats in the backlog for milestone Sprint 12",
+    "lang": "en",
+    "action": "issue.list",
+    "slots": {
+      "milestone": "Sprint 12"
+    }
+  },
+  {
+    "text": "show issue 412",
+    "lang": "en",
+    "action": "issue.show",
+    "slots": {
+      "number": "412"
+    }
+  },
+  {
+    "text": "pull up issue #88 in docs-site",
+    "lang": "en",
+    "action": "issue.show",
+    "slots": {
+      "number": "88",
+      "repo": "docs-site"
+    }
+  },
+  {
+    "text": "what was ticket 1337 about again",
+    "lang": "en",
+    "action": "issue.show",
+    "slots": {
+      "number": "1337"
+    }
+  },
+  {
+    "text": "close issue #17",
+    "lang": "en",
+    "action": "issue.close",
+    "slots": {
+      "number": "17"
+    }
+  },
+  {
+    "text": "close issue 230 on mobile-app with the note 'fixed in 2.4'",
+    "lang": "en",
+    "action": "issue.close",
+    "slots": {
+      "number": "230",
+      "repo": "mobile-app",
+      "body": "fixed in 2.4"
+    }
+  },
+  {
+    "text": "issue 51 is done, close it out",
+    "lang": "en",
+    "action": "issue.close",
+    "slots": {
+      "number": "51"
+    }
+  },
+  {
+    "text": "mark ticket 940 as resolved",
+    "lang": "en",
+    "action": "issue.close",
+    "slots": {
+      "number": "940"
+    }
+  },
+  {
+    "text": "reopen issue 77, the crash is back",
+    "lang": "en",
+    "action": "issue.reopen",
+    "slots": {
+      "number": "77"
+    }
+  },
+  {
+    "text": "issue #203 in auth-service needs to be opened again",
+    "lang": "en",
+    "action": "issue.reopen",
+    "slots": {
+      "number": "203",
+      "repo": "auth-service"
+    }
+  },
+  {
+    "text": "comment on issue #9: tried on v3, still broken",
+    "lang": "en",
+    "action": "issue.comment",
+    "slots": {
+      "number": "9",
+      "body": "tried on v3, still broken"
+    }
+  },
+  {
+    "text": "reply to issue 1402 saying thanks, will look monday",
+    "lang": "en",
+    "action": "issue.comment",
+    "slots": {
+      "number": "1402",
+      "body": "thanks, will look monday"
+    }
+  },
+  {
+    "text": "post \"can you attach the full log?\" on ticket 58",
+    "lang": "en",
+    "action": "issue.comment",
+    "slots": {
+      "body": "can you attach the full log?",
+      "number": "58"
+    }
+  },
+  {
+    "text": "assign issue #45 to @lena and @omar",
+    "lang": "en",
+    "action": "issue.assign",
+    "slots": {
+      "number": "45",
+      "people": ["lena", "omar"]
+    }
+  },
+  {
+    "text": "give issue 300 to jsato",
+    "lang": "en",
+    "action": "issue.assign",
+    "slots": {
+      "number": "300",
+      "people": ["jsato"]
+    }
+  },
+  {
+    "text": "@marcus should own ticket 19",
+    "lang": "en",
+    "action": "issue.assign",
+    "slots": {
+      "people": ["marcus"],
+      "number": "19"
+    }
+  },
+  {
+    "text": "take bilal off issue 61",
+    "lang": "en",
+    "action": "issue.unassign",
+    "slots": {
+      "people": ["bilal"],
+      "number": "61"
+    }
+  },
+  {
+    "text": "remove @priya as assignee on issue #8",
+    "lang": "en",
+    "action": "issue.unassign",
+    "slots": {
+      "people": ["priya"],
+      "number": "8"
+    }
+  },
+  {
+    "text": "tag issue #33 as good-first-issue",
+    "lang": "en",
+    "action": "issue.label",
+    "slots": {
+      "number": "33",
+      "labels": ["good-first-issue"]
+    }
+  },
+  {
+    "text": "add labels backend, p1 to issue 900",
+    "lang": "en",
+    "action": "issue.label",
+    "slots": {
+      "labels": ["backend", "p1"],
+      "number": "900"
+    }
+  },
+  {
+    "text": "slap a security label on ticket 7",
+    "lang": "en",
+    "action": "issue.label",
+    "slots": {
+      "labels": ["security"],
+      "number": "7"
+    }
+  },
+  {
+    "text": "drop the wontfix label from issue #12",
+    "lang": "en",
+    "action": "issue.unlabel",
+    "slots": {
+      "labels": ["wontfix"],
+      "number": "12"
+    }
+  },
+  {
+    "text": "issue 64 shouldn't be needs-triage anymore, remove that label",
+    "lang": "en",
+    "action": "issue.unlabel",
+    "slots": {
+      "number": "64",
+      "labels": ["needs-triage"]
+    }
+  },
+  {
+    "text": "rename issue 19 to 'Crash when uploading HEIC photos'",
+    "lang": "en",
+    "action": "issue.edit",
+    "slots": {
+      "number": "19",
+      "title": "Crash when uploading HEIC photos"
+    }
+  },
+  {
+    "text": "change the description of issue #250 to: steps to reproduce are in the attached log",
+    "lang": "en",
+    "action": "issue.edit",
+    "slots": {
+      "number": "250",
+      "body": "steps to reproduce are in the attached log"
+    }
+  },
+  {
+    "text": "fix the typo in the title of ticket 82, it should say Unable to sync calendar",
+    "lang": "en",
+    "action": "issue.edit",
+    "slots": {
+      "number": "82",
+      "title": "Unable to sync calendar"
+    }
+  },
+  {
+    "text": "put issue #71 in milestone Q4 launch",
+    "lang": "en",
+    "action": "issue.milestone",
+    "slots": {
+      "number": "71",
+      "milestone": "Q4 launch"
+    }
+  },
+  {
+    "text": "move issue 15 to the 2.1 milestone",
+    "lang": "en",
+    "action": "issue.milestone",
+    "slots": {
+      "number": "15",
+      "milestone": "2.1"
+    }
+  },
+  {
+    "text": "lock the conversation on issue #666, it's getting heated",
+    "lang": "en",
+    "action": "issue.lock",
+    "slots": {
+      "number": "666"
+    }
+  },
+  {
+    "text": "lock issue 1200 in community-forum",
+    "lang": "en",
+    "action": "issue.lock",
+    "slots": {
+      "number": "1200",
+      "repo": "community-forum"
+    }
+  },
+  {
+    "text": "unlock issue #666",
+    "lang": "en",
+    "action": "issue.unlock",
+    "slots": {
+      "number": "666"
+    }
+  },
+  {
+    "text": "let people comment on issue 404 again",
+    "lang": "en",
+    "action": "issue.unlock",
+    "slots": {
+      "number": "404"
+    }
+  },
+  {
+    "text": "open a PR from feature/oauth-pkce into develop",
+    "lang": "en",
+    "action": "pr.create",
+    "slots": {
+      "branch": "feature/oauth-pkce",
+      "base": "develop"
+    }
+  },
+  {
+    "text": "make a draft pull request for fix/typo-readme titled Fix README typos",
+    "lang": "en",
+    "action": "pr.create",
+    "slots": {
+      "draft": true,
+      "branch": "fix/typo-readme",
+      "title": "Fix README typos"
+    }
+  },
+  {
+    "text": "raise an MR for my branch hotfix-cart-total",
+    "lang": "en",
+    "action": "pr.create",
+    "slots": {
+      "branch": "hotfix-cart-total"
+    }
+  },
+  {
+    "text": "send chore/bump-eslint up for review against main",
+    "lang": "en",
+    "action": "pr.create",
+    "slots": {
+      "branch": "chore/bump-eslint",
+      "base": "main"
+    }
+  },
+  {
+    "text": "PR this branch pls",
+    "lang": "en",
+    "action": "pr.create",
+    "slots": {},
+    "ctx": {
+      "object": "branch",
+      "branch": "feat/avatars"
+    }
+  },
+  {
+    "text": "open PRs?",
+    "lang": "en",
+    "action": "pr.list",
+    "slots": {
+      "state": "open"
+    }
+  },
+  {
+    "text": "which merge requests did dmitry open on billing",
+    "lang": "en",
+    "action": "pr.list",
+    "slots": {
+      "author": "dmitry",
+      "repo": "billing"
+    }
+  },
+  {
+    "text": "my pull requests",
+    "lang": "en",
+    "action": "pr.list",
+    "slots": {
+      "mine": true
+    }
+  },
+  {
+    "text": "merged PRs in the last batch, show 20",
+    "lang": "en",
+    "action": "pr.list",
+    "slots": {
+      "state": "merged",
+      "count": "20"
+    }
+  },
+  {
+    "text": "any PRs waiting with the label needs-review?",
+    "lang": "en",
+    "action": "pr.list",
+    "slots": {
+      "labels": ["needs-review"]
+    }
+  },
+  {
+    "text": "show PR 58",
+    "lang": "en",
+    "action": "pr.show",
+    "slots": {
+      "number": "58"
+    }
+  },
+  {
+    "text": "what's pull request #1203 on kernel-patches about",
+    "lang": "en",
+    "action": "pr.show",
+    "slots": {
+      "number": "1203",
+      "repo": "kernel-patches"
+    }
+  },
+  {
+    "text": "details for MR 6",
+    "lang": "en",
+    "action": "pr.show",
+    "slots": {
+      "number": "6"
+    }
+  },
+  {
+    "text": "what files does PR 22 touch",
+    "lang": "en",
+    "action": "pr.diff",
+    "slots": {
+      "number": "22"
+    }
+  },
+  {
+    "text": "diff of merge request 45",
+    "lang": "en",
+    "action": "pr.diff",
+    "slots": {
+      "number": "45"
+    }
+  },
+  {
+    "text": "show the changes PR 31 makes to src/api/router.ts",
+    "lang": "en",
+    "action": "pr.diff",
+    "slots": {
+      "number": "31",
+      "path": "src/api/router.ts"
+    }
+  },
+  {
+    "text": "close PR 12 without merging",
+    "lang": "en",
+    "action": "pr.close",
+    "slots": {
+      "number": "12"
+    }
+  },
+  {
+    "text": "kill pull request #90, we went another way",
+    "lang": "en",
+    "action": "pr.close",
+    "slots": {
+      "number": "90"
+    }
+  },
+  {
+    "text": "decline MR 214 in mobile-app",
+    "lang": "en",
+    "action": "pr.close",
+    "slots": {
+      "number": "214",
+      "repo": "mobile-app"
+    }
+  },
+  {
+    "text": "reopen pull request 44",
+    "lang": "en",
+    "action": "pr.reopen",
+    "slots": {
+      "number": "44"
+    }
+  },
+  {
+    "text": "bring PR #7 back to life",
+    "lang": "en",
+    "action": "pr.reopen",
+    "slots": {
+      "number": "7"
+    }
+  },
+  {
+    "text": "comment on PR 18: please add a test for the empty case",
+    "lang": "en",
+    "action": "pr.comment",
+    "slots": {
+      "number": "18",
+      "body": "please add a test for the empty case"
+    }
+  },
+  {
+    "text": "leave a note on pull request 230 saying will rebase tonight",
+    "lang": "en",
+    "action": "pr.comment",
+    "slots": {
+      "number": "230",
+      "body": "will rebase tonight"
+    }
+  },
+  {
+    "text": "write 'nice, but check the n+1 query' under MR 9",
+    "lang": "en",
+    "action": "pr.comment",
+    "slots": {
+      "body": "nice, but check the n+1 query",
+      "number": "9"
+    }
+  },
+  {
+    "text": "merge PR 41",
+    "lang": "en",
+    "action": "pr.merge",
+    "slots": {
+      "number": "41"
+    }
+  },
+  {
+    "text": "squash and merge pull request #19",
+    "lang": "en",
+    "action": "pr.merge",
+    "slots": {
+      "method": "squash",
+      "number": "19"
+    }
+  },
+  {
+    "text": "land PR 300 with a rebase",
+    "lang": "en",
+    "action": "pr.merge",
+    "slots": {
+      "number": "300",
+      "method": "rebase"
+    }
+  },
+  {
+    "text": "merge it",
+    "lang": "en",
+    "action": "pr.merge",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "14",
+      "repo": "web"
+    }
+  },
+  {
+    "text": "go ahead and accept MR 52 on checkout-svc",
+    "lang": "en",
+    "action": "pr.merge",
+    "slots": {
+      "number": "52",
+      "repo": "checkout-svc"
+    }
+  },
+  {
+    "text": "approve PR 55",
+    "lang": "en",
+    "action": "pr.approve",
+    "slots": {
+      "number": "55"
+    }
+  },
+  {
+    "text": "lgtm on pull request #61, approve it",
+    "lang": "en",
+    "action": "pr.approve",
+    "slots": {
+      "number": "61"
+    }
+  },
+  {
+    "text": "approve MR 12 with comment 'nice cleanup'",
+    "lang": "en",
+    "action": "pr.approve",
+    "slots": {
+      "number": "12",
+      "body": "nice cleanup"
+    }
+  },
+  {
+    "text": "looks good, approve",
+    "lang": "en",
+    "action": "pr.approve",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "9"
+    }
+  },
+  {
+    "text": "request changes on PR 23: the migration isn't reversible",
+    "lang": "en",
+    "action": "pr.request-changes",
+    "slots": {
+      "number": "23",
+      "body": "the migration isn't reversible"
+    }
+  },
+  {
+    "text": "block pull request #88 - needs tests before it goes in",
+    "lang": "en",
+    "action": "pr.request-changes",
+    "slots": {
+      "number": "88",
+      "body": "needs tests before it goes in"
+    }
+  },
+  {
+    "text": "ask @fatima to review PR 70",
+    "lang": "en",
+    "action": "pr.request-review",
+    "slots": {
+      "people": ["fatima"],
+      "number": "70"
+    }
+  },
+  {
+    "text": "get sven and arjun to look at pull request 312",
+    "lang": "en",
+    "action": "pr.request-review",
+    "slots": {
+      "people": ["sven", "arjun"],
+      "number": "312"
+    }
+  },
+  {
+    "text": "request a review from @chen-wei",
+    "lang": "en",
+    "action": "pr.request-review",
+    "slots": {
+      "people": ["chen-wei"]
+    },
+    "ctx": {
+      "object": "pr",
+      "number": "77",
+      "repo": "gateway"
+    }
+  },
+  {
+    "text": "assign PR 66 to @kevin",
+    "lang": "en",
+    "action": "pr.assign",
+    "slots": {
+      "number": "66",
+      "people": ["kevin"]
+    }
+  },
+  {
+    "text": "make yuki the assignee of pull request 5",
+    "lang": "en",
+    "action": "pr.assign",
+    "slots": {
+      "people": ["yuki"],
+      "number": "5"
+    }
+  },
+  {
+    "text": "label PR 29 as needs-docs",
+    "lang": "en",
+    "action": "pr.label",
+    "slots": {
+      "number": "29",
+      "labels": ["needs-docs"]
+    }
+  },
+  {
+    "text": "add the 'breaking change' label to pull request 140",
+    "lang": "en",
+    "action": "pr.label",
+    "slots": {
+      "labels": ["breaking change"],
+      "number": "140"
+    }
+  },
+  {
+    "text": "retitle PR 33 to Add retry to S3 uploads",
+    "lang": "en",
+    "action": "pr.edit",
+    "slots": {
+      "number": "33",
+      "title": "Add retry to S3 uploads"
+    }
+  },
+  {
+    "text": "change the base of pull request #47 to release/2.0",
+    "lang": "en",
+    "action": "pr.edit",
+    "slots": {
+      "number": "47",
+      "base": "release/2.0"
+    }
+  },
+  {
+    "text": "update the MR 8 description: closes the flaky timer bug",
+    "lang": "en",
+    "action": "pr.edit",
+    "slots": {
+      "number": "8",
+      "body": "closes the flaky timer bug"
+    }
+  },
+  {
+    "text": "mark PR 81 ready for review",
+    "lang": "en",
+    "action": "pr.ready",
+    "slots": {
+      "number": "81"
+    }
+  },
+  {
+    "text": "pull request #102 isn't a draft anymore",
+    "lang": "en",
+    "action": "pr.ready",
+    "slots": {
+      "number": "102"
+    }
+  },
+  {
+    "text": "check out PR 39 locally",
+    "lang": "en",
+    "action": "pr.checkout",
+    "slots": {
+      "number": "39"
+    }
+  },
+  {
+    "text": "grab pull request 1500 so I can test it on my machine",
+    "lang": "en",
+    "action": "pr.checkout",
+    "slots": {
+      "number": "1500"
+    }
+  },
+  {
+    "text": "list branches",
+    "lang": "en",
+    "action": "branch.list",
+    "slots": {}
+  },
+  {
+    "text": "what branches are there on marketing-site",
+    "lang": "en",
+    "action": "branch.list",
+    "slots": {
+      "repo": "marketing-site"
+    }
+  },
+  {
+    "text": "branches with 'release' in the name",
+    "lang": "en",
+    "action": "branch.list",
+    "slots": {
+      "query": "release"
+    }
+  },
+  {
+    "text": "create branch feature/dark-mode",
+    "lang": "en",
+    "action": "branch.create",
+    "slots": {
+      "branch": "feature/dark-mode"
+    }
+  },
+  {
+    "text": "new branch hotfix/login-loop off main",
+    "lang": "en",
+    "action": "branch.create",
+    "slots": {
+      "branch": "hotfix/login-loop",
+      "ref": "main"
+    }
+  },
+  {
+    "text": "branch out exp-cache from v2.3.1",
+    "lang": "en",
+    "action": "branch.create",
+    "slots": {
+      "branch": "exp-cache",
+      "ref": "v2.3.1"
+    }
+  },
+  {
+    "text": "start a fresh branch called spike/grpc",
+    "lang": "en",
+    "action": "branch.create",
+    "slots": {
+      "branch": "spike/grpc"
+    }
+  },
+  {
+    "text": "delete branch old-experiment",
+    "lang": "en",
+    "action": "branch.delete",
+    "slots": {
+      "branch": "old-experiment"
+    }
+  },
+  {
+    "text": "nuke the stale-ui branch, force it",
+    "lang": "en",
+    "action": "branch.delete",
+    "slots": {
+      "branch": "stale-ui",
+      "force": true
+    }
+  },
+  {
+    "text": "clean up: remove branch renovate/lodash-4.x",
+    "lang": "en",
+    "action": "branch.delete",
+    "slots": {
+      "branch": "renovate/lodash-4.x"
+    }
+  },
+  {
+    "text": "switch to develop",
+    "lang": "en",
+    "action": "branch.switch",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "go to the release/1.4 branch",
+    "lang": "en",
+    "action": "branch.switch",
+    "slots": {
+      "branch": "release/1.4"
+    }
+  },
+  {
+    "text": "hop over to feat/search pls",
+    "lang": "en",
+    "action": "branch.switch",
+    "slots": {
+      "branch": "feat/search"
+    }
+  },
+  {
+    "text": "rename branch master to main",
+    "lang": "en",
+    "action": "branch.rename",
+    "slots": {
+      "branch": "master",
+      "title": "main"
+    }
+  },
+  {
+    "text": "call the branch wip-123 fix-upload-timeout instead",
+    "lang": "en",
+    "action": "branch.rename",
+    "slots": {
+      "branch": "wip-123",
+      "title": "fix-upload-timeout"
+    }
+  },
+  {
+    "text": "recent commits",
+    "lang": "en",
+    "action": "commit.list",
+    "slots": {}
+  },
+  {
+    "text": "last 10 commits on develop",
+    "lang": "en",
+    "action": "commit.list",
+    "slots": {
+      "count": "10",
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "what did alexk commit lately",
+    "lang": "en",
+    "action": "commit.list",
+    "slots": {
+      "author": "alexk"
+    }
+  },
+  {
+    "text": "history of src/db/pool.go",
+    "lang": "en",
+    "action": "commit.list",
+    "slots": {
+      "path": "src/db/pool.go"
+    }
+  },
+  {
+    "text": "git log for analytics-etl",
+    "lang": "en",
+    "action": "commit.list",
+    "slots": {
+      "repo": "analytics-etl"
+    }
+  },
+  {
+    "text": "show commit a1b2c3d",
+    "lang": "en",
+    "action": "commit.show",
+    "slots": {
+      "ref": "a1b2c3d"
+    }
+  },
+  {
+    "text": "what was in HEAD~2",
+    "lang": "en",
+    "action": "commit.show",
+    "slots": {
+      "ref": "HEAD~2"
+    }
+  },
+  {
+    "text": "compare feature/x against main",
+    "lang": "en",
+    "action": "commit.compare",
+    "slots": {
+      "ref": "feature/x",
+      "base": "main"
+    }
+  },
+  {
+    "text": "how far is develop ahead of main",
+    "lang": "en",
+    "action": "commit.compare",
+    "slots": {
+      "ref": "develop",
+      "base": "main"
+    }
+  },
+  {
+    "text": "what's new on release-2.1 since release-2.0",
+    "lang": "en",
+    "action": "commit.compare",
+    "slots": {
+      "ref": "release-2.1",
+      "base": "release-2.0"
+    }
+  },
+  {
+    "text": "did CI pass?",
+    "lang": "en",
+    "action": "ci.status",
+    "slots": {}
+  },
+  {
+    "text": "is the build green on main",
+    "lang": "en",
+    "action": "ci.status",
+    "slots": {
+      "branch": "main"
+    }
+  },
+  {
+    "text": "pipeline status for MR 77",
+    "lang": "en",
+    "action": "ci.status",
+    "slots": {
+      "number": "77"
+    }
+  },
+  {
+    "text": "checks on commit 9f8e7d6?",
+    "lang": "en",
+    "action": "ci.status",
+    "slots": {
+      "ref": "9f8e7d6"
+    }
+  },
+  {
+    "text": "are the tests red?",
+    "lang": "en",
+    "action": "ci.status",
+    "slots": {}
+  },
+  {
+    "text": "list recent workflow runs",
+    "lang": "en",
+    "action": "ci.list",
+    "slots": {}
+  },
+  {
+    "text": "last 5 pipelines on develop",
+    "lang": "en",
+    "action": "ci.list",
+    "slots": {
+      "count": "5",
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "show CI runs for api-gateway",
+    "lang": "en",
+    "action": "ci.list",
+    "slots": {
+      "repo": "api-gateway"
+    }
+  },
+  {
+    "text": "rerun the failed jobs",
+    "lang": "en",
+    "action": "ci.rerun",
+    "slots": {}
+  },
+  {
+    "text": "restart the pipeline on feature/ci-cache",
+    "lang": "en",
+    "action": "ci.rerun",
+    "slots": {
+      "branch": "feature/ci-cache"
+    }
+  },
+  {
+    "text": "kick CI again for PR 88",
+    "lang": "en",
+    "action": "ci.rerun",
+    "slots": {
+      "number": "88"
+    }
+  },
+  {
+    "text": "retry its checks",
+    "lang": "en",
+    "action": "ci.rerun",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "88"
+    }
+  },
+  {
+    "text": "cancel the running build",
+    "lang": "en",
+    "action": "ci.cancel",
+    "slots": {}
+  },
+  {
+    "text": "stop the pipeline on main, it's burning minutes",
+    "lang": "en",
+    "action": "ci.cancel",
+    "slots": {
+      "branch": "main"
+    }
+  },
+  {
+    "text": "list releases",
+    "lang": "en",
+    "action": "release.list",
+    "slots": {}
+  },
+  {
+    "text": "what releases does fastlane-tools have",
+    "lang": "en",
+    "action": "release.list",
+    "slots": {
+      "repo": "fastlane-tools"
+    }
+  },
+  {
+    "text": "show release v2.0.0",
+    "lang": "en",
+    "action": "release.show",
+    "slots": {
+      "tag": "v2.0.0"
+    }
+  },
+  {
+    "text": "what's in the latest release",
+    "lang": "en",
+    "action": "release.show",
+    "slots": {}
+  },
+  {
+    "text": "cut a release v1.4.0",
+    "lang": "en",
+    "action": "release.create",
+    "slots": {
+      "tag": "v1.4.0"
+    }
+  },
+  {
+    "text": "publish release v3.0.0-rc1 as draft titled Hydrogen",
+    "lang": "en",
+    "action": "release.create",
+    "slots": {
+      "tag": "v3.0.0-rc1",
+      "draft": true,
+      "title": "Hydrogen"
+    }
+  },
+  {
+    "text": "make a release for v0.9.2 from commit 7c1e9a0",
+    "lang": "en",
+    "action": "release.create",
+    "slots": {
+      "tag": "v0.9.2",
+      "ref": "7c1e9a0"
+    }
+  },
+  {
+    "text": "delete the v1.0.0-beta release",
+    "lang": "en",
+    "action": "release.delete",
+    "slots": {
+      "tag": "v1.0.0-beta"
+    }
+  },
+  {
+    "text": "remove release v2.2.2 from cli-tools",
+    "lang": "en",
+    "action": "release.delete",
+    "slots": {
+      "tag": "v2.2.2",
+      "repo": "cli-tools"
+    }
+  },
+  {
+    "text": "delete that release",
+    "lang": "en",
+    "action": "release.delete",
+    "slots": {},
+    "ctx": {
+      "object": "release",
+      "tag": "v2.0.0"
+    }
+  },
+  {
+    "text": "list tags",
+    "lang": "en",
+    "action": "tag.list",
+    "slots": {}
+  },
+  {
+    "text": "what tags exist in proto-schemas",
+    "lang": "en",
+    "action": "tag.list",
+    "slots": {
+      "repo": "proto-schemas"
+    }
+  },
+  {
+    "text": "tag the current commit as v1.2.3",
+    "lang": "en",
+    "action": "tag.create",
+    "slots": {
+      "tag": "v1.2.3"
+    }
+  },
+  {
+    "text": "create tag v0.5.0 at 3fa85f6",
+    "lang": "en",
+    "action": "tag.create",
+    "slots": {
+      "tag": "v0.5.0",
+      "ref": "3fa85f6"
+    }
+  },
+  {
+    "text": "delete tag v1.2.3-bad",
+    "lang": "en",
+    "action": "tag.delete",
+    "slots": {
+      "tag": "v1.2.3-bad"
+    }
+  },
+  {
+    "text": "remove the git tag nightly-0412",
+    "lang": "en",
+    "action": "tag.delete",
+    "slots": {
+      "tag": "nightly-0412"
+    }
+  },
+  {
+    "text": "what labels do we have",
+    "lang": "en",
+    "action": "label.list",
+    "slots": {}
+  },
+  {
+    "text": "list labels in design-system",
+    "lang": "en",
+    "action": "label.list",
+    "slots": {
+      "repo": "design-system"
+    }
+  },
+  {
+    "text": "create a label called flaky-test, colour #ff8800",
+    "lang": "en",
+    "action": "label.create",
+    "slots": {
+      "labels": ["flaky-test"],
+      "colour": "#ff8800"
+    }
+  },
+  {
+    "text": "new label 'needs repro' in red",
+    "lang": "en",
+    "action": "label.create",
+    "slots": {
+      "labels": ["needs repro"],
+      "colour": "red"
+    }
+  },
+  {
+    "text": "add a perf label to the repo",
+    "lang": "en",
+    "action": "label.create",
+    "slots": {
+      "labels": ["perf"]
+    }
+  },
+  {
+    "text": "delete the label duplicate",
+    "lang": "en",
+    "action": "label.delete",
+    "slots": {
+      "labels": ["duplicate"]
+    }
+  },
+  {
+    "text": "get rid of label 'old-ui' entirely",
+    "lang": "en",
+    "action": "label.delete",
+    "slots": {
+      "labels": ["old-ui"]
+    }
+  },
+  {
+    "text": "rename label bug to type: bug",
+    "lang": "en",
+    "action": "label.edit",
+    "slots": {
+      "labels": ["bug"],
+      "title": "type: bug"
+    }
+  },
+  {
+    "text": "make the enhancement label green",
+    "lang": "en",
+    "action": "label.edit",
+    "slots": {
+      "labels": ["enhancement"],
+      "colour": "green"
+    }
+  },
+  {
+    "text": "show milestones",
+    "lang": "en",
+    "action": "milestone.list",
+    "slots": {}
+  },
+  {
+    "text": "list closed milestones on roadmap",
+    "lang": "en",
+    "action": "milestone.list",
+    "slots": {
+      "state": "closed",
+      "repo": "roadmap"
+    }
+  },
+  {
+    "text": "create milestone Sprint 42",
+    "lang": "en",
+    "action": "milestone.create",
+    "slots": {
+      "milestone": "Sprint 42"
+    }
+  },
+  {
+    "text": "new milestone v3.0 GA for the mobile repo",
+    "lang": "en",
+    "action": "milestone.create",
+    "slots": {
+      "milestone": "v3.0 GA",
+      "repo": "mobile"
+    }
+  },
+  {
+    "text": "close the Sprint 41 milestone",
+    "lang": "en",
+    "action": "milestone.close",
+    "slots": {
+      "milestone": "Sprint 41"
+    }
+  },
+  {
+    "text": "milestone 'Beta 2' is done, close it",
+    "lang": "en",
+    "action": "milestone.close",
+    "slots": {
+      "milestone": "Beta 2"
+    }
+  },
+  {
+    "text": "list my repos",
+    "lang": "en",
+    "action": "repo.list",
+    "slots": {}
+  },
+  {
+    "text": "what repositories do I have on gitlab",
+    "lang": "en",
+    "action": "repo.list",
+    "slots": {
+      "provider": "gitlab"
+    }
+  },
+  {
+    "text": "repos with 'bot' in the name",
+    "lang": "en",
+    "action": "repo.list",
+    "slots": {
+      "query": "bot"
+    }
+  },
+  {
+    "text": "tell me about the grimstroke repo",
+    "lang": "en",
+    "action": "repo.show",
+    "slots": {
+      "repo": "grimstroke"
+    }
+  },
+  {
+    "text": "info on aturzone/dotfiles",
+    "lang": "en",
+    "action": "repo.show",
+    "slots": {
+      "repo": "aturzone/dotfiles"
+    }
+  },
+  {
+    "text": "create a private repo called scratch-notes",
+    "lang": "en",
+    "action": "repo.create",
+    "slots": {
+      "private": true,
+      "repo": "scratch-notes"
+    }
+  },
+  {
+    "text": "make a new repository recipe-app on gitea",
+    "lang": "en",
+    "action": "repo.create",
+    "slots": {
+      "repo": "recipe-app",
+      "provider": "gitea"
+    }
+  },
+  {
+    "text": "fork torvalds/linux",
+    "lang": "en",
+    "action": "repo.fork",
+    "slots": {
+      "repo": "torvalds/linux"
+    }
+  },
+  {
+    "text": "make my own copy of sindresorhus/awesome",
+    "lang": "en",
+    "action": "repo.fork",
+    "slots": {
+      "repo": "sindresorhus/awesome"
+    }
+  },
+  {
+    "text": "star rust-lang/rust",
+    "lang": "en",
+    "action": "repo.star",
+    "slots": {
+      "repo": "rust-lang/rust"
+    }
+  },
+  {
+    "text": "give neovim/neovim a star",
+    "lang": "en",
+    "action": "repo.star",
+    "slots": {
+      "repo": "neovim/neovim"
+    }
+  },
+  {
+    "text": "star it",
+    "lang": "en",
+    "action": "repo.star",
+    "slots": {},
+    "ctx": {
+      "object": "repo",
+      "repo": "aturzone/grimstroke"
+    }
+  },
+  {
+    "text": "unstar facebook/react",
+    "lang": "en",
+    "action": "repo.unstar",
+    "slots": {
+      "repo": "facebook/react"
+    }
+  },
+  {
+    "text": "remove my star from some-org/legacy-lib",
+    "lang": "en",
+    "action": "repo.unstar",
+    "slots": {
+      "repo": "some-org/legacy-lib"
+    }
+  },
+  {
+    "text": "delete the repo test-sandbox",
+    "lang": "en",
+    "action": "repo.delete",
+    "slots": {
+      "repo": "test-sandbox"
+    }
+  },
+  {
+    "text": "permanently remove repository old-portfolio",
+    "lang": "en",
+    "action": "repo.delete",
+    "slots": {
+      "repo": "old-portfolio"
+    }
+  },
+  {
+    "text": "clone aturzone/grimstroke",
+    "lang": "en",
+    "action": "repo.clone",
+    "slots": {
+      "repo": "aturzone/grimstroke"
+    }
+  },
+  {
+    "text": "clone kubernetes/minikube into ~/work/minikube",
+    "lang": "en",
+    "action": "repo.clone",
+    "slots": {
+      "repo": "kubernetes/minikube",
+      "path": "~/work/minikube"
+    }
+  },
+  {
+    "text": "get me a local copy of infra, branch staging",
+    "lang": "en",
+    "action": "repo.clone",
+    "slots": {
+      "repo": "infra",
+      "branch": "staging"
+    }
+  },
+  {
+    "text": "show me README.md",
+    "lang": "en",
+    "action": "file.show",
+    "slots": {
+      "path": "README.md"
+    }
+  },
+  {
+    "text": "print docker-compose.yml as it was at a3f9c21",
+    "lang": "en",
+    "action": "file.show",
+    "slots": {
+      "path": "docker-compose.yml",
+      "ref": "a3f9c21"
+    }
+  },
+  {
+    "text": "blame src/main.rs",
+    "lang": "en",
+    "action": "file.blame",
+    "slots": {
+      "path": "src/main.rs"
+    }
+  },
+  {
+    "text": "who wrote each line of lib/auth/session.py",
+    "lang": "en",
+    "action": "file.blame",
+    "slots": {
+      "path": "lib/auth/session.py"
+    }
+  },
+  {
+    "text": "search the code for parseConfig",
+    "lang": "en",
+    "action": "code.search",
+    "slots": {
+      "query": "parseConfig"
+    }
+  },
+  {
+    "text": "where do we call getUserById in api-server",
+    "lang": "en",
+    "action": "code.search",
+    "slots": {
+      "query": "getUserById",
+      "repo": "api-server"
+    }
+  },
+  {
+    "text": "grep the codebase for TODO(perf)",
+    "lang": "en",
+    "action": "code.search",
+    "slots": {
+      "query": "TODO(perf)"
+    }
+  },
+  {
+    "text": "who has access to this repo",
+    "lang": "en",
+    "action": "member.list",
+    "slots": {}
+  },
+  {
+    "text": "list collaborators on payments",
+    "lang": "en",
+    "action": "member.list",
+    "slots": {
+      "repo": "payments"
+    }
+  },
+  {
+    "text": "any notifications?",
+    "lang": "en",
+    "action": "notification.list",
+    "slots": {}
+  },
+  {
+    "text": "show my github notifications",
+    "lang": "en",
+    "action": "notification.list",
+    "slots": {
+      "provider": "github"
+    }
+  },
+  {
+    "text": "mark all notifications as read",
+    "lang": "en",
+    "action": "notification.read",
+    "slots": {}
+  },
+  {
+    "text": "clear my gitlab inbox, mark everything seen",
+    "lang": "en",
+    "action": "notification.read",
+    "slots": {
+      "provider": "gitlab"
+    }
+  },
+  {
+    "text": "connect my github account",
+    "lang": "en",
+    "action": "account.connect",
+    "slots": {
+      "provider": "github"
+    }
+  },
+  {
+    "text": "log in to gitea at git.example.org",
+    "lang": "en",
+    "action": "account.connect",
+    "slots": {
+      "provider": "gitea",
+      "host": "git.example.org"
+    }
+  },
+  {
+    "text": "hook up my self-hosted gitlab at gitlab.acme.io",
+    "lang": "en",
+    "action": "account.connect",
+    "slots": {
+      "provider": "gitlab",
+      "host": "gitlab.acme.io"
+    }
+  },
+  {
+    "text": "which accounts are connected",
+    "lang": "en",
+    "action": "account.list",
+    "slots": {}
+  },
+  {
+    "text": "list linked git accounts",
+    "lang": "en",
+    "action": "account.list",
+    "slots": {}
+  },
+  {
+    "text": "disconnect git.example.org",
+    "lang": "en",
+    "action": "account.disconnect",
+    "slots": {
+      "host": "git.example.org"
+    }
+  },
+  {
+    "text": "log out of gitlab.acme.io",
+    "lang": "en",
+    "action": "account.disconnect",
+    "slots": {
+      "host": "gitlab.acme.io"
+    }
+  },
+  {
+    "text": "who am I logged in as",
+    "lang": "en",
+    "action": "account.whoami",
+    "slots": {}
+  },
+  {
+    "text": "which github user am i",
+    "lang": "en",
+    "action": "account.whoami",
+    "slots": {
+      "provider": "github"
+    }
+  },
+  {
+    "text": "git status",
+    "lang": "en",
+    "action": "local.status",
+    "slots": {}
+  },
+  {
+    "text": "what's changed here?",
+    "lang": "en",
+    "action": "local.status",
+    "slots": {}
+  },
+  {
+    "text": "anything uncommitted?",
+    "lang": "en",
+    "action": "local.status",
+    "slots": {}
+  },
+  {
+    "text": "show me the diff",
+    "lang": "en",
+    "action": "local.diff",
+    "slots": {}
+  },
+  {
+    "text": "what did I change in config/app.yml",
+    "lang": "en",
+    "action": "local.diff",
+    "slots": {
+      "path": "config/app.yml"
+    }
+  },
+  {
+    "text": "diff against HEAD~1",
+    "lang": "en",
+    "action": "local.diff",
+    "slots": {
+      "ref": "HEAD~1"
+    }
+  },
+  {
+    "text": "stage everything",
+    "lang": "en",
+    "action": "local.stage",
+    "slots": {}
+  },
+  {
+    "text": "git add src/utils.ts",
+    "lang": "en",
+    "action": "local.stage",
+    "slots": {
+      "path": "src/utils.ts"
+    }
+  },
+  {
+    "text": "unstage package-lock.json",
+    "lang": "en",
+    "action": "local.unstage",
+    "slots": {
+      "path": "package-lock.json"
+    }
+  },
+  {
+    "text": "take everything out of the index",
+    "lang": "en",
+    "action": "local.unstage",
+    "slots": {}
+  },
+  {
+    "text": "commit with message 'fix flaky date test'",
+    "lang": "en",
+    "action": "local.commit",
+    "slots": {
+      "body": "fix flaky date test"
+    }
+  },
+  {
+    "text": "commit: bump deps",
+    "lang": "en",
+    "action": "local.commit",
+    "slots": {
+      "body": "bump deps"
+    }
+  },
+  {
+    "text": "commit just src/cli.ts with 'cli: handle --help'",
+    "lang": "en",
+    "action": "local.commit",
+    "slots": {
+      "path": "src/cli.ts",
+      "body": "cli: handle --help"
+    }
+  },
+  {
+    "text": "save my work as a commit, message is wip on parser",
+    "lang": "en",
+    "action": "local.commit",
+    "slots": {
+      "body": "wip on parser"
+    }
+  },
+  {
+    "text": "amend the last commit",
+    "lang": "en",
+    "action": "local.amend",
+    "slots": {}
+  },
+  {
+    "text": "fix the last commit message to 'docs: update install steps'",
+    "lang": "en",
+    "action": "local.amend",
+    "slots": {
+      "body": "docs: update install steps"
+    }
+  },
+  {
+    "text": "push",
+    "lang": "en",
+    "action": "local.push",
+    "slots": {}
+  },
+  {
+    "text": "push feature/payments to origin",
+    "lang": "en",
+    "action": "local.push",
+    "slots": {
+      "branch": "feature/payments"
+    }
+  },
+  {
+    "text": "force push this branch",
+    "lang": "en",
+    "action": "local.push",
+    "slots": {
+      "force": true
+    }
+  },
+  {
+    "text": "send my commits up",
+    "lang": "en",
+    "action": "local.push",
+    "slots": {}
+  },
+  {
+    "text": "pull",
+    "lang": "en",
+    "action": "local.pull",
+    "slots": {}
+  },
+  {
+    "text": "pull latest from develop",
+    "lang": "en",
+    "action": "local.pull",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "sync with remote, grab what others pushed",
+    "lang": "en",
+    "action": "local.pull",
+    "slots": {}
+  },
+  {
+    "text": "fetch",
+    "lang": "en",
+    "action": "local.fetch",
+    "slots": {}
+  },
+  {
+    "text": "git fetch everything from the remotes",
+    "lang": "en",
+    "action": "local.fetch",
+    "slots": {}
+  },
+  {
+    "text": "merge develop into this branch",
+    "lang": "en",
+    "action": "local.merge",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "merge feature/tags into main",
+    "lang": "en",
+    "action": "local.merge",
+    "slots": {
+      "branch": "feature/tags",
+      "base": "main"
+    }
+  },
+  {
+    "text": "rebase onto main",
+    "lang": "en",
+    "action": "local.rebase",
+    "slots": {
+      "branch": "main"
+    }
+  },
+  {
+    "text": "rebase my branch on top of origin/develop",
+    "lang": "en",
+    "action": "local.rebase",
+    "slots": {
+      "branch": "origin/develop"
+    }
+  },
+  {
+    "text": "stash my changes",
+    "lang": "en",
+    "action": "local.stash",
+    "slots": {}
+  },
+  {
+    "text": "stash this as 'half-done refactor'",
+    "lang": "en",
+    "action": "local.stash",
+    "slots": {
+      "body": "half-done refactor"
+    }
+  },
+  {
+    "text": "pop the stash",
+    "lang": "en",
+    "action": "local.unstash",
+    "slots": {}
+  },
+  {
+    "text": "bring back what I stashed",
+    "lang": "en",
+    "action": "local.unstash",
+    "slots": {}
+  },
+  {
+    "text": "reset to HEAD~1",
+    "lang": "en",
+    "action": "local.reset",
+    "slots": {
+      "ref": "HEAD~1"
+    }
+  },
+  {
+    "text": "hard reset to origin/main",
+    "lang": "en",
+    "action": "local.reset",
+    "slots": {
+      "ref": "origin/main",
+      "force": true
+    }
+  },
+  {
+    "text": "throw away my changes",
+    "lang": "en",
+    "action": "local.discard",
+    "slots": {}
+  },
+  {
+    "text": "discard changes in styles/main.css",
+    "lang": "en",
+    "action": "local.discard",
+    "slots": {
+      "path": "styles/main.css"
+    }
+  },
+  {
+    "text": "cherry-pick 4e5f6a7",
+    "lang": "en",
+    "action": "local.cherry-pick",
+    "slots": {
+      "ref": "4e5f6a7"
+    }
+  },
+  {
+    "text": "bring commit c0ffee1 onto this branch",
+    "lang": "en",
+    "action": "local.cherry-pick",
+    "slots": {
+      "ref": "c0ffee1"
+    }
+  },
+  {
+    "text": "revert commit deadbee",
+    "lang": "en",
+    "action": "local.revert",
+    "slots": {
+      "ref": "deadbee"
+    }
+  },
+  {
+    "text": "undo commit 1a2b3c4 with a new commit",
+    "lang": "en",
+    "action": "local.revert",
+    "slots": {
+      "ref": "1a2b3c4"
+    }
+  },
+  {
+    "text": "git init",
+    "lang": "en",
+    "action": "local.init",
+    "slots": {}
+  },
+  {
+    "text": "make this folder a git repo",
+    "lang": "en",
+    "action": "local.init",
+    "slots": {}
+  },
+  {
+    "text": "init a repository in ~/projects/blog",
+    "lang": "en",
+    "action": "local.init",
+    "slots": {
+      "path": "~/projects/blog"
+    }
+  },
+  {
+    "text": "add remote origin git@github.com:aturzone/grimstroke.git",
+    "lang": "en",
+    "action": "local.remote-add",
+    "slots": {
+      "title": "origin",
+      "url": "git@github.com:aturzone/grimstroke.git"
+    }
+  },
+  {
+    "text": "add a remote upstream https://github.com/torvalds/linux.git",
+    "lang": "en",
+    "action": "local.remote-add",
+    "slots": {
+      "title": "upstream",
+      "url": "https://github.com/torvalds/linux.git"
+    }
+  },
+  {
+    "text": "close that one",
+    "lang": "en",
+    "action": "issue.close",
+    "slots": {},
+    "ctx": {
+      "object": "issue",
+      "number": "220",
+      "repo": "mobile-app"
+    }
+  },
+  {
+    "text": "assign it to @ravi",
+    "lang": "en",
+    "action": "issue.assign",
+    "slots": {
+      "people": ["ravi"]
+    },
+    "ctx": {
+      "object": "issue",
+      "number": "31"
+    }
+  },
+  {
+    "text": "what files does it change?",
+    "lang": "en",
+    "action": "pr.diff",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "402",
+      "repo": "checkout-svc"
+    }
+  },
+  {
+    "text": "add a comment: same root cause as the login bug",
+    "lang": "en",
+    "action": "issue.comment",
+    "slots": {
+      "body": "same root cause as the login bug"
+    },
+    "ctx": {
+      "object": "issue",
+      "number": "77"
+    }
+  },
+  {
+    "text": "delete it",
+    "lang": "en",
+    "action": "branch.delete",
+    "slots": {},
+    "ctx": {
+      "object": "branch",
+      "branch": "feature/export"
+    }
+  },
+  {
+    "text": "reopen it pls",
+    "lang": "en",
+    "action": "pr.reopen",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "55"
+    }
+  },
+  {
+    "text": "label it urgent",
+    "lang": "en",
+    "action": "issue.label",
+    "slots": {
+      "labels": ["urgent"]
+    },
+    "ctx": {
+      "object": "issue",
+      "number": "12",
+      "repo": "api"
+    }
+  },
+  {
+    "text": "lock it",
+    "lang": "en",
+    "action": "issue.lock",
+    "slots": {},
+    "ctx": {
+      "object": "issue",
+      "number": "5"
+    }
+  },
+  {
+    "text": "did its pipeline pass?",
+    "lang": "en",
+    "action": "ci.status",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "310"
+    }
+  },
+  {
+    "text": "push the meeting to thursday",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "merge these two pdfs into one",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "remind me to commit to the gym plan",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "close the windows in the living room",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "when is the new iphone released",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "tag mom in the beach photos",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "label the moving boxes for the kitchen",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "review my essay on climate policy",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "star this recipe for later",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "fork or spoon for risotto?",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "stage 2 of the marathon training plan",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "reset my router",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "stash the snacks before the kids find them",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "branch manager meeting at 3pm",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "pull the car into the garage",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "issue a refund to customer 4412",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "comment on sarahs vacation photos",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "assign the dishes to tom tonight",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "lock the front door at 10",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "check out that new pizza place on main street",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "where can I cherry pick strawberries near me",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "should I revert to my old hairstyle?",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "who is the author of Dune",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "search for cheap flights to Lisbon",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "approve jakes vacation request",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "open a savings account at the bank",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "fetch the dog leash from the car",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "how do I clone a plant from a cutting",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "what are the milestones for a 6 month old baby",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "rebase the shed on a concrete slab, how much does that cost",
+    "lang": "en",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "squash the last 3 commits",
+    "lang": "en",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "start a git bisect between v1.0 and HEAD",
+    "lang": "en",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "protect the main branch so nobody can push directly",
+    "lang": "en",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "add a webhook that sends push events to slack",
+    "lang": "en",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "edit the wiki home page",
+    "lang": "en",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "enable github pages for the docs folder",
+    "lang": "en",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "archive the old-api repo",
+    "lang": "en",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "transfer this repo to the aturzone org",
+    "lang": "en",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "update the submodules",
+    "lang": "en",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "show me the reflog",
+    "lang": "en",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "ببندش دیگه",
+    "lang": "fa",
+    "action": "issue.close",
+    "slots": {},
+    "ctx": {
+      "object": "issue",
+      "number": "88",
+      "repo": "crm"
+    }
+  },
+  {
+    "text": "اینو بده به نیلوفر",
+    "lang": "fa",
+    "action": "issue.assign",
+    "slots": {
+      "people": ["نیلوفر"]
+    },
+    "ctx": {
+      "object": "issue",
+      "number": "140"
+    }
+  },
+  {
+    "text": "یه کامنت بذار زیرش: فردا دیپلوی میشه",
+    "lang": "fa",
+    "action": "issue.comment",
+    "slots": {
+      "body": "فردا دیپلوی میشه"
+    },
+    "ctx": {
+      "object": "issue",
+      "number": "57",
+      "repo": "panel"
+    }
+  },
+  {
+    "text": "چه فایلایی رو دست زده؟",
+    "lang": "fa",
+    "action": "pr.diff",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "230"
+    }
+  },
+  {
+    "text": "اپروو بزن روش",
+    "lang": "fa",
+    "action": "pr.approve",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "412",
+      "repo": "gateway"
+    }
+  },
+  {
+    "text": "ببندش، بیخیال",
+    "lang": "fa",
+    "action": "pr.close",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "99"
+    }
+  },
+  {
+    "text": "@arash رو بذار ریویوئرش",
+    "lang": "fa",
+    "action": "pr.request-review",
+    "slots": {
+      "people": ["arash"]
+    },
+    "ctx": {
+      "object": "pr",
+      "number": "35"
+    }
+  },
+  {
+    "text": "لیبل bug بزن بهش",
+    "lang": "fa",
+    "action": "issue.label",
+    "slots": {
+      "labels": ["bug"]
+    },
+    "ctx": {
+      "object": "issue",
+      "number": "73"
+    }
+  },
+  {
+    "text": "قفلش کن",
+    "lang": "fa",
+    "action": "issue.lock",
+    "slots": {},
+    "ctx": {
+      "object": "issue",
+      "number": "500",
+      "repo": "forum"
+    }
+  },
+  {
+    "text": "پاکش کن",
+    "lang": "fa",
+    "action": "branch.delete",
+    "slots": {},
+    "ctx": {
+      "object": "branch",
+      "branch": "tmp/test-upload"
+    }
+  },
+  {
+    "text": "برو روش",
+    "lang": "fa",
+    "action": "branch.switch",
+    "slots": {},
+    "ctx": {
+      "object": "branch",
+      "branch": "feature/report"
+    }
+  },
+  {
+    "text": "سی‌آیش پاس شده؟",
+    "lang": "fa",
+    "action": "ci.status",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "61"
+    }
+  },
+  {
+    "text": "تستاشو دوباره ران کن",
+    "lang": "fa",
+    "action": "ci.rerun",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "61"
+    }
+  },
+  {
+    "text": "استارش کن",
+    "lang": "fa",
+    "action": "repo.star",
+    "slots": {},
+    "ctx": {
+      "object": "repo",
+      "repo": "charmbracelet/bubbletea"
+    }
+  },
+  {
+    "text": "کلونش کن تو ~/code",
+    "lang": "fa",
+    "action": "repo.clone",
+    "slots": {
+      "path": "~/code"
+    },
+    "ctx": {
+      "object": "repo",
+      "repo": "golang/go"
+    }
+  },
+  {
+    "text": "ایشوهای بازش چیان",
+    "lang": "fa",
+    "action": "issue.list",
+    "slots": {
+      "state": "open"
+    },
+    "ctx": {
+      "object": "repo",
+      "repo": "notes-app"
+    }
+  },
+  {
+    "text": "عنوانشو بکن «خطای تایم‌اوت در گزارش ماهانه»",
+    "lang": "fa",
+    "action": "issue.edit",
+    "slots": {
+      "title": "خطای تایم‌اوت در گزارش ماهانه"
+    },
+    "ctx": {
+      "object": "issue",
+      "number": "310"
+    }
+  },
+  {
+    "text": "آماده‌ست، از درافت درش بیار",
+    "lang": "fa",
+    "action": "pr.ready",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "27"
+    }
+  },
+  {
+    "text": "کامیت‌های این ریپو رو با هم یکی کن اسکواش",
+    "lang": "fa",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "یه gpg key ست کن کامیتام ساین بشن",
+    "lang": "fa",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "فایلای psd رو بنداز رو git lfs",
+    "lang": "fa",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "اینستاگرامو ببند حواسم پرته",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "برنچ جدید کافه لمیز کجا افتتاح شده",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "یه ایشوی شخصی دارم با همکارم، چیکار کنم",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "کتاب رو برگردون کتابخونه",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "کلید خونه رو کپی کن",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "ریلیز آلبوم جدید چاووشی کیه",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "یه ایشو بساز تو grimstroke با عنوان دکمه‌ی ورود کار نمی‌کنه",
+    "lang": "fa",
+    "action": "issue.create",
+    "slots": {
+      "repo": "grimstroke",
+      "title": "دکمه‌ی ورود کار نمی‌کنه"
+    }
+  },
+  {
+    "text": "ایشو جدید: صفحه‌ی پرداخت روی موبایل بهم میریزه",
+    "lang": "fa",
+    "action": "issue.create",
+    "slots": {
+      "title": "صفحه‌ی پرداخت روی موبایل بهم میریزه"
+    }
+  },
+  {
+    "text": "یک issue باز کن به اسم memory leak in worker و لیبل bug بهش بزن",
+    "lang": "fa",
+    "action": "issue.create",
+    "slots": {
+      "title": "memory leak in worker",
+      "labels": ["bug"]
+    }
+  },
+  {
+    "text": "باگ ثبت کن: خروجی اکسل حروف فارسی رو خراب می‌کنه",
+    "lang": "fa",
+    "action": "issue.create",
+    "slots": {
+      "title": "خروجی اکسل حروف فارسی رو خراب می‌کنه"
+    }
+  },
+  {
+    "text": "تو ریپوی shop-front یه تیکت بزن که فیلتر قیمت کار نمی‌کنه",
+    "lang": "fa",
+    "action": "issue.create",
+    "slots": {
+      "repo": "shop-front",
+      "title": "فیلتر قیمت کار نمی‌کنه"
+    }
+  },
+  {
+    "text": "ایشو بزن «اعلان‌ها دوبار میان» و بده به @sara",
+    "lang": "fa",
+    "action": "issue.create",
+    "slots": {
+      "title": "اعلان‌ها دوبار میان",
+      "people": ["sara"]
+    }
+  },
+  {
+    "text": "ایشوهای باز رو نشون بده",
+    "lang": "fa",
+    "action": "issue.list",
+    "slots": {
+      "state": "open"
+    }
+  },
+  {
+    "text": "ایشوهای من چیه؟",
+    "lang": "fa",
+    "action": "issue.list",
+    "slots": {
+      "mine": true
+    }
+  },
+  {
+    "text": "لیست ایشوهای بسته‌ی ریپوی shop-api",
+    "lang": "fa",
+    "action": "issue.list",
+    "slots": {
+      "state": "closed",
+      "repo": "shop-api"
+    }
+  },
+  {
+    "text": "۱۰ تا ایشوی آخر",
+    "lang": "fa",
+    "action": "issue.list",
+    "slots": {
+      "count": "10"
+    }
+  },
+  {
+    "text": "ایشوهایی که لیبل frontend دارن",
+    "lang": "fa",
+    "action": "issue.list",
+    "slots": {
+      "labels": ["frontend"]
+    }
+  },
+  {
+    "text": "چه ایشوهایی رو کیوان باز کرده",
+    "lang": "fa",
+    "action": "issue.list",
+    "slots": {
+      "author": "کیوان"
+    }
+  },
+  {
+    "text": "همه‌ی ایشوها، باز و بسته",
+    "lang": "fa",
+    "action": "issue.list",
+    "slots": {
+      "state": "all"
+    }
+  },
+  {
+    "text": "ایشو ۴۲ رو نشونم بده",
+    "lang": "fa",
+    "action": "issue.show",
+    "slots": {
+      "number": "42"
+    }
+  },
+  {
+    "text": "ایشوی ۱۵۰ چی بود؟",
+    "lang": "fa",
+    "action": "issue.show",
+    "slots": {
+      "number": "150"
+    }
+  },
+  {
+    "text": "جزئیات issue 9 تو dashboard",
+    "lang": "fa",
+    "action": "issue.show",
+    "slots": {
+      "number": "9",
+      "repo": "dashboard"
+    }
+  },
+  {
+    "text": "ایشو ۱۷ رو ببند",
+    "lang": "fa",
+    "action": "issue.close",
+    "slots": {
+      "number": "17"
+    }
+  },
+  {
+    "text": "ببند ایشوی شماره‌ی 233 رو",
+    "lang": "fa",
+    "action": "issue.close",
+    "slots": {
+      "number": "233"
+    }
+  },
+  {
+    "text": "issue #5 حل شد، ببندش",
+    "lang": "fa",
+    "action": "issue.close",
+    "slots": {
+      "number": "5"
+    }
+  },
+  {
+    "text": "تیکت ۸۰۴ رو بستم حساب کن با این توضیح: تو نسخه‌ی جدید درست شد",
+    "lang": "fa",
+    "action": "issue.close",
+    "slots": {
+      "number": "804",
+      "body": "تو نسخه‌ی جدید درست شد"
+    }
+  },
+  {
+    "text": "ایشو ۷۸ رو دوباره باز کن",
+    "lang": "fa",
+    "action": "issue.reopen",
+    "slots": {
+      "number": "78"
+    }
+  },
+  {
+    "text": "باگ ۲۰۶ برگشته، ایشوشو ری‌اوپن کن",
+    "lang": "fa",
+    "action": "issue.reopen",
+    "slots": {
+      "number": "206"
+    }
+  },
+  {
+    "text": "دوباره بازش کن",
+    "lang": "fa",
+    "action": "issue.reopen",
+    "slots": {},
+    "ctx": {
+      "object": "issue",
+      "number": "61",
+      "repo": "crm"
+    }
+  },
+  {
+    "text": "زیر ایشو ۹ بنویس: روی نسخه‌ی سه هم خرابه",
+    "lang": "fa",
+    "action": "issue.comment",
+    "slots": {
+      "number": "9",
+      "body": "روی نسخه‌ی سه هم خرابه"
+    }
+  },
+  {
+    "text": "یه کامنت بذار رو ایشو #31 که فردا بررسی می‌کنم",
+    "lang": "fa",
+    "action": "issue.comment",
+    "slots": {
+      "number": "31",
+      "body": "فردا بررسی می‌کنم"
+    }
+  },
+  {
+    "text": "جواب بده به ایشو ۵۵۰: لاگ سرور رو بفرستید",
+    "lang": "fa",
+    "action": "issue.comment",
+    "slots": {
+      "number": "550",
+      "body": "لاگ سرور رو بفرستید"
+    }
+  },
+  {
+    "text": "ایشو ۴۵ رو بده به مریم",
+    "lang": "fa",
+    "action": "issue.assign",
+    "slots": {
+      "number": "45",
+      "people": ["مریم"]
+    }
+  },
+  {
+    "text": "اساین کن ایشو #12 رو به @reza",
+    "lang": "fa",
+    "action": "issue.assign",
+    "slots": {
+      "number": "12",
+      "people": ["reza"]
+    }
+  },
+  {
+    "text": "علی و نگار مسئول ایشوی ۸۰ باشن",
+    "lang": "fa",
+    "action": "issue.assign",
+    "slots": {
+      "people": ["علی", "نگار"],
+      "number": "80"
+    }
+  },
+  {
+    "text": "سینا رو از ایشو ۶۱ بردار",
+    "lang": "fa",
+    "action": "issue.unassign",
+    "slots": {
+      "people": ["سینا"],
+      "number": "61"
+    }
+  },
+  {
+    "text": "@moein دیگه مسئول ایشوی 22 نیست، برش دار",
+    "lang": "fa",
+    "action": "issue.unassign",
+    "slots": {
+      "people": ["moein"],
+      "number": "22"
+    }
+  },
+  {
+    "text": "لیبل urgent بزن به ایشو ۳۳",
+    "lang": "fa",
+    "action": "issue.label",
+    "slots": {
+      "labels": ["urgent"],
+      "number": "33"
+    }
+  },
+  {
+    "text": "به ایشوی ۹۰۰ لیبل‌های backend و p1 رو اضافه کن",
+    "lang": "fa",
+    "action": "issue.label",
+    "slots": {
+      "number": "900",
+      "labels": ["backend", "p1"]
+    }
+  },
+  {
+    "text": "برچسب امنیتی بچسبون به تیکت 18",
+    "lang": "fa",
+    "action": "issue.label",
+    "slots": {
+      "labels": ["امنیتی"],
+      "number": "18"
+    }
+  },
+  {
+    "text": "لیبل wontfix رو از ایشو ۱۲ بردار",
+    "lang": "fa",
+    "action": "issue.unlabel",
+    "slots": {
+      "labels": ["wontfix"],
+      "number": "12"
+    }
+  },
+  {
+    "text": "برچسب needs-triage رو از ایشوی 64 پاک کن",
+    "lang": "fa",
+    "action": "issue.unlabel",
+    "slots": {
+      "labels": ["needs-triage"],
+      "number": "64"
+    }
+  },
+  {
+    "text": "عنوان ایشو ۱۹ رو بکن «کرش موقع آپلود عکس»",
+    "lang": "fa",
+    "action": "issue.edit",
+    "slots": {
+      "number": "19",
+      "title": "کرش موقع آپلود عکس"
+    }
+  },
+  {
+    "text": "توضیحات ایشوی 250 رو عوض کن به: لاگ کامل پیوست شده",
+    "lang": "fa",
+    "action": "issue.edit",
+    "slots": {
+      "number": "250",
+      "body": "لاگ کامل پیوست شده"
+    }
+  },
+  {
+    "text": "ایشو ۷۱ رو بذار تو مایلستون Q4",
+    "lang": "fa",
+    "action": "issue.milestone",
+    "slots": {
+      "number": "71",
+      "milestone": "Q4"
+    }
+  },
+  {
+    "text": "ایشوی 15 بره تو مایلستون v2",
+    "lang": "fa",
+    "action": "issue.milestone",
+    "slots": {
+      "number": "15",
+      "milestone": "v2"
+    }
+  },
+  {
+    "text": "ایشو ۶۶۶ رو قفل کن، دعوا شده",
+    "lang": "fa",
+    "action": "issue.lock",
+    "slots": {
+      "number": "666"
+    }
+  },
+  {
+    "text": "بحث زیر ایشوی ۱۲۰ رو قفل کن که کسی کامنت نذاره",
+    "lang": "fa",
+    "action": "issue.lock",
+    "slots": {
+      "number": "120"
+    }
+  },
+  {
+    "text": "قفل ایشو ۶۶۶ رو باز کن",
+    "lang": "fa",
+    "action": "issue.unlock",
+    "slots": {
+      "number": "666"
+    }
+  },
+  {
+    "text": "بذار دوباره بشه زیر ایشوی ۴۰۴ کامنت گذاشت",
+    "lang": "fa",
+    "action": "issue.unlock",
+    "slots": {
+      "number": "404"
+    }
+  },
+  {
+    "text": "یه پی‌آر بزن از feature/login به develop",
+    "lang": "fa",
+    "action": "pr.create",
+    "slots": {
+      "branch": "feature/login",
+      "base": "develop"
+    }
+  },
+  {
+    "text": "پول ریکوئست درافت بساز برای fix/typo",
+    "lang": "fa",
+    "action": "pr.create",
+    "slots": {
+      "draft": true,
+      "branch": "fix/typo"
+    }
+  },
+  {
+    "text": "برنچ hotfix-cart رو PR کن به main",
+    "lang": "fa",
+    "action": "pr.create",
+    "slots": {
+      "branch": "hotfix-cart",
+      "base": "main"
+    }
+  },
+  {
+    "text": "MR باز کن از برنچ feat/sms-otp با عنوان ارسال کد یکبار مصرف",
+    "lang": "fa",
+    "action": "pr.create",
+    "slots": {
+      "branch": "feat/sms-otp",
+      "title": "ارسال کد یکبار مصرف"
+    }
+  },
+  {
+    "text": "برای این برنچ پی‌آر درست کن",
+    "lang": "fa",
+    "action": "pr.create",
+    "slots": {},
+    "ctx": {
+      "object": "branch",
+      "branch": "refactor/cache"
+    }
+  },
+  {
+    "text": "پی‌آرهای باز؟",
+    "lang": "fa",
+    "action": "pr.list",
+    "slots": {
+      "state": "open"
+    }
+  },
+  {
+    "text": "پول ریکوئست‌های من",
+    "lang": "fa",
+    "action": "pr.list",
+    "slots": {
+      "mine": true
+    }
+  },
+  {
+    "text": "مرج ریکوئست‌هایی که حمید زده",
+    "lang": "fa",
+    "action": "pr.list",
+    "slots": {
+      "author": "حمید"
+    }
+  },
+  {
+    "text": "پی‌آرهای مرج شده‌ی ریپوی wallet",
+    "lang": "fa",
+    "action": "pr.list",
+    "slots": {
+      "state": "merged",
+      "repo": "wallet"
+    }
+  },
+  {
+    "text": "پی‌آر ۵۸ رو نشون بده",
+    "lang": "fa",
+    "action": "pr.show",
+    "slots": {
+      "number": "58"
+    }
+  },
+  {
+    "text": "PR شماره 1203 چیه",
+    "lang": "fa",
+    "action": "pr.show",
+    "slots": {
+      "number": "1203"
+    }
+  },
+  {
+    "text": "PR ۲۲ چه فایلایی رو عوض کرده؟",
+    "lang": "fa",
+    "action": "pr.diff",
+    "slots": {
+      "number": "22"
+    }
+  },
+  {
+    "text": "دیف پی‌آر 45 رو ببینم",
+    "lang": "fa",
+    "action": "pr.diff",
+    "slots": {
+      "number": "45"
+    }
+  },
+  {
+    "text": "پی‌آر ۱۲ رو ببند، لازم نیست",
+    "lang": "fa",
+    "action": "pr.close",
+    "slots": {
+      "number": "12"
+    }
+  },
+  {
+    "text": "PR #90 رو بدون مرج ببند",
+    "lang": "fa",
+    "action": "pr.close",
+    "slots": {
+      "number": "90"
+    }
+  },
+  {
+    "text": "پی‌آر ۴۴ رو دوباره باز کن",
+    "lang": "fa",
+    "action": "pr.reopen",
+    "slots": {
+      "number": "44"
+    }
+  },
+  {
+    "text": "پول ریکوئست 7 رو که بسته بودیم برگردون",
+    "lang": "fa",
+    "action": "pr.reopen",
+    "slots": {
+      "number": "7"
+    }
+  },
+  {
+    "text": "رو PR ۱۸ کامنت بذار: لطفا تست اضافه کن",
+    "lang": "fa",
+    "action": "pr.comment",
+    "slots": {
+      "number": "18",
+      "body": "لطفا تست اضافه کن"
+    }
+  },
+  {
+    "text": "زیر پی‌آر 230 بنویس «بعد از ریبیس اوکیه»",
+    "lang": "fa",
+    "action": "pr.comment",
+    "slots": {
+      "number": "230",
+      "body": "بعد از ریبیس اوکیه"
+    }
+  },
+  {
+    "text": "پی‌آر ۴۱ رو مرج کن",
+    "lang": "fa",
+    "action": "pr.merge",
+    "slots": {
+      "number": "41"
+    }
+  },
+  {
+    "text": "PR 19 رو اسکواش مرج کن",
+    "lang": "fa",
+    "action": "pr.merge",
+    "slots": {
+      "number": "19",
+      "method": "squash"
+    }
+  },
+  {
+    "text": "مرجش کن",
+    "lang": "fa",
+    "action": "pr.merge",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "14",
+      "repo": "web"
+    }
+  },
+  {
+    "text": "MR ۳۰۰ رو با rebase مرج کن",
+    "lang": "fa",
+    "action": "pr.merge",
+    "slots": {
+      "number": "300",
+      "method": "rebase"
+    }
+  },
+  {
+    "text": "بریزش تو",
+    "lang": "fa",
+    "action": "pr.merge",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "87"
+    }
+  },
+  {
+    "text": "PR ۵۵ رو اپروو کن",
+    "lang": "fa",
+    "action": "pr.approve",
+    "slots": {
+      "number": "55"
+    }
+  },
+  {
+    "text": "پی‌آر 61 رو تایید کن",
+    "lang": "fa",
+    "action": "pr.approve",
+    "slots": {
+      "number": "61"
+    }
+  },
+  {
+    "text": "اوکیه، اپرووش کن",
+    "lang": "fa",
+    "action": "pr.approve",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "23",
+      "repo": "billing"
+    }
+  },
+  {
+    "text": "رو PR ۲۳ درخواست تغییر بده: مایگریشن برگشت‌پذیر نیست",
+    "lang": "fa",
+    "action": "pr.request-changes",
+    "slots": {
+      "number": "23",
+      "body": "مایگریشن برگشت‌پذیر نیست"
+    }
+  },
+  {
+    "text": "پی‌آر ۸۸ رو ریکوئست چنج بزن، تست نداره",
+    "lang": "fa",
+    "action": "pr.request-changes",
+    "slots": {
+      "number": "88",
+      "body": "تست نداره"
+    }
+  },
+  {
+    "text": "از فاطمه بخواه PR ۷۰ رو ریویو کنه",
+    "lang": "fa",
+    "action": "pr.request-review",
+    "slots": {
+      "people": ["فاطمه"],
+      "number": "70"
+    }
+  },
+  {
+    "text": "ریویو پی‌آر 312 رو بده به @sven و @arjun",
+    "lang": "fa",
+    "action": "pr.request-review",
+    "slots": {
+      "number": "312",
+      "people": ["sven", "arjun"]
+    }
+  },
+  {
+    "text": "PR ۶۶ رو اساین کن به کاوه",
+    "lang": "fa",
+    "action": "pr.assign",
+    "slots": {
+      "number": "66",
+      "people": ["کاوه"]
+    }
+  },
+  {
+    "text": "پی‌آر 5 رو بنداز گردن @yuki",
+    "lang": "fa",
+    "action": "pr.assign",
+    "slots": {
+      "number": "5",
+      "people": ["yuki"]
+    }
+  },
+  {
+    "text": "به PR ۲۹ لیبل needs-docs بزن",
+    "lang": "fa",
+    "action": "pr.label",
+    "slots": {
+      "number": "29",
+      "labels": ["needs-docs"]
+    }
+  },
+  {
+    "text": "لیبل breaking رو بچسبون به پی‌آر 140",
+    "lang": "fa",
+    "action": "pr.label",
+    "slots": {
+      "labels": ["breaking"],
+      "number": "140"
+    }
+  },
+  {
+    "text": "عنوان PR ۳۳ رو بکن Add retry to uploads",
+    "lang": "fa",
+    "action": "pr.edit",
+    "slots": {
+      "number": "33",
+      "title": "Add retry to uploads"
+    }
+  },
+  {
+    "text": "بیس پی‌آر ۴۷ رو عوض کن به release/2.0",
+    "lang": "fa",
+    "action": "pr.edit",
+    "slots": {
+      "number": "47",
+      "base": "release/2.0"
+    }
+  },
+  {
+    "text": "PR ۸۱ آماده‌ی ریویوئه، از درافت درش بیار",
+    "lang": "fa",
+    "action": "pr.ready",
+    "slots": {
+      "number": "81"
+    }
+  },
+  {
+    "text": "پی‌آر 102 رو ready for review کن",
+    "lang": "fa",
+    "action": "pr.ready",
+    "slots": {
+      "number": "102"
+    }
+  },
+  {
+    "text": "PR ۳۹ رو لوکال چک‌اوت کن",
+    "lang": "fa",
+    "action": "pr.checkout",
+    "slots": {
+      "number": "39"
+    }
+  },
+  {
+    "text": "پی‌آر 1500 رو بیار رو سیستمم تستش کنم",
+    "lang": "fa",
+    "action": "pr.checkout",
+    "slots": {
+      "number": "1500"
+    }
+  },
+  {
+    "text": "برنچ‌ها رو لیست کن",
+    "lang": "fa",
+    "action": "branch.list",
+    "slots": {}
+  },
+  {
+    "text": "چه شاخه‌هایی تو ریپوی landing داریم",
+    "lang": "fa",
+    "action": "branch.list",
+    "slots": {
+      "repo": "landing"
+    }
+  },
+  {
+    "text": "برنچ‌هایی که توشون hotfix هست",
+    "lang": "fa",
+    "action": "branch.list",
+    "slots": {
+      "query": "hotfix"
+    }
+  },
+  {
+    "text": "برنچ feature/dark-mode بساز",
+    "lang": "fa",
+    "action": "branch.create",
+    "slots": {
+      "branch": "feature/dark-mode"
+    }
+  },
+  {
+    "text": "یه شاخه‌ی جدید به اسم hotfix/otp از main بزن",
+    "lang": "fa",
+    "action": "branch.create",
+    "slots": {
+      "branch": "hotfix/otp",
+      "ref": "main"
+    }
+  },
+  {
+    "text": "از develop یه برنچ exp-cache درست کن",
+    "lang": "fa",
+    "action": "branch.create",
+    "slots": {
+      "ref": "develop",
+      "branch": "exp-cache"
+    }
+  },
+  {
+    "text": "برنچ بزن feat/invoice-pdf",
+    "lang": "fa",
+    "action": "branch.create",
+    "slots": {
+      "branch": "feat/invoice-pdf"
+    }
+  },
+  {
+    "text": "برنچ old-experiment رو پاک کن",
+    "lang": "fa",
+    "action": "branch.delete",
+    "slots": {
+      "branch": "old-experiment"
+    }
+  },
+  {
+    "text": "شاخه‌ی stale-ui رو به زور حذف کن",
+    "lang": "fa",
+    "action": "branch.delete",
+    "slots": {
+      "branch": "stale-ui",
+      "force": true
+    }
+  },
+  {
+    "text": "برو رو develop",
+    "lang": "fa",
+    "action": "branch.switch",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "سوییچ کن به release/1.4",
+    "lang": "fa",
+    "action": "branch.switch",
+    "slots": {
+      "branch": "release/1.4"
+    }
+  },
+  {
+    "text": "بپر رو برنچ feat/search",
+    "lang": "fa",
+    "action": "branch.switch",
+    "slots": {
+      "branch": "feat/search"
+    }
+  },
+  {
+    "text": "اسم برنچ master رو بذار main",
+    "lang": "fa",
+    "action": "branch.rename",
+    "slots": {
+      "branch": "master",
+      "title": "main"
+    }
+  },
+  {
+    "text": "برنچ wip-123 رو rename کن به fix-upload",
+    "lang": "fa",
+    "action": "branch.rename",
+    "slots": {
+      "branch": "wip-123",
+      "title": "fix-upload"
+    }
+  },
+  {
+    "text": "کامیت‌های اخیر",
+    "lang": "fa",
+    "action": "commit.list",
+    "slots": {}
+  },
+  {
+    "text": "۱۰ تا کامیت آخر develop",
+    "lang": "fa",
+    "action": "commit.list",
+    "slots": {
+      "count": "10",
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "علیرضا اخیرا چی کامیت کرده",
+    "lang": "fa",
+    "action": "commit.list",
+    "slots": {
+      "author": "علیرضا"
+    }
+  },
+  {
+    "text": "تاریخچه‌ی فایل src/db/pool.go",
+    "lang": "fa",
+    "action": "commit.list",
+    "slots": {
+      "path": "src/db/pool.go"
+    }
+  },
+  {
+    "text": "کامیت a1b2c3d رو نشون بده",
+    "lang": "fa",
+    "action": "commit.show",
+    "slots": {
+      "ref": "a1b2c3d"
+    }
+  },
+  {
+    "text": "HEAD~2 چی بود؟",
+    "lang": "fa",
+    "action": "commit.show",
+    "slots": {
+      "ref": "HEAD~2"
+    }
+  },
+  {
+    "text": "feature/x رو با main مقایسه کن",
+    "lang": "fa",
+    "action": "commit.compare",
+    "slots": {
+      "ref": "feature/x",
+      "base": "main"
+    }
+  },
+  {
+    "text": "develop چقدر از main جلوئه",
+    "lang": "fa",
+    "action": "commit.compare",
+    "slots": {
+      "ref": "develop",
+      "base": "main"
+    }
+  },
+  {
+    "text": "سی‌آی پاس شد؟",
+    "lang": "fa",
+    "action": "ci.status",
+    "slots": {}
+  },
+  {
+    "text": "بیلد main سبزه؟",
+    "lang": "fa",
+    "action": "ci.status",
+    "slots": {
+      "branch": "main"
+    }
+  },
+  {
+    "text": "وضعیت پایپلاین MR ۷۷",
+    "lang": "fa",
+    "action": "ci.status",
+    "slots": {
+      "number": "77"
+    }
+  },
+  {
+    "text": "تست‌های کامیت 9f8e7d6 رد شدن یا نه",
+    "lang": "fa",
+    "action": "ci.status",
+    "slots": {
+      "ref": "9f8e7d6"
+    }
+  },
+  {
+    "text": "اجراهای اخیر CI رو نشون بده",
+    "lang": "fa",
+    "action": "ci.list",
+    "slots": {}
+  },
+  {
+    "text": "۵ تا پایپلاین آخر develop",
+    "lang": "fa",
+    "action": "ci.list",
+    "slots": {
+      "count": "5",
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "CI رو دوباره اجرا کن",
+    "lang": "fa",
+    "action": "ci.rerun",
+    "slots": {}
+  },
+  {
+    "text": "پایپلاین feature/ci-cache رو ری‌ران کن",
+    "lang": "fa",
+    "action": "ci.rerun",
+    "slots": {
+      "branch": "feature/ci-cache"
+    }
+  },
+  {
+    "text": "چک‌های PR ۸۸ رو دوباره بزن",
+    "lang": "fa",
+    "action": "ci.rerun",
+    "slots": {
+      "number": "88"
+    }
+  },
+  {
+    "text": "بیلد در حال اجرا رو کنسل کن",
+    "lang": "fa",
+    "action": "ci.cancel",
+    "slots": {}
+  },
+  {
+    "text": "پایپلاین main رو متوقف کن",
+    "lang": "fa",
+    "action": "ci.cancel",
+    "slots": {
+      "branch": "main"
+    }
+  },
+  {
+    "text": "ریلیزها رو نشون بده",
+    "lang": "fa",
+    "action": "release.list",
+    "slots": {}
+  },
+  {
+    "text": "چه ریلیزهایی fastlane-tools داره",
+    "lang": "fa",
+    "action": "release.list",
+    "slots": {
+      "repo": "fastlane-tools"
+    }
+  },
+  {
+    "text": "ریلیز v2.0.0 رو نشون بده",
+    "lang": "fa",
+    "action": "release.show",
+    "slots": {
+      "tag": "v2.0.0"
+    }
+  },
+  {
+    "text": "آخرین ریلیز چی داشت؟",
+    "lang": "fa",
+    "action": "release.show",
+    "slots": {}
+  },
+  {
+    "text": "ریلیز v1.4.0 بده بیرون",
+    "lang": "fa",
+    "action": "release.create",
+    "slots": {
+      "tag": "v1.4.0"
+    }
+  },
+  {
+    "text": "یه ریلیز درافت v3.0.0-rc1 بساز با عنوان هیدروژن",
+    "lang": "fa",
+    "action": "release.create",
+    "slots": {
+      "draft": true,
+      "tag": "v3.0.0-rc1",
+      "title": "هیدروژن"
+    }
+  },
+  {
+    "text": "ریلیز v1.0.0-beta رو حذف کن",
+    "lang": "fa",
+    "action": "release.delete",
+    "slots": {
+      "tag": "v1.0.0-beta"
+    }
+  },
+  {
+    "text": "ریلیز v2.2.2 تو cli-tools رو پاک کن",
+    "lang": "fa",
+    "action": "release.delete",
+    "slots": {
+      "tag": "v2.2.2",
+      "repo": "cli-tools"
+    }
+  },
+  {
+    "text": "تگ‌ها رو لیست کن",
+    "lang": "fa",
+    "action": "tag.list",
+    "slots": {}
+  },
+  {
+    "text": "چه تگ‌هایی تو proto-schemas هست",
+    "lang": "fa",
+    "action": "tag.list",
+    "slots": {
+      "repo": "proto-schemas"
+    }
+  },
+  {
+    "text": "روی کامیت فعلی تگ v1.2.3 بزن",
+    "lang": "fa",
+    "action": "tag.create",
+    "slots": {
+      "tag": "v1.2.3"
+    }
+  },
+  {
+    "text": "تگ v0.5.0 بساز روی 3fa85f6",
+    "lang": "fa",
+    "action": "tag.create",
+    "slots": {
+      "tag": "v0.5.0",
+      "ref": "3fa85f6"
+    }
+  },
+  {
+    "text": "تگ v1.2.3-bad رو پاک کن",
+    "lang": "fa",
+    "action": "tag.delete",
+    "slots": {
+      "tag": "v1.2.3-bad"
+    }
+  },
+  {
+    "text": "تگ test-tag رو حذف کن",
+    "lang": "fa",
+    "action": "tag.delete",
+    "slots": {
+      "tag": "test-tag"
+    }
+  },
+  {
+    "text": "چه لیبل‌هایی داریم؟",
+    "lang": "fa",
+    "action": "label.list",
+    "slots": {}
+  },
+  {
+    "text": "لیبل‌های ریپوی design-system",
+    "lang": "fa",
+    "action": "label.list",
+    "slots": {
+      "repo": "design-system"
+    }
+  },
+  {
+    "text": "یه لیبل flaky-test بساز با رنگ #ff8800",
+    "lang": "fa",
+    "action": "label.create",
+    "slots": {
+      "labels": ["flaky-test"],
+      "colour": "#ff8800"
+    }
+  },
+  {
+    "text": "لیبل جدید «نیاز به بررسی» قرمز",
+    "lang": "fa",
+    "action": "label.create",
+    "slots": {
+      "labels": ["نیاز به بررسی"],
+      "colour": "قرمز"
+    }
+  },
+  {
+    "text": "لیبل duplicate رو حذف کن",
+    "lang": "fa",
+    "action": "label.delete",
+    "slots": {
+      "labels": ["duplicate"]
+    }
+  },
+  {
+    "text": "برچسب old-ui رو کلا از ریپو پاک کن",
+    "lang": "fa",
+    "action": "label.delete",
+    "slots": {
+      "labels": ["old-ui"]
+    }
+  },
+  {
+    "text": "اسم لیبل bug رو بکن type: bug",
+    "lang": "fa",
+    "action": "label.edit",
+    "slots": {
+      "labels": ["bug"],
+      "title": "type: bug"
+    }
+  },
+  {
+    "text": "رنگ لیبل enhancement رو سبز کن",
+    "lang": "fa",
+    "action": "label.edit",
+    "slots": {
+      "labels": ["enhancement"],
+      "colour": "سبز"
+    }
+  },
+  {
+    "text": "مایلستون‌ها رو نشون بده",
+    "lang": "fa",
+    "action": "milestone.list",
+    "slots": {}
+  },
+  {
+    "text": "مایلستون‌های بسته‌ی roadmap",
+    "lang": "fa",
+    "action": "milestone.list",
+    "slots": {
+      "state": "closed",
+      "repo": "roadmap"
+    }
+  },
+  {
+    "text": "مایلستون Sprint 42 بساز",
+    "lang": "fa",
+    "action": "milestone.create",
+    "slots": {
+      "milestone": "Sprint 42"
+    }
+  },
+  {
+    "text": "یه مایلستون جدید به اسم v3.0 GA بزن تو mobile",
+    "lang": "fa",
+    "action": "milestone.create",
+    "slots": {
+      "milestone": "v3.0 GA",
+      "repo": "mobile"
+    }
+  },
+  {
+    "text": "مایلستون Sprint 41 رو ببند",
+    "lang": "fa",
+    "action": "milestone.close",
+    "slots": {
+      "milestone": "Sprint 41"
+    }
+  },
+  {
+    "text": "Beta 2 تموم شد، مایلستونشو ببند",
+    "lang": "fa",
+    "action": "milestone.close",
+    "slots": {
+      "milestone": "Beta 2"
+    }
+  },
+  {
+    "text": "ریپوهامو لیست کن",
+    "lang": "fa",
+    "action": "repo.list",
+    "slots": {}
+  },
+  {
+    "text": "رو گیت‌لب چه ریپوهایی دارم",
+    "lang": "fa",
+    "action": "repo.list",
+    "slots": {
+      "provider": "gitlab"
+    }
+  },
+  {
+    "text": "ریپوهایی که bot تو اسمشونه",
+    "lang": "fa",
+    "action": "repo.list",
+    "slots": {
+      "query": "bot"
+    }
+  },
+  {
+    "text": "درباره‌ی ریپوی grimstroke بگو",
+    "lang": "fa",
+    "action": "repo.show",
+    "slots": {
+      "repo": "grimstroke"
+    }
+  },
+  {
+    "text": "اطلاعات aturzone/dotfiles",
+    "lang": "fa",
+    "action": "repo.show",
+    "slots": {
+      "repo": "aturzone/dotfiles"
+    }
+  },
+  {
+    "text": "یه ریپوی پرایوت به اسم scratch-notes بساز",
+    "lang": "fa",
+    "action": "repo.create",
+    "slots": {
+      "private": true,
+      "repo": "scratch-notes"
+    }
+  },
+  {
+    "text": "ریپوی جدید recipe-app رو gitea درست کن",
+    "lang": "fa",
+    "action": "repo.create",
+    "slots": {
+      "repo": "recipe-app",
+      "provider": "gitea"
+    }
+  },
+  {
+    "text": "torvalds/linux رو فورک کن",
+    "lang": "fa",
+    "action": "repo.fork",
+    "slots": {
+      "repo": "torvalds/linux"
+    }
+  },
+  {
+    "text": "از vercel/next.js یه فورک بگیر",
+    "lang": "fa",
+    "action": "repo.fork",
+    "slots": {
+      "repo": "vercel/next.js"
+    }
+  },
+  {
+    "text": "به rust-lang/rust ستاره بده",
+    "lang": "fa",
+    "action": "repo.star",
+    "slots": {
+      "repo": "rust-lang/rust"
+    }
+  },
+  {
+    "text": "neovim/neovim رو استار کن",
+    "lang": "fa",
+    "action": "repo.star",
+    "slots": {
+      "repo": "neovim/neovim"
+    }
+  },
+  {
+    "text": "ستاره‌ی facebook/react رو بردار",
+    "lang": "fa",
+    "action": "repo.unstar",
+    "slots": {
+      "repo": "facebook/react"
+    }
+  },
+  {
+    "text": "آن‌استار کن some-org/legacy-lib رو",
+    "lang": "fa",
+    "action": "repo.unstar",
+    "slots": {
+      "repo": "some-org/legacy-lib"
+    }
+  },
+  {
+    "text": "ریپوی test-sandbox رو پاک کن",
+    "lang": "fa",
+    "action": "repo.delete",
+    "slots": {
+      "repo": "test-sandbox"
+    }
+  },
+  {
+    "text": "مخزن old-portfolio رو کامل حذف کن",
+    "lang": "fa",
+    "action": "repo.delete",
+    "slots": {
+      "repo": "old-portfolio"
+    }
+  },
+  {
+    "text": "aturzone/grimstroke رو کلون کن",
+    "lang": "fa",
+    "action": "repo.clone",
+    "slots": {
+      "repo": "aturzone/grimstroke"
+    }
+  },
+  {
+    "text": "کلون کن kubernetes/minikube رو تو ~/work",
+    "lang": "fa",
+    "action": "repo.clone",
+    "slots": {
+      "repo": "kubernetes/minikube",
+      "path": "~/work"
+    }
+  },
+  {
+    "text": "README.md رو نشونم بده",
+    "lang": "fa",
+    "action": "file.show",
+    "slots": {
+      "path": "README.md"
+    }
+  },
+  {
+    "text": "فایل docker-compose.yml رو تو کامیت a3f9c21 ببینم",
+    "lang": "fa",
+    "action": "file.show",
+    "slots": {
+      "path": "docker-compose.yml",
+      "ref": "a3f9c21"
+    }
+  },
+  {
+    "text": "بلیم src/main.rs",
+    "lang": "fa",
+    "action": "file.blame",
+    "slots": {
+      "path": "src/main.rs"
+    }
+  },
+  {
+    "text": "هر خط lib/auth/session.py رو کی نوشته؟",
+    "lang": "fa",
+    "action": "file.blame",
+    "slots": {
+      "path": "lib/auth/session.py"
+    }
+  },
+  {
+    "text": "تو کد دنبال parseConfig بگرد",
+    "lang": "fa",
+    "action": "code.search",
+    "slots": {
+      "query": "parseConfig"
+    }
+  },
+  {
+    "text": "getUserById کجا صدا زده شده تو api-server",
+    "lang": "fa",
+    "action": "code.search",
+    "slots": {
+      "query": "getUserById",
+      "repo": "api-server"
+    }
+  },
+  {
+    "text": "کیا به این ریپو دسترسی دارن",
+    "lang": "fa",
+    "action": "member.list",
+    "slots": {}
+  },
+  {
+    "text": "اعضای ریپوی payments",
+    "lang": "fa",
+    "action": "member.list",
+    "slots": {
+      "repo": "payments"
+    }
+  },
+  {
+    "text": "نوتیف جدید دارم؟",
+    "lang": "fa",
+    "action": "notification.list",
+    "slots": {}
+  },
+  {
+    "text": "اعلان‌های گیت‌هابم رو نشون بده",
+    "lang": "fa",
+    "action": "notification.list",
+    "slots": {
+      "provider": "github"
+    }
+  },
+  {
+    "text": "همه‌ی نوتیفیکیشن‌ها رو خونده شده کن",
+    "lang": "fa",
+    "action": "notification.read",
+    "slots": {}
+  },
+  {
+    "text": "اعلان‌های gitlab رو سین کن",
+    "lang": "fa",
+    "action": "notification.read",
+    "slots": {
+      "provider": "gitlab"
+    }
+  },
+  {
+    "text": "حساب گیت‌هابم رو وصل کن",
+    "lang": "fa",
+    "action": "account.connect",
+    "slots": {
+      "provider": "github"
+    }
+  },
+  {
+    "text": "به gitea روی git.example.org وصل شو",
+    "lang": "fa",
+    "action": "account.connect",
+    "slots": {
+      "provider": "gitea",
+      "host": "git.example.org"
+    }
+  },
+  {
+    "text": "چه حساب‌هایی وصله",
+    "lang": "fa",
+    "action": "account.list",
+    "slots": {}
+  },
+  {
+    "text": "اکانت‌های متصل رو نشون بده",
+    "lang": "fa",
+    "action": "account.list",
+    "slots": {}
+  },
+  {
+    "text": "git.example.org رو قطع کن",
+    "lang": "fa",
+    "action": "account.disconnect",
+    "slots": {
+      "host": "git.example.org"
+    }
+  },
+  {
+    "text": "از gitlab.acme.io لاگ‌اوت کن",
+    "lang": "fa",
+    "action": "account.disconnect",
+    "slots": {
+      "host": "gitlab.acme.io"
+    }
+  },
+  {
+    "text": "با کدوم اکانت لاگینم؟",
+    "lang": "fa",
+    "action": "account.whoami",
+    "slots": {}
+  },
+  {
+    "text": "تو گیت‌هاب کی‌ام من",
+    "lang": "fa",
+    "action": "account.whoami",
+    "slots": {
+      "provider": "github"
+    }
+  },
+  {
+    "text": "گیت استتوس",
+    "lang": "fa",
+    "action": "local.status",
+    "slots": {}
+  },
+  {
+    "text": "چی تغییر کرده اینجا؟",
+    "lang": "fa",
+    "action": "local.status",
+    "slots": {}
+  },
+  {
+    "text": "چیزی کامیت نشده مونده؟",
+    "lang": "fa",
+    "action": "local.status",
+    "slots": {}
+  },
+  {
+    "text": "دیف رو نشون بده",
+    "lang": "fa",
+    "action": "local.diff",
+    "slots": {}
+  },
+  {
+    "text": "تو config/app.yml چی عوض کردم",
+    "lang": "fa",
+    "action": "local.diff",
+    "slots": {
+      "path": "config/app.yml"
+    }
+  },
+  {
+    "text": "همه رو استیج کن",
+    "lang": "fa",
+    "action": "local.stage",
+    "slots": {}
+  },
+  {
+    "text": "src/utils.ts رو add کن",
+    "lang": "fa",
+    "action": "local.stage",
+    "slots": {
+      "path": "src/utils.ts"
+    }
+  },
+  {
+    "text": "package-lock.json رو آن‌استیج کن",
+    "lang": "fa",
+    "action": "local.unstage",
+    "slots": {
+      "path": "package-lock.json"
+    }
+  },
+  {
+    "text": "همه چیو از استیج دربیار",
+    "lang": "fa",
+    "action": "local.unstage",
+    "slots": {}
+  },
+  {
+    "text": "کامیت کن با پیام «رفع تست تاریخ»",
+    "lang": "fa",
+    "action": "local.commit",
+    "slots": {
+      "body": "رفع تست تاریخ"
+    }
+  },
+  {
+    "text": "کامیت بزن: bump deps",
+    "lang": "fa",
+    "action": "local.commit",
+    "slots": {
+      "body": "bump deps"
+    }
+  },
+  {
+    "text": "تغییراتو کامیت کن پیامش fix login redirect",
+    "lang": "fa",
+    "action": "local.commit",
+    "slots": {
+      "body": "fix login redirect"
+    }
+  },
+  {
+    "text": "کامیت آخر رو amend کن",
+    "lang": "fa",
+    "action": "local.amend",
+    "slots": {}
+  },
+  {
+    "text": "پیام کامیت آخر رو بکن docs: update install",
+    "lang": "fa",
+    "action": "local.amend",
+    "slots": {
+      "body": "docs: update install"
+    }
+  },
+  {
+    "text": "پوش کن",
+    "lang": "fa",
+    "action": "local.push",
+    "slots": {}
+  },
+  {
+    "text": "برنچ feature/payments رو پوش کن",
+    "lang": "fa",
+    "action": "local.push",
+    "slots": {
+      "branch": "feature/payments"
+    }
+  },
+  {
+    "text": "فورس پوش بزن",
+    "lang": "fa",
+    "action": "local.push",
+    "slots": {
+      "force": true
+    }
+  },
+  {
+    "text": "پول کن",
+    "lang": "fa",
+    "action": "local.pull",
+    "slots": {}
+  },
+  {
+    "text": "آخرین تغییرات develop رو بکش",
+    "lang": "fa",
+    "action": "local.pull",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "فچ کن",
+    "lang": "fa",
+    "action": "local.fetch",
+    "slots": {}
+  },
+  {
+    "text": "از ریموت‌ها همه چیو فچ کن",
+    "lang": "fa",
+    "action": "local.fetch",
+    "slots": {}
+  },
+  {
+    "text": "develop رو مرج کن تو این برنچ",
+    "lang": "fa",
+    "action": "local.merge",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "feature/tags رو بریز تو main",
+    "lang": "fa",
+    "action": "local.merge",
+    "slots": {
+      "branch": "feature/tags",
+      "base": "main"
+    }
+  },
+  {
+    "text": "ری‌بیس کن روی main",
+    "lang": "fa",
+    "action": "local.rebase",
+    "slots": {
+      "branch": "main"
+    }
+  },
+  {
+    "text": "برنچمو روی origin/develop ریبیس کن",
+    "lang": "fa",
+    "action": "local.rebase",
+    "slots": {
+      "branch": "origin/develop"
+    }
+  },
+  {
+    "text": "تغییراتمو استش کن",
+    "lang": "fa",
+    "action": "local.stash",
+    "slots": {}
+  },
+  {
+    "text": "استش کن با اسم نصفه کاره",
+    "lang": "fa",
+    "action": "local.stash",
+    "slots": {
+      "body": "نصفه کاره"
+    }
+  },
+  {
+    "text": "استش رو پاپ کن",
+    "lang": "fa",
+    "action": "local.unstash",
+    "slots": {}
+  },
+  {
+    "text": "چیزایی که استش کرده بودم برگردون",
+    "lang": "fa",
+    "action": "local.unstash",
+    "slots": {}
+  },
+  {
+    "text": "ریست کن به HEAD~1",
+    "lang": "fa",
+    "action": "local.reset",
+    "slots": {
+      "ref": "HEAD~1"
+    }
+  },
+  {
+    "text": "هارد ریست به origin/main",
+    "lang": "fa",
+    "action": "local.reset",
+    "slots": {
+      "force": true,
+      "ref": "origin/main"
+    }
+  },
+  {
+    "text": "تغییراتمو دور بریز",
+    "lang": "fa",
+    "action": "local.discard",
+    "slots": {}
+  },
+  {
+    "text": "تغییرات styles/main.css رو دور بنداز",
+    "lang": "fa",
+    "action": "local.discard",
+    "slots": {
+      "path": "styles/main.css"
+    }
+  },
+  {
+    "text": "کامیت 4e5f6a7 رو چری‌پیک کن",
+    "lang": "fa",
+    "action": "local.cherry-pick",
+    "slots": {
+      "ref": "4e5f6a7"
+    }
+  },
+  {
+    "text": "c0ffee1 رو بیار رو این برنچ",
+    "lang": "fa",
+    "action": "local.cherry-pick",
+    "slots": {
+      "ref": "c0ffee1"
+    }
+  },
+  {
+    "text": "کامیت deadbee رو ریورت کن",
+    "lang": "fa",
+    "action": "local.revert",
+    "slots": {
+      "ref": "deadbee"
+    }
+  },
+  {
+    "text": "1a2b3c4 رو با یه کامیت جدید خنثی کن",
+    "lang": "fa",
+    "action": "local.revert",
+    "slots": {
+      "ref": "1a2b3c4"
+    }
+  },
+  {
+    "text": "گیت اینیت کن",
+    "lang": "fa",
+    "action": "local.init",
+    "slots": {}
+  },
+  {
+    "text": "این پوشه رو ریپوی گیت کن",
+    "lang": "fa",
+    "action": "local.init",
+    "slots": {}
+  },
+  {
+    "text": "ریموت origin اضافه کن git@github.com:aturzone/grimstroke.git",
+    "lang": "fa",
+    "action": "local.remote-add",
+    "slots": {
+      "title": "origin",
+      "url": "git@github.com:aturzone/grimstroke.git"
+    }
+  },
+  {
+    "text": "upstream رو بذار https://github.com/torvalds/linux.git",
+    "lang": "fa",
+    "action": "local.remote-add",
+    "slots": {
+      "title": "upstream",
+      "url": "https://github.com/torvalds/linux.git"
+    }
+  },
+  {
+    "text": "این دو تا پی‌دی‌اف رو مرج کن یکی بشن",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "نزدیک‌ترین شعبه‌ی بانک ملت کجاست",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "در رو ببند سرده",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "فیلم جدید نولان کی ریلیز میشه",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "مامانمو تو عکسای شمال تگ کن",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "رو جعبه‌ها برچسب آشپزخونه بزن",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "مقاله‌مو ریویو کن ببین ایراد داره",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "به این رستوران پنج ستاره بده",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "مودم رو ریست کن",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "خوراکی‌ها رو قایم کن بچه‌ها پیدا نکنن",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "ماشینو بکش تو پارکینگ",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "زیر پست سارا تو اینستا کامنت بذار",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "قفل در ورودی رو ساعت ۱۰ بزن",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "یه سر به اون پیتزافروشی جدید بزنیم",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "شیر رو به لیست خرید اضافه کن",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "پرواز ارزون به استانبول پیدا کن",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "مرخصی رضا رو تایید کن",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "یه شاخه گل برای مامان بگیر",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "کامیت کردم هر روز ورزش کنم، یادم بنداز",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "پوشه‌ی عکسای عروسی رو بریز رو فلش",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "مرحله‌ی دوم مصاحبه کیه",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "پول برق رو پرداخت کن",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "کلون گوسفند دالی چند سال زنده موند",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "قرار با دندونپزشک رو بنداز هفته‌ی بعد",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "ظرفا امشب با تینا",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "آهنگ جدید شادمهر رو پلی کن",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "یه تیکت قطار برای مشهد بگیر",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "ایشالا فردا هوا خوبه؟",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "پوش‌آپ امروز چند تا زدم",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "کامنت‌های یوتیوبمو ببند",
+    "lang": "fa",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "سه تا کامیت آخر رو اسکواش کن",
+    "lang": "fa",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "با bisect پیدا کن کدوم کامیت خرابش کرده",
+    "lang": "fa",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "برنچ main رو پروتکت کن کسی مستقیم پوش نکنه",
+    "lang": "fa",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "یه وب‌هوک برای اسلک بذار رو ریپو",
+    "lang": "fa",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "ویکی پروژه رو آپدیت کن",
+    "lang": "fa",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "گیت‌هاب پیجز رو برای docs فعال کن",
+    "lang": "fa",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "ریپوی old-api رو آرشیو کن",
+    "lang": "fa",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "این ریپو رو منتقل کن به سازمان aturzone",
+    "lang": "fa",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "سابماژول‌ها رو آپدیت کن",
+    "lang": "fa",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "سکرت DEPLOY_KEY رو به ریپو اضافه کن",
+    "lang": "fa",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "вливай",
+    "lang": "ru",
+    "action": "pr.merge",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "205",
+      "repo": "backend"
+    }
+  },
+  {
+    "text": "закрой его",
+    "lang": "ru",
+    "action": "pr.close",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "44"
+    }
+  },
+  {
+    "text": "какие файлы он трогает?",
+    "lang": "ru",
+    "action": "pr.diff",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "18"
+    }
+  },
+  {
+    "text": "напиши туда: проверю вечером",
+    "lang": "ru",
+    "action": "issue.comment",
+    "slots": {
+      "body": "проверю вечером"
+    },
+    "ctx": {
+      "object": "issue",
+      "number": "77"
+    }
+  },
+  {
+    "text": "повесь на неё метку p2",
+    "lang": "ru",
+    "action": "issue.label",
+    "slots": {
+      "labels": ["p2"]
+    },
+    "ctx": {
+      "object": "issue",
+      "number": "120"
+    }
+  },
+  {
+    "text": "переоткрой",
+    "lang": "ru",
+    "action": "issue.reopen",
+    "slots": {},
+    "ctx": {
+      "object": "issue",
+      "number": "33",
+      "repo": "wiki-bot"
+    }
+  },
+  {
+    "text": "пайплайн по нему зелёный?",
+    "lang": "ru",
+    "action": "ci.status",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "91"
+    }
+  },
+  {
+    "text": "склонируй его",
+    "lang": "ru",
+    "action": "repo.clone",
+    "slots": {},
+    "ctx": {
+      "object": "repo",
+      "repo": "astral-sh/uv"
+    }
+  },
+  {
+    "text": "покажи рефлог",
+    "lang": "ru",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "включи github pages",
+    "lang": "ru",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "вытащи курицу из морозилки",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "слей воду из бойлера",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "отметь Сашу на фото с днюхи",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "поставь будильник на 7",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "заведи задачу в grimstroke: не работает вход через яндекс",
+    "lang": "ru",
+    "action": "issue.create",
+    "slots": {
+      "repo": "grimstroke",
+      "title": "не работает вход через яндекс"
+    }
+  },
+  {
+    "text": "создай issue «Падает импорт CSV» с меткой bug",
+    "lang": "ru",
+    "action": "issue.create",
+    "slots": {
+      "title": "Падает импорт CSV",
+      "labels": ["bug"]
+    }
+  },
+  {
+    "text": "накидай тикет: кнопка сохранить серая на айпаде",
+    "lang": "ru",
+    "action": "issue.create",
+    "slots": {
+      "title": "кнопка сохранить серая на айпаде"
+    }
+  },
+  {
+    "text": "какие задачи открыты в billing-core?",
+    "lang": "ru",
+    "action": "issue.list",
+    "slots": {
+      "state": "open",
+      "repo": "billing-core"
+    }
+  },
+  {
+    "text": "мои задачи",
+    "lang": "ru",
+    "action": "issue.list",
+    "slots": {
+      "mine": true
+    }
+  },
+  {
+    "text": "покажи закрытые issues с меткой ui",
+    "lang": "ru",
+    "action": "issue.list",
+    "slots": {
+      "state": "closed",
+      "labels": ["ui"]
+    }
+  },
+  {
+    "text": "задачи от vpetrov, последние 15",
+    "lang": "ru",
+    "action": "issue.list",
+    "slots": {
+      "author": "vpetrov",
+      "count": "15"
+    }
+  },
+  {
+    "text": "покажи задачу 312",
+    "lang": "ru",
+    "action": "issue.show",
+    "slots": {
+      "number": "312"
+    }
+  },
+  {
+    "text": "что там в issue #47 в репе docs?",
+    "lang": "ru",
+    "action": "issue.show",
+    "slots": {
+      "number": "47",
+      "repo": "docs"
+    }
+  },
+  {
+    "text": "закрой задачу 17",
+    "lang": "ru",
+    "action": "issue.close",
+    "slots": {
+      "number": "17"
+    }
+  },
+  {
+    "text": "issue #88 закрывай, починили",
+    "lang": "ru",
+    "action": "issue.close",
+    "slots": {
+      "number": "88"
+    }
+  },
+  {
+    "text": "переоткрой задачу 76",
+    "lang": "ru",
+    "action": "issue.reopen",
+    "slots": {
+      "number": "76"
+    }
+  },
+  {
+    "text": "баг 203 опять вылез, открой issue заново",
+    "lang": "ru",
+    "action": "issue.reopen",
+    "slots": {
+      "number": "203"
+    }
+  },
+  {
+    "text": "напиши в задаче 9: воспроизвёл на проде",
+    "lang": "ru",
+    "action": "issue.comment",
+    "slots": {
+      "number": "9",
+      "body": "воспроизвёл на проде"
+    }
+  },
+  {
+    "text": "откомментируй #142 — нужен дамп базы",
+    "lang": "ru",
+    "action": "issue.comment",
+    "slots": {
+      "number": "142",
+      "body": "нужен дамп базы"
+    }
+  },
+  {
+    "text": "назначь задачу 45 на @ivanov",
+    "lang": "ru",
+    "action": "issue.assign",
+    "slots": {
+      "number": "45",
+      "people": ["ivanov"]
+    }
+  },
+  {
+    "text": "пусть Олег займётся issue 300",
+    "lang": "ru",
+    "action": "issue.assign",
+    "slots": {
+      "people": ["Олег"],
+      "number": "300"
+    }
+  },
+  {
+    "text": "сними @kate с задачи 61",
+    "lang": "ru",
+    "action": "issue.unassign",
+    "slots": {
+      "people": ["kate"],
+      "number": "61"
+    }
+  },
+  {
+    "text": "повесь метку backend на задачу 33",
+    "lang": "ru",
+    "action": "issue.label",
+    "slots": {
+      "labels": ["backend"],
+      "number": "33"
+    }
+  },
+  {
+    "text": "добавь к #900 метки p1 и security",
+    "lang": "ru",
+    "action": "issue.label",
+    "slots": {
+      "number": "900",
+      "labels": ["p1", "security"]
+    }
+  },
+  {
+    "text": "убери метку wontfix с задачи 12",
+    "lang": "ru",
+    "action": "issue.unlabel",
+    "slots": {
+      "labels": ["wontfix"],
+      "number": "12"
+    }
+  },
+  {
+    "text": "переименуй задачу 19 в «Краш при загрузке фото»",
+    "lang": "ru",
+    "action": "issue.edit",
+    "slots": {
+      "number": "19",
+      "title": "Краш при загрузке фото"
+    }
+  },
+  {
+    "text": "поменяй описание issue 250: логи в приложении",
+    "lang": "ru",
+    "action": "issue.edit",
+    "slots": {
+      "number": "250",
+      "body": "логи в приложении"
+    }
+  },
+  {
+    "text": "задачу 71 в веху Q4",
+    "lang": "ru",
+    "action": "issue.milestone",
+    "slots": {
+      "number": "71",
+      "milestone": "Q4"
+    }
+  },
+  {
+    "text": "привяжи #15 к майлстоуну 2.1",
+    "lang": "ru",
+    "action": "issue.milestone",
+    "slots": {
+      "number": "15",
+      "milestone": "2.1"
+    }
+  },
+  {
+    "text": "заблокируй обсуждение в задаче 666, там срач",
+    "lang": "ru",
+    "action": "issue.lock",
+    "slots": {
+      "number": "666"
+    }
+  },
+  {
+    "text": "разблокируй комменты в issue 666",
+    "lang": "ru",
+    "action": "issue.unlock",
+    "slots": {
+      "number": "666"
+    }
+  },
+  {
+    "text": "сделай пул-реквест из feature/oauth в develop",
+    "lang": "ru",
+    "action": "pr.create",
+    "slots": {
+      "branch": "feature/oauth",
+      "base": "develop"
+    }
+  },
+  {
+    "text": "открой MR с ветки fix/typo, черновиком",
+    "lang": "ru",
+    "action": "pr.create",
+    "slots": {
+      "branch": "fix/typo",
+      "draft": true
+    }
+  },
+  {
+    "text": "запили пулл реквест для hotfix-cart в main с названием Фикс корзины",
+    "lang": "ru",
+    "action": "pr.create",
+    "slots": {
+      "branch": "hotfix-cart",
+      "base": "main",
+      "title": "Фикс корзины"
+    }
+  },
+  {
+    "text": "открытые пулреквесты?",
+    "lang": "ru",
+    "action": "pr.list",
+    "slots": {
+      "state": "open"
+    }
+  },
+  {
+    "text": "мои мр-ы",
+    "lang": "ru",
+    "action": "pr.list",
+    "slots": {
+      "mine": true
+    }
+  },
+  {
+    "text": "какие PR смёржены в web за последнее время",
+    "lang": "ru",
+    "action": "pr.list",
+    "slots": {
+      "state": "merged",
+      "repo": "web"
+    }
+  },
+  {
+    "text": "покажи PR 58",
+    "lang": "ru",
+    "action": "pr.show",
+    "slots": {
+      "number": "58"
+    }
+  },
+  {
+    "text": "что в мерж-реквесте 6?",
+    "lang": "ru",
+    "action": "pr.show",
+    "slots": {
+      "number": "6"
+    }
+  },
+  {
+    "text": "какие файлы меняет PR 22",
+    "lang": "ru",
+    "action": "pr.diff",
+    "slots": {
+      "number": "22"
+    }
+  },
+  {
+    "text": "дифф пулл реквеста 45",
+    "lang": "ru",
+    "action": "pr.diff",
+    "slots": {
+      "number": "45"
+    }
+  },
+  {
+    "text": "закрой PR 12 без мержа",
+    "lang": "ru",
+    "action": "pr.close",
+    "slots": {
+      "number": "12"
+    }
+  },
+  {
+    "text": "переоткрой пул-реквест 44",
+    "lang": "ru",
+    "action": "pr.reopen",
+    "slots": {
+      "number": "44"
+    }
+  },
+  {
+    "text": "коммент в PR 18: добавь тест на пустой список",
+    "lang": "ru",
+    "action": "pr.comment",
+    "slots": {
+      "number": "18",
+      "body": "добавь тест на пустой список"
+    }
+  },
+  {
+    "text": "смёржи PR 41",
+    "lang": "ru",
+    "action": "pr.merge",
+    "slots": {
+      "number": "41"
+    }
+  },
+  {
+    "text": "влей MR 19 через squash",
+    "lang": "ru",
+    "action": "pr.merge",
+    "slots": {
+      "number": "19",
+      "method": "squash"
+    }
+  },
+  {
+    "text": "мержи",
+    "lang": "ru",
+    "action": "pr.merge",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "14",
+      "repo": "web"
+    }
+  },
+  {
+    "text": "апрувни PR 55",
+    "lang": "ru",
+    "action": "pr.approve",
+    "slots": {
+      "number": "55"
+    }
+  },
+  {
+    "text": "одобри пулл реквест 61",
+    "lang": "ru",
+    "action": "pr.approve",
+    "slots": {
+      "number": "61"
+    }
+  },
+  {
+    "text": "запроси изменения в PR 23: миграция необратима",
+    "lang": "ru",
+    "action": "pr.request-changes",
+    "slots": {
+      "number": "23",
+      "body": "миграция необратима"
+    }
+  },
+  {
+    "text": "попроси @dima заревьюить PR 70",
+    "lang": "ru",
+    "action": "pr.request-review",
+    "slots": {
+      "people": ["dima"],
+      "number": "70"
+    }
+  },
+  {
+    "text": "позови Аню и Сергея на ревью MR 312",
+    "lang": "ru",
+    "action": "pr.request-review",
+    "slots": {
+      "people": ["Аню", "Сергея"],
+      "number": "312"
+    }
+  },
+  {
+    "text": "назначь PR 66 на @kevin",
+    "lang": "ru",
+    "action": "pr.assign",
+    "slots": {
+      "number": "66",
+      "people": ["kevin"]
+    }
+  },
+  {
+    "text": "метку needs-docs на PR 29",
+    "lang": "ru",
+    "action": "pr.label",
+    "slots": {
+      "labels": ["needs-docs"],
+      "number": "29"
+    }
+  },
+  {
+    "text": "переименуй PR 33 в Ретраи для S3",
+    "lang": "ru",
+    "action": "pr.edit",
+    "slots": {
+      "number": "33",
+      "title": "Ретраи для S3"
+    }
+  },
+  {
+    "text": "смени базовую ветку PR 47 на release/2.0",
+    "lang": "ru",
+    "action": "pr.edit",
+    "slots": {
+      "number": "47",
+      "base": "release/2.0"
+    }
+  },
+  {
+    "text": "PR 81 готов к ревью, сними драфт",
+    "lang": "ru",
+    "action": "pr.ready",
+    "slots": {
+      "number": "81"
+    }
+  },
+  {
+    "text": "вытащи PR 39 локально",
+    "lang": "ru",
+    "action": "pr.checkout",
+    "slots": {
+      "number": "39"
+    }
+  },
+  {
+    "text": "чекаутни мр 1500, хочу потыкать",
+    "lang": "ru",
+    "action": "pr.checkout",
+    "slots": {
+      "number": "1500"
+    }
+  },
+  {
+    "text": "список веток",
+    "lang": "ru",
+    "action": "branch.list",
+    "slots": {}
+  },
+  {
+    "text": "какие ветки есть в marketing-site",
+    "lang": "ru",
+    "action": "branch.list",
+    "slots": {
+      "repo": "marketing-site"
+    }
+  },
+  {
+    "text": "создай ветку feature/dark-mode",
+    "lang": "ru",
+    "action": "branch.create",
+    "slots": {
+      "branch": "feature/dark-mode"
+    }
+  },
+  {
+    "text": "отпочкуй ветку hotfix/login от main",
+    "lang": "ru",
+    "action": "branch.create",
+    "slots": {
+      "branch": "hotfix/login",
+      "ref": "main"
+    }
+  },
+  {
+    "text": "новая ветка exp-cache от v2.3.1",
+    "lang": "ru",
+    "action": "branch.create",
+    "slots": {
+      "branch": "exp-cache",
+      "ref": "v2.3.1"
+    }
+  },
+  {
+    "text": "удали ветку old-experiment",
+    "lang": "ru",
+    "action": "branch.delete",
+    "slots": {
+      "branch": "old-experiment"
+    }
+  },
+  {
+    "text": "снеси stale-ui принудительно",
+    "lang": "ru",
+    "action": "branch.delete",
+    "slots": {
+      "branch": "stale-ui",
+      "force": true
+    }
+  },
+  {
+    "text": "переключись на develop",
+    "lang": "ru",
+    "action": "branch.switch",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "перейди на ветку release/1.4",
+    "lang": "ru",
+    "action": "branch.switch",
+    "slots": {
+      "branch": "release/1.4"
+    }
+  },
+  {
+    "text": "переименуй ветку master в main",
+    "lang": "ru",
+    "action": "branch.rename",
+    "slots": {
+      "branch": "master",
+      "title": "main"
+    }
+  },
+  {
+    "text": "последние коммиты",
+    "lang": "ru",
+    "action": "commit.list",
+    "slots": {}
+  },
+  {
+    "text": "10 последних коммитов в develop",
+    "lang": "ru",
+    "action": "commit.list",
+    "slots": {
+      "count": "10",
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "что коммитил alexk недавно",
+    "lang": "ru",
+    "action": "commit.list",
+    "slots": {
+      "author": "alexk"
+    }
+  },
+  {
+    "text": "покажи коммит a1b2c3d",
+    "lang": "ru",
+    "action": "commit.show",
+    "slots": {
+      "ref": "a1b2c3d"
+    }
+  },
+  {
+    "text": "сравни feature/x с main",
+    "lang": "ru",
+    "action": "commit.compare",
+    "slots": {
+      "ref": "feature/x",
+      "base": "main"
+    }
+  },
+  {
+    "text": "насколько develop убежал от main",
+    "lang": "ru",
+    "action": "commit.compare",
+    "slots": {
+      "ref": "develop",
+      "base": "main"
+    }
+  },
+  {
+    "text": "CI прошёл?",
+    "lang": "ru",
+    "action": "ci.status",
+    "slots": {}
+  },
+  {
+    "text": "зелёная сборка на main?",
+    "lang": "ru",
+    "action": "ci.status",
+    "slots": {
+      "branch": "main"
+    }
+  },
+  {
+    "text": "пайплайн по MR 77 как?",
+    "lang": "ru",
+    "action": "ci.status",
+    "slots": {
+      "number": "77"
+    }
+  },
+  {
+    "text": "последние запуски CI",
+    "lang": "ru",
+    "action": "ci.list",
+    "slots": {}
+  },
+  {
+    "text": "5 последних пайплайнов на develop",
+    "lang": "ru",
+    "action": "ci.list",
+    "slots": {
+      "count": "5",
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "перезапусти упавшие джобы",
+    "lang": "ru",
+    "action": "ci.rerun",
+    "slots": {}
+  },
+  {
+    "text": "рестартани пайплайн на feature/ci-cache",
+    "lang": "ru",
+    "action": "ci.rerun",
+    "slots": {
+      "branch": "feature/ci-cache"
+    }
+  },
+  {
+    "text": "отмени текущую сборку",
+    "lang": "ru",
+    "action": "ci.cancel",
+    "slots": {}
+  },
+  {
+    "text": "стопни пайплайн на main",
+    "lang": "ru",
+    "action": "ci.cancel",
+    "slots": {
+      "branch": "main"
+    }
+  },
+  {
+    "text": "список релизов",
+    "lang": "ru",
+    "action": "release.list",
+    "slots": {}
+  },
+  {
+    "text": "какие релизы у fastlane-tools",
+    "lang": "ru",
+    "action": "release.list",
+    "slots": {
+      "repo": "fastlane-tools"
+    }
+  },
+  {
+    "text": "покажи релиз v2.0.0",
+    "lang": "ru",
+    "action": "release.show",
+    "slots": {
+      "tag": "v2.0.0"
+    }
+  },
+  {
+    "text": "выпусти релиз v1.4.0",
+    "lang": "ru",
+    "action": "release.create",
+    "slots": {
+      "tag": "v1.4.0"
+    }
+  },
+  {
+    "text": "сделай черновик релиза v3.0.0-rc1",
+    "lang": "ru",
+    "action": "release.create",
+    "slots": {
+      "draft": true,
+      "tag": "v3.0.0-rc1"
+    }
+  },
+  {
+    "text": "удали релиз v1.0.0-beta",
+    "lang": "ru",
+    "action": "release.delete",
+    "slots": {
+      "tag": "v1.0.0-beta"
+    }
+  },
+  {
+    "text": "теги",
+    "lang": "ru",
+    "action": "tag.list",
+    "slots": {}
+  },
+  {
+    "text": "поставь тег v1.2.3 на текущий коммит",
+    "lang": "ru",
+    "action": "tag.create",
+    "slots": {
+      "tag": "v1.2.3"
+    }
+  },
+  {
+    "text": "тегни 3fa85f6 как v0.5.0",
+    "lang": "ru",
+    "action": "tag.create",
+    "slots": {
+      "ref": "3fa85f6",
+      "tag": "v0.5.0"
+    }
+  },
+  {
+    "text": "удали тег v1.2.3-bad",
+    "lang": "ru",
+    "action": "tag.delete",
+    "slots": {
+      "tag": "v1.2.3-bad"
+    }
+  },
+  {
+    "text": "какие метки есть в репе?",
+    "lang": "ru",
+    "action": "label.list",
+    "slots": {}
+  },
+  {
+    "text": "создай метку flaky-test цвета #ff8800",
+    "lang": "ru",
+    "action": "label.create",
+    "slots": {
+      "labels": ["flaky-test"],
+      "colour": "#ff8800"
+    }
+  },
+  {
+    "text": "новая метка «нужен repro», красная",
+    "lang": "ru",
+    "action": "label.create",
+    "slots": {
+      "labels": ["нужен repro"],
+      "colour": "красная"
+    }
+  },
+  {
+    "text": "удали метку duplicate",
+    "lang": "ru",
+    "action": "label.delete",
+    "slots": {
+      "labels": ["duplicate"]
+    }
+  },
+  {
+    "text": "перекрась метку enhancement в зелёный",
+    "lang": "ru",
+    "action": "label.edit",
+    "slots": {
+      "labels": ["enhancement"],
+      "colour": "зелёный"
+    }
+  },
+  {
+    "text": "вехи",
+    "lang": "ru",
+    "action": "milestone.list",
+    "slots": {}
+  },
+  {
+    "text": "закрытые майлстоуны в roadmap",
+    "lang": "ru",
+    "action": "milestone.list",
+    "slots": {
+      "state": "closed",
+      "repo": "roadmap"
+    }
+  },
+  {
+    "text": "создай веху Sprint 42",
+    "lang": "ru",
+    "action": "milestone.create",
+    "slots": {
+      "milestone": "Sprint 42"
+    }
+  },
+  {
+    "text": "закрой веху Sprint 41",
+    "lang": "ru",
+    "action": "milestone.close",
+    "slots": {
+      "milestone": "Sprint 41"
+    }
+  },
+  {
+    "text": "мои репозитории",
+    "lang": "ru",
+    "action": "repo.list",
+    "slots": {}
+  },
+  {
+    "text": "какие репы у меня на gitlab",
+    "lang": "ru",
+    "action": "repo.list",
+    "slots": {
+      "provider": "gitlab"
+    }
+  },
+  {
+    "text": "расскажи про репозиторий grimstroke",
+    "lang": "ru",
+    "action": "repo.show",
+    "slots": {
+      "repo": "grimstroke"
+    }
+  },
+  {
+    "text": "создай приватный репозиторий scratch-notes",
+    "lang": "ru",
+    "action": "repo.create",
+    "slots": {
+      "private": true,
+      "repo": "scratch-notes"
+    }
+  },
+  {
+    "text": "форкни torvalds/linux",
+    "lang": "ru",
+    "action": "repo.fork",
+    "slots": {
+      "repo": "torvalds/linux"
+    }
+  },
+  {
+    "text": "поставь звезду rust-lang/rust",
+    "lang": "ru",
+    "action": "repo.star",
+    "slots": {
+      "repo": "rust-lang/rust"
+    }
+  },
+  {
+    "text": "убери звёздочку с facebook/react",
+    "lang": "ru",
+    "action": "repo.unstar",
+    "slots": {
+      "repo": "facebook/react"
+    }
+  },
+  {
+    "text": "удали репозиторий test-sandbox",
+    "lang": "ru",
+    "action": "repo.delete",
+    "slots": {
+      "repo": "test-sandbox"
+    }
+  },
+  {
+    "text": "склонируй aturzone/grimstroke",
+    "lang": "ru",
+    "action": "repo.clone",
+    "slots": {
+      "repo": "aturzone/grimstroke"
+    }
+  },
+  {
+    "text": "клонни kubernetes/minikube в ~/work",
+    "lang": "ru",
+    "action": "repo.clone",
+    "slots": {
+      "repo": "kubernetes/minikube",
+      "path": "~/work"
+    }
+  },
+  {
+    "text": "покажи README.md",
+    "lang": "ru",
+    "action": "file.show",
+    "slots": {
+      "path": "README.md"
+    }
+  },
+  {
+    "text": "кто писал строки в src/main.rs",
+    "lang": "ru",
+    "action": "file.blame",
+    "slots": {
+      "path": "src/main.rs"
+    }
+  },
+  {
+    "text": "найди в коде parseConfig",
+    "lang": "ru",
+    "action": "code.search",
+    "slots": {
+      "query": "parseConfig"
+    }
+  },
+  {
+    "text": "где вызывается getUserById в api-server",
+    "lang": "ru",
+    "action": "code.search",
+    "slots": {
+      "query": "getUserById",
+      "repo": "api-server"
+    }
+  },
+  {
+    "text": "кто участвует в проекте",
+    "lang": "ru",
+    "action": "member.list",
+    "slots": {}
+  },
+  {
+    "text": "кто в репе payments",
+    "lang": "ru",
+    "action": "member.list",
+    "slots": {
+      "repo": "payments"
+    }
+  },
+  {
+    "text": "есть уведомления?",
+    "lang": "ru",
+    "action": "notification.list",
+    "slots": {}
+  },
+  {
+    "text": "отметь все уведомления прочитанными",
+    "lang": "ru",
+    "action": "notification.read",
+    "slots": {}
+  },
+  {
+    "text": "подключи мой github",
+    "lang": "ru",
+    "action": "account.connect",
+    "slots": {
+      "provider": "github"
+    }
+  },
+  {
+    "text": "какие аккаунты подключены",
+    "lang": "ru",
+    "action": "account.list",
+    "slots": {}
+  },
+  {
+    "text": "отключи git.example.org",
+    "lang": "ru",
+    "action": "account.disconnect",
+    "slots": {
+      "host": "git.example.org"
+    }
+  },
+  {
+    "text": "под кем я залогинен",
+    "lang": "ru",
+    "action": "account.whoami",
+    "slots": {}
+  },
+  {
+    "text": "гит статус",
+    "lang": "ru",
+    "action": "local.status",
+    "slots": {}
+  },
+  {
+    "text": "что поменялось?",
+    "lang": "ru",
+    "action": "local.status",
+    "slots": {}
+  },
+  {
+    "text": "покажи дифф",
+    "lang": "ru",
+    "action": "local.diff",
+    "slots": {}
+  },
+  {
+    "text": "что я наменял в config/app.yml",
+    "lang": "ru",
+    "action": "local.diff",
+    "slots": {
+      "path": "config/app.yml"
+    }
+  },
+  {
+    "text": "добавь всё в индекс",
+    "lang": "ru",
+    "action": "local.stage",
+    "slots": {}
+  },
+  {
+    "text": "убери package-lock.json из индекса",
+    "lang": "ru",
+    "action": "local.unstage",
+    "slots": {
+      "path": "package-lock.json"
+    }
+  },
+  {
+    "text": "закоммить с сообщением «фикс теста дат»",
+    "lang": "ru",
+    "action": "local.commit",
+    "slots": {
+      "body": "фикс теста дат"
+    }
+  },
+  {
+    "text": "коммит: обновил зависимости",
+    "lang": "ru",
+    "action": "local.commit",
+    "slots": {
+      "body": "обновил зависимости"
+    }
+  },
+  {
+    "text": "поправь последний коммит",
+    "lang": "ru",
+    "action": "local.amend",
+    "slots": {}
+  },
+  {
+    "text": "запушь",
+    "lang": "ru",
+    "action": "local.push",
+    "slots": {}
+  },
+  {
+    "text": "пушни feature/payments",
+    "lang": "ru",
+    "action": "local.push",
+    "slots": {
+      "branch": "feature/payments"
+    }
+  },
+  {
+    "text": "форс пуш",
+    "lang": "ru",
+    "action": "local.push",
+    "slots": {
+      "force": true
+    }
+  },
+  {
+    "text": "подтяни изменения",
+    "lang": "ru",
+    "action": "local.pull",
+    "slots": {}
+  },
+  {
+    "text": "спуль develop",
+    "lang": "ru",
+    "action": "local.pull",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "фетчни",
+    "lang": "ru",
+    "action": "local.fetch",
+    "slots": {}
+  },
+  {
+    "text": "влей develop в текущую ветку",
+    "lang": "ru",
+    "action": "local.merge",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "ребейзни на main",
+    "lang": "ru",
+    "action": "local.rebase",
+    "slots": {
+      "branch": "main"
+    }
+  },
+  {
+    "text": "застешь изменения",
+    "lang": "ru",
+    "action": "local.stash",
+    "slots": {}
+  },
+  {
+    "text": "верни из стеша",
+    "lang": "ru",
+    "action": "local.unstash",
+    "slots": {}
+  },
+  {
+    "text": "сбрось на HEAD~1",
+    "lang": "ru",
+    "action": "local.reset",
+    "slots": {
+      "ref": "HEAD~1"
+    }
+  },
+  {
+    "text": "откати все локальные изменения, они не нужны",
+    "lang": "ru",
+    "action": "local.discard",
+    "slots": {}
+  },
+  {
+    "text": "черрипикни 4e5f6a7",
+    "lang": "ru",
+    "action": "local.cherry-pick",
+    "slots": {
+      "ref": "4e5f6a7"
+    }
+  },
+  {
+    "text": "откати коммит deadbee",
+    "lang": "ru",
+    "action": "local.revert",
+    "slots": {
+      "ref": "deadbee"
+    }
+  },
+  {
+    "text": "инициализируй тут репозиторий",
+    "lang": "ru",
+    "action": "local.init",
+    "slots": {}
+  },
+  {
+    "text": "добавь remote upstream https://github.com/torvalds/linux.git",
+    "lang": "ru",
+    "action": "local.remote-add",
+    "slots": {
+      "title": "upstream",
+      "url": "https://github.com/torvalds/linux.git"
+    }
+  },
+  {
+    "text": "закрой её",
+    "lang": "ru",
+    "action": "issue.close",
+    "slots": {},
+    "ctx": {
+      "object": "issue",
+      "number": "220",
+      "repo": "mobile-app"
+    }
+  },
+  {
+    "text": "апрувни",
+    "lang": "ru",
+    "action": "pr.approve",
+    "slots": {},
+    "ctx": {
+      "object": "pr",
+      "number": "9"
+    }
+  },
+  {
+    "text": "назначь на @lena",
+    "lang": "ru",
+    "action": "issue.assign",
+    "slots": {
+      "people": ["lena"]
+    },
+    "ctx": {
+      "object": "issue",
+      "number": "31"
+    }
+  },
+  {
+    "text": "удали её",
+    "lang": "ru",
+    "action": "branch.delete",
+    "slots": {},
+    "ctx": {
+      "object": "branch",
+      "branch": "feature/export"
+    }
+  },
+  {
+    "text": "перенеси встречу на четверг",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "объедини эти два pdf",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "закрой окна в гостиной",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "когда релиз нового айфона",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "отметь маму на фотках с пляжа",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "сбрось настройки роутера",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "где ближайший филиал сбербанка",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "поставь звёздочку этому рецепту",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "запиши меня на ревью зубов к стоматологу",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "вилка или ложка для ризотто?",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "спрячь конфеты от детей",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "закрой вкладку с ютубом",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "одобри отпуск Петрова",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "кто автор «Мастера и Маргариты»",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "запушить бы себя в спортзал завтра",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "вернуть товар в озон",
+    "lang": "ru",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "сквошни последние 3 коммита",
+    "lang": "ru",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "запусти git bisect",
+    "lang": "ru",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "защити ветку main от пушей",
+    "lang": "ru",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "добавь вебхук в телегу",
+    "lang": "ru",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "обнови сабмодули",
+    "lang": "ru",
+    "action": "unknown",
+    "slots": {}
+  },
+  {
+    "text": "Erstelle ein Issue: Login schlägt bei Umlauten fehl",
+    "lang": "de",
+    "action": "issue.create",
+    "slots": {
+      "title": "Login schlägt bei Umlauten fehl"
+    }
+  },
+  {
+    "text": "schließ den PR 42 bitte",
+    "lang": "de",
+    "action": "pr.close",
+    "slots": {
+      "number": "42"
+    }
+  },
+  {
+    "text": "merge Pull Request 17 mit squash",
+    "lang": "de",
+    "action": "pr.merge",
+    "slots": {
+      "number": "17",
+      "method": "squash"
+    }
+  },
+  {
+    "text": "wechsle auf den Branch develop",
+    "lang": "de",
+    "action": "branch.switch",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "Ist die Pipeline auf main grün?",
+    "lang": "de",
+    "action": "ci.status",
+    "slots": {
+      "branch": "main"
+    }
+  },
+  {
+    "text": "zeig mir die letzten 5 Commits",
+    "lang": "de",
+    "action": "commit.list",
+    "slots": {
+      "count": "5"
+    }
+  },
+  {
+    "text": "schieb den Termin auf Freitag",
+    "lang": "de",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "ouvre une issue : l'export PDF plante",
+    "lang": "fr",
+    "action": "issue.create",
+    "slots": {
+      "title": "l'export PDF plante"
+    }
+  },
+  {
+    "text": "liste les pull requests ouvertes",
+    "lang": "fr",
+    "action": "pr.list",
+    "slots": {
+      "state": "open"
+    }
+  },
+  {
+    "text": "approuve la PR 23",
+    "lang": "fr",
+    "action": "pr.approve",
+    "slots": {
+      "number": "23"
+    }
+  },
+  {
+    "text": "crée une branche feature/paiement depuis main",
+    "lang": "fr",
+    "action": "branch.create",
+    "slots": {
+      "branch": "feature/paiement",
+      "ref": "main"
+    }
+  },
+  {
+    "text": "pousse mes commits",
+    "lang": "fr",
+    "action": "local.push",
+    "slots": {}
+  },
+  {
+    "text": "assigne l'issue 8 à @claire",
+    "lang": "fr",
+    "action": "issue.assign",
+    "slots": {
+      "number": "8",
+      "people": ["claire"]
+    }
+  },
+  {
+    "text": "ferme la porte du garage",
+    "lang": "fr",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "cierra el issue 31",
+    "lang": "es",
+    "action": "issue.close",
+    "slots": {
+      "number": "31"
+    }
+  },
+  {
+    "text": "abre un PR de feature/carrito a develop",
+    "lang": "es",
+    "action": "pr.create",
+    "slots": {
+      "branch": "feature/carrito",
+      "base": "develop"
+    }
+  },
+  {
+    "text": "¿pasó el CI?",
+    "lang": "es",
+    "action": "ci.status",
+    "slots": {}
+  },
+  {
+    "text": "haz commit con el mensaje \"arregla el login\"",
+    "lang": "es",
+    "action": "local.commit",
+    "slots": {
+      "body": "arregla el login"
+    }
+  },
+  {
+    "text": "busca en el código handlePayment",
+    "lang": "es",
+    "action": "code.search",
+    "slots": {
+      "query": "handlePayment"
+    }
+  },
+  {
+    "text": "muéstrame los issues abiertos de tienda-api",
+    "lang": "es",
+    "action": "issue.list",
+    "slots": {
+      "state": "open",
+      "repo": "tienda-api"
+    }
+  },
+  {
+    "text": "etiqueta las cajas de la mudanza",
+    "lang": "es",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "cria uma issue: botão de pagar some no celular",
+    "lang": "pt",
+    "action": "issue.create",
+    "slots": {
+      "title": "botão de pagar some no celular"
+    }
+  },
+  {
+    "text": "faz merge do PR 64",
+    "lang": "pt",
+    "action": "pr.merge",
+    "slots": {
+      "number": "64"
+    }
+  },
+  {
+    "text": "puxa as alterações da develop",
+    "lang": "pt",
+    "action": "local.pull",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "quais branches existem?",
+    "lang": "pt",
+    "action": "branch.list",
+    "slots": {}
+  },
+  {
+    "text": "comenta na issue 12: já corrigi no staging",
+    "lang": "pt",
+    "action": "issue.comment",
+    "slots": {
+      "number": "12",
+      "body": "já corrigi no staging"
+    }
+  },
+  {
+    "text": "clona o repositório aturzone/grimstroke",
+    "lang": "pt",
+    "action": "repo.clone",
+    "slots": {
+      "repo": "aturzone/grimstroke"
+    }
+  },
+  {
+    "text": "adia a reunião pra segunda",
+    "lang": "pt",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "apri una issue: il calendario non sincronizza",
+    "lang": "it",
+    "action": "issue.create",
+    "slots": {
+      "title": "il calendario non sincronizza"
+    }
+  },
+  {
+    "text": "mostrami la PR 90",
+    "lang": "it",
+    "action": "pr.show",
+    "slots": {
+      "number": "90"
+    }
+  },
+  {
+    "text": "passa al branch release/3.1",
+    "lang": "it",
+    "action": "branch.switch",
+    "slots": {
+      "branch": "release/3.1"
+    }
+  },
+  {
+    "text": "fai lo stash delle modifiche",
+    "lang": "it",
+    "action": "local.stash",
+    "slots": {}
+  },
+  {
+    "text": "crea il tag v2.4.0",
+    "lang": "it",
+    "action": "tag.create",
+    "slots": {
+      "tag": "v2.4.0"
+    }
+  },
+  {
+    "text": "riapri la issue 55",
+    "lang": "it",
+    "action": "issue.reopen",
+    "slots": {
+      "number": "55"
+    }
+  },
+  {
+    "text": "chiudi la finestra della cucina",
+    "lang": "it",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "yeni bir issue aç: ödeme sayfası donuyor",
+    "lang": "tr",
+    "action": "issue.create",
+    "slots": {
+      "title": "ödeme sayfası donuyor"
+    }
+  },
+  {
+    "text": "PR 77yi birleştir",
+    "lang": "tr",
+    "action": "pr.merge",
+    "slots": {
+      "number": "77"
+    }
+  },
+  {
+    "text": "develop dalına geç",
+    "lang": "tr",
+    "action": "branch.switch",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "değişiklikleri pushla",
+    "lang": "tr",
+    "action": "local.push",
+    "slots": {}
+  },
+  {
+    "text": "açık PRları listele",
+    "lang": "tr",
+    "action": "pr.list",
+    "slots": {
+      "state": "open"
+    }
+  },
+  {
+    "text": "issue 14ü kapat",
+    "lang": "tr",
+    "action": "issue.close",
+    "slots": {
+      "number": "14"
+    }
+  },
+  {
+    "text": "toplantıyı perşembeye ertele",
+    "lang": "tr",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "افتح issue جديدة: تسجيل الدخول لا يعمل",
+    "lang": "ar",
+    "action": "issue.create",
+    "slots": {
+      "title": "تسجيل الدخول لا يعمل"
+    }
+  },
+  {
+    "text": "ادمج طلب السحب 21",
+    "lang": "ar",
+    "action": "pr.merge",
+    "slots": {
+      "number": "21"
+    }
+  },
+  {
+    "text": "انتقل إلى الفرع develop",
+    "lang": "ar",
+    "action": "branch.switch",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "اعرض آخر الكوميتات",
+    "lang": "ar",
+    "action": "commit.list",
+    "slots": {}
+  },
+  {
+    "text": "هل نجح الـ CI؟",
+    "lang": "ar",
+    "action": "ci.status",
+    "slots": {}
+  },
+  {
+    "text": "أغلق المشكلة رقم 9",
+    "lang": "ar",
+    "action": "issue.close",
+    "slots": {
+      "number": "9"
+    }
+  },
+  {
+    "text": "أغلق باب المطبخ",
+    "lang": "ar",
+    "action": null,
+    "slots": {}
+  },
+  {
+    "text": "新建一个 issue：登录页面白屏",
+    "lang": "zh",
+    "action": "issue.create",
+    "slots": {
+      "title": "登录页面白屏"
+    }
+  },
+  {
+    "text": "合并 PR 33",
+    "lang": "zh",
+    "action": "pr.merge",
+    "slots": {
+      "number": "33"
+    }
+  },
+  {
+    "text": "切换到 develop 分支",
+    "lang": "zh",
+    "action": "branch.switch",
+    "slots": {
+      "branch": "develop"
+    }
+  },
+  {
+    "text": "把改动推上去",
+    "lang": "zh",
+    "action": "local.push",
+    "slots": {}
+  },
+  {
+    "text": "CI 过了吗？",
+    "lang": "zh",
+    "action": "ci.status",
+    "slots": {}
+  },
+  {
+    "text": "列出所有打开的 issue",
+    "lang": "zh",
+    "action": "issue.list",
+    "slots": {
+      "state": "open"
+    }
+  },
+  {
+    "text": "帮我把会议推迟到周五",
+    "lang": "zh",
+    "action": null,
+    "slots": {}
+  }
+]

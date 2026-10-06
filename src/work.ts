@@ -14,14 +14,19 @@
  *   grimstroke issues [repo]          a repository's open issues (--mine, --closed)
  *   grimstroke close|reopen <n> [repo]
  *   grimstroke comment <n> [repo] -m <words>
+ *   grimstroke git <sentence>         anything said to git, in any of its eleven languages
  *
  * Every command takes --json, for an agent. A card is named by its id, or by address|id.
  */
 
+import { readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { createInterface } from 'node:readline/promises';
 import { type ShapeBlock, summarize } from '@core/box/card.ts';
 import { classify } from '@core/box/classify.ts';
 import { matchCommands } from '@core/box/commands.ts';
 import { fieldValues, readShape } from '@core/box/fields.ts';
+import type { GitContext } from '@core/box/git/understand.ts';
 import { INTENTS, isIntent } from '@core/box/intents.ts';
 import { isDone, SLASH_BOARD } from '@core/box/slash.ts';
 import { gatherToday, type TodayEntry } from '@core/day/gather.ts';
@@ -52,6 +57,7 @@ export const WORK_VERBS = [
   'close',
   'reopen',
   'comment',
+  'git',
 ] as const;
 
 interface Flags {
@@ -96,6 +102,68 @@ function fail(f: Flags, message: string, extra: Record<string, unknown> = {}): n
   if (f.json) process.stdout.write(`${JSON.stringify({ error: message, ...extra })}\n`);
   else process.stderr.write(`${message}\n`);
   return 1;
+}
+
+/**
+ * A sentence to git: understood, shown, and -- when it changes something -- done only once it is
+ * confirmed, at the prompt or with --yes. --plan shows what it would do and stops. What it was
+ * about is remembered in the workspace (git-context.json), so the next "close it" knows what "it"
+ * is; and inside a working copy, local git is done on that working copy.
+ */
+async function sayGit(f: Flags, live: Live, store: Store, text: string): Promise<number> {
+  if (!text)
+    return fail(f, 'say it: grimstroke git "close #12" · "merge PR 14" · "ایشو ۱۲ رو ببند"');
+  const [{ understandGit }, { doGit }, { WorkingCopy }] = await Promise.all([
+    import('@core/box/git/understand.ts'),
+    import('@core/git/do.ts'),
+    import('@core/git/local.ts'),
+  ]);
+  const memory = join(store.dir, 'git-context.json');
+  const last = await readFile(memory, 'utf8')
+    .then((t) => JSON.parse(t) as GitContext['last'])
+    .catch(() => undefined);
+  const local = await WorkingCopy.find(process.cwd());
+  const ctx: GitContext = {
+    ...(last ? { last } : {}),
+    ...(local ? { local: { root: local.root, branch: await local.branch().catch(() => '') } } : {}),
+  };
+  const plan = understandGit(text, ctx);
+  if (f.bare.has('--plan')) {
+    say(
+      f,
+      { plan },
+      `${plan.action?.id ?? 'not known'} (${Math.round(plan.confidence * 100)}%) · ${plan.says}`,
+    );
+    return plan.action ? 0 : 1;
+  }
+  const env = { live, local, here: process.cwd(), ...(last ? { last } : {}) };
+  let result = await doGit(plan, env);
+  if (result.confirm) {
+    let yes = f.bare.has('--yes');
+    if (!yes && process.stdin.isTTY && !f.json) {
+      const rl = createInterface({ input: process.stdin, output: process.stderr });
+      const danger = plan.weight === 'destructive' ? ' (this cannot be undone)' : '';
+      const answer = await rl.question(`${plan.says}${danger} — do it? [y/N] `);
+      rl.close();
+      yes = /^(y|yes|بله|آره|اره|да|д)$/i.test(answer.trim());
+    }
+    if (!yes) {
+      say(
+        f,
+        result,
+        `${plan.says} — not done${process.stdin.isTTY ? '' : ' (add --yes to do it)'}`,
+      );
+      return 1;
+    }
+    result = await doGit(plan, { ...env, confirmed: true });
+  }
+  if (result.last) await writeFile(memory, JSON.stringify(result.last));
+  const lines = [result.says];
+  for (const i of result.items ?? []) lines.push(`  ${i.title}${i.meta ? `  · ${i.meta}` : ''}`);
+  if (result.text) lines.push('', result.text.trimEnd());
+  if (result.url) lines.push(result.url);
+  say(f, result, lines.join('\n'));
+  return result.ok ? 0 : 1;
 }
 
 /** The card a name means: an id anywhere, or address|id. */
@@ -353,6 +421,9 @@ export async function work(
         );
         return 0;
       }
+
+      case 'git':
+        return await sayGit(f, live, store, text);
 
       case 'close':
       case 'reopen':

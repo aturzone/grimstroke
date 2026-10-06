@@ -4,24 +4,45 @@
  */
 
 import {
+  type Branch,
+  type CodeHit,
+  type Comparison,
+  type FileChange,
+  type FileText,
+  type HistoryQuery,
   hex,
   type IssuePatch,
   type IssueQuery,
+  type LabelEdit,
+  type MergeMethod,
+  type MergePatch,
+  type Milestone,
   type NewIssue,
+  type NewMerge,
+  type NewRelease,
+  type Notice,
   people,
   person,
+  type Release,
   type Remote,
+  type RepoInfo,
   type RepoSummary,
+  RUN_STATUS,
+  type Run,
+  type Tag,
   type Upload,
+  type Verdict,
   type Whoami,
 } from '@core/git/adapter.ts';
-import { call } from '@core/git/http.ts';
+import { call, RemoteError } from '@core/git/http.ts';
 import {
   type Comment,
   type Commit,
   closesIn,
   type Issue,
+  type Label,
   type Merge,
+  type Person,
   type Pipeline,
 } from '@core/git/model.ts';
 
@@ -345,5 +366,481 @@ export class GitHub implements Remote {
       },
     });
     return `![${file.name}](https://${this.host}/${repo}/blob/${branch}/${path}?raw=true)`;
+  }
+
+  // ---------------------------------------------------------------- the rest of git
+
+  async lock(repo: string, n: string, locked: boolean): Promise<void> {
+    await this.get(`/repos/${repo}/issues/${n}/lock`, {
+      method: locked ? 'PUT' : 'DELETE',
+      ...(locked ? { body: {} } : {}),
+    });
+  }
+
+  private toMilestone(m: Json): Milestone {
+    return {
+      id: String(m.number),
+      title: String(m.title ?? ''),
+      state: m.state === 'closed' ? 'closed' : 'open',
+      ...(m.due_on ? { due: String(m.due_on) } : {}),
+      ...(m.description ? { description: String(m.description) } : {}),
+      ...(m.html_url ? { url: String(m.html_url) } : {}),
+    };
+  }
+
+  async milestones(repo: string, state: 'open' | 'closed' | 'all' = 'open'): Promise<Milestone[]> {
+    const list = await this.get<Json[]>(`/repos/${repo}/milestones?state=${state}&per_page=50`);
+    return list.map((m) => this.toMilestone(m));
+  }
+
+  async createMilestone(repo: string, title: string, description?: string): Promise<Milestone> {
+    return this.toMilestone(
+      await this.get<Json>(`/repos/${repo}/milestones`, {
+        method: 'POST',
+        body: { title, ...(description ? { description } : {}) },
+      }),
+    );
+  }
+
+  private async milestoneNamed(repo: string, title: string): Promise<Milestone> {
+    const all = await this.milestones(repo, 'all');
+    const m =
+      all.find((x) => x.title === title) ??
+      all.find((x) => x.title.toLowerCase() === title.toLowerCase());
+    if (!m) throw new RemoteError(404, `no milestone called ${title} in ${repo}`);
+    return m;
+  }
+
+  async closeMilestone(repo: string, title: string): Promise<Milestone> {
+    const m = await this.milestoneNamed(repo, title);
+    return this.toMilestone(
+      await this.get<Json>(`/repos/${repo}/milestones/${m.id}`, {
+        method: 'PATCH',
+        body: { state: 'closed' },
+      }),
+    );
+  }
+
+  async setMilestone(repo: string, n: string, title: string): Promise<Issue> {
+    const m = await this.milestoneNamed(repo, title);
+    return this.toIssue(
+      await this.get<Json>(`/repos/${repo}/issues/${n}`, {
+        method: 'PATCH',
+        body: { milestone: Number(m.id) },
+      }),
+    );
+  }
+
+  async createMerge(repo: string, m: NewMerge): Promise<Merge> {
+    return this.toMerge(
+      await this.get<Json>(`/repos/${repo}/pulls`, {
+        method: 'POST',
+        body: {
+          title: m.title,
+          head: m.source,
+          base: m.target,
+          ...(m.body ? { body: m.body } : {}),
+          ...(m.draft ? { draft: true } : {}),
+        },
+      }),
+    );
+  }
+
+  async updateMerge(repo: string, n: string, patch: MergePatch): Promise<Merge> {
+    // A pull request is an issue too: its labels and people are changed as an issue's are.
+    if (patch.addLabels || patch.removeLabels || patch.assignees)
+      await this.update(repo, n, {
+        ...(patch.addLabels ? { addLabels: patch.addLabels } : {}),
+        ...(patch.removeLabels ? { removeLabels: patch.removeLabels } : {}),
+        ...(patch.assignees ? { assignees: patch.assignees } : {}),
+      });
+    const body: Json = {};
+    if (patch.title) body.title = patch.title;
+    if (patch.body !== undefined) body.body = patch.body;
+    if (patch.target) body.base = patch.target;
+    if (patch.state) body.state = patch.state;
+    if (!Object.keys(body).length) return this.merge(repo, n);
+    return this.toMerge(
+      await this.get<Json>(`/repos/${repo}/pulls/${n}`, { method: 'PATCH', body }),
+    );
+  }
+
+  async mergeMerge(
+    repo: string,
+    n: string,
+    how: { method?: MergeMethod; message?: string } = {},
+  ): Promise<Merge> {
+    await this.get<Json>(`/repos/${repo}/pulls/${n}/merge`, {
+      method: 'PUT',
+      body: {
+        merge_method: how.method ?? 'merge',
+        ...(how.message ? { commit_message: how.message } : {}),
+      },
+    });
+    return this.merge(repo, n);
+  }
+
+  async review(repo: string, n: string, verdict: Verdict, body?: string): Promise<void> {
+    const event =
+      verdict === 'approve'
+        ? 'APPROVE'
+        : verdict === 'request-changes'
+          ? 'REQUEST_CHANGES'
+          : 'COMMENT';
+    await this.get<Json>(`/repos/${repo}/pulls/${n}/reviews`, {
+      method: 'POST',
+      body: { event, ...(body ? { body } : {}) },
+    });
+  }
+
+  async requestReview(repo: string, n: string, people: string[]): Promise<void> {
+    await this.get<Json>(`/repos/${repo}/pulls/${n}/requested_reviewers`, {
+      method: 'POST',
+      body: { reviewers: people },
+    });
+  }
+
+  /** REST cannot take a pull request out of draft; GraphQL can. */
+  async ready(repo: string, n: string): Promise<Merge> {
+    const p = await this.get<Json>(`/repos/${repo}/pulls/${n}`);
+    const graphql = this.base.endsWith('/api/v3')
+      ? `${this.base.slice(0, -3)}graphql`
+      : `${this.base}/graphql`;
+    const reply = await call<{ errors?: Array<{ message: string }> }>(
+      graphql,
+      (h) => {
+        h.authorization = `Bearer ${this.token}`;
+      },
+      {
+        method: 'POST',
+        body: {
+          query:
+            'mutation($id: ID!) { markPullRequestReadyForReview(input: {pullRequestId: $id}) { clientMutationId } }',
+          variables: { id: String(p.node_id ?? '') },
+        },
+      },
+    );
+    if (reply.body?.errors?.length)
+      throw new RemoteError(422, reply.body.errors.map((e) => e.message).join('; '));
+    return this.merge(repo, n);
+  }
+
+  async mergeFiles(repo: string, n: string): Promise<FileChange[]> {
+    const list = await this.get<Json[]>(`/repos/${repo}/pulls/${n}/files?per_page=100`);
+    return list.map((f) => ({
+      path: String(f.filename ?? ''),
+      status: String(f.status ?? 'modified'),
+      additions: Number(f.additions ?? 0),
+      deletions: Number(f.deletions ?? 0),
+    }));
+  }
+
+  mergeComment(repo: string, n: string, body: string): Promise<Comment> {
+    return this.comment(repo, n, body);
+  }
+
+  async branches(repo: string): Promise<Branch[]> {
+    const list = await this.get<Json[]>(`/repos/${repo}/branches?per_page=100`);
+    return list.map((b) => ({
+      name: String(b.name),
+      sha: String(((b.commit ?? {}) as Json).sha ?? ''),
+      ...(b.protected ? { protected: true } : {}),
+    }));
+  }
+
+  private async shaOf(repo: string, ref: string): Promise<string> {
+    return String(
+      (await this.get<Json>(`/repos/${repo}/commits/${encodeURIComponent(ref)}`)).sha ?? '',
+    );
+  }
+
+  async createBranch(repo: string, name: string, from?: string): Promise<Branch> {
+    const sha = await this.shaOf(repo, from ?? (await this.repo(repo)).defaultBranch);
+    await this.get<Json>(`/repos/${repo}/git/refs`, {
+      method: 'POST',
+      body: { ref: `refs/heads/${name}`, sha },
+    });
+    return { name, sha };
+  }
+
+  async deleteBranch(repo: string, name: string): Promise<void> {
+    await this.get(`/repos/${repo}/git/refs/heads/${name}`, { method: 'DELETE' });
+  }
+
+  async renameBranch(repo: string, from: string, to: string): Promise<Branch> {
+    const b = await this.get<Json>(`/repos/${repo}/branches/${from}/rename`, {
+      method: 'POST',
+      body: { new_name: to },
+    });
+    return { name: String(b.name ?? to), sha: String(((b.commit ?? {}) as Json).sha ?? '') };
+  }
+
+  async history(repo: string, q: HistoryQuery): Promise<Commit[]> {
+    const params = new URLSearchParams({ per_page: String(q.perPage ?? 20) });
+    if (q.ref) params.set('sha', q.ref);
+    if (q.author) params.set('author', q.author);
+    if (q.path) params.set('path', q.path);
+    const list = await this.get<Json[]>(`/repos/${repo}/commits?${params}`);
+    return list.map((c) => this.toCommit(c));
+  }
+
+  async compare(repo: string, base: string, head: string): Promise<Comparison> {
+    const c = await this.get<Json>(
+      `/repos/${repo}/compare/${encodeURIComponent(base)}...${encodeURIComponent(head)}`,
+    );
+    return {
+      ahead: Number(c.ahead_by ?? 0),
+      behind: Number(c.behind_by ?? 0),
+      commits: (Array.isArray(c.commits) ? (c.commits as Json[]) : []).map((x) => this.toCommit(x)),
+      files: (Array.isArray(c.files) ? (c.files as Json[]) : []).map((f) => ({
+        path: String(f.filename ?? ''),
+        status: String(f.status ?? 'modified'),
+        additions: Number(f.additions ?? 0),
+        deletions: Number(f.deletions ?? 0),
+      })),
+      ...(c.html_url ? { url: String(c.html_url) } : {}),
+    };
+  }
+
+  async runs(repo: string, q: { ref?: string; perPage?: number }): Promise<Run[]> {
+    const params = new URLSearchParams({ per_page: String(q.perPage ?? 10) });
+    if (q.ref) params.set('branch', q.ref);
+    const found = await this.get<{ workflow_runs?: Json[] }>(
+      `/repos/${repo}/actions/runs?${params}`,
+    );
+    return (found.workflow_runs ?? []).map((r) => ({
+      id: String(r.id),
+      name: String(r.name ?? r.display_title ?? 'run'),
+      ref: String(r.head_branch ?? ''),
+      ...(r.head_sha ? { sha: String(r.head_sha) } : {}),
+      status:
+        r.status === 'completed'
+          ? (RUN_STATUS[String(r.conclusion)] ?? 'failed')
+          : (RUN_STATUS[String(r.status)] ?? 'running'),
+      url: String(r.html_url ?? ''),
+      ...(r.created_at ? { at: String(r.created_at) } : {}),
+    }));
+  }
+
+  async rerun(repo: string, id: string): Promise<void> {
+    const run = await this.get<Json>(`/repos/${repo}/actions/runs/${id}`);
+    // A failed run reruns what failed; any other, all of it.
+    const failed = run.status === 'completed' && run.conclusion !== 'success';
+    await this.get(`/repos/${repo}/actions/runs/${id}/${failed ? 'rerun-failed-jobs' : 'rerun'}`, {
+      method: 'POST',
+      body: {},
+    });
+  }
+
+  async cancelRun(repo: string, id: string): Promise<void> {
+    await this.get(`/repos/${repo}/actions/runs/${id}/cancel`, { method: 'POST', body: {} });
+  }
+
+  private toRelease(r: Json): Release {
+    return {
+      tag: String(r.tag_name ?? ''),
+      name: String(r.name || r.tag_name || ''),
+      ...(r.body ? { body: String(r.body) } : {}),
+      ...(r.draft ? { draft: true } : {}),
+      ...(r.prerelease ? { prerelease: true } : {}),
+      ...(r.published_at ? { at: String(r.published_at) } : {}),
+      url: String(r.html_url ?? ''),
+    };
+  }
+
+  async releases(repo: string, perPage = 10): Promise<Release[]> {
+    return (await this.get<Json[]>(`/repos/${repo}/releases?per_page=${perPage}`)).map((r) =>
+      this.toRelease(r),
+    );
+  }
+
+  async release(repo: string, tag?: string): Promise<Release> {
+    return this.toRelease(
+      await this.get<Json>(
+        `/repos/${repo}/releases/${tag ? `tags/${encodeURIComponent(tag)}` : 'latest'}`,
+      ),
+    );
+  }
+
+  async createRelease(repo: string, r: NewRelease): Promise<Release> {
+    return this.toRelease(
+      await this.get<Json>(`/repos/${repo}/releases`, {
+        method: 'POST',
+        body: {
+          tag_name: r.tag,
+          name: r.name ?? r.tag,
+          ...(r.body ? { body: r.body } : {}),
+          ...(r.ref ? { target_commitish: r.ref } : {}),
+          ...(r.draft ? { draft: true } : {}),
+        },
+      }),
+    );
+  }
+
+  async deleteRelease(repo: string, tag: string): Promise<void> {
+    const r = await this.get<Json>(`/repos/${repo}/releases/tags/${encodeURIComponent(tag)}`);
+    await this.get(`/repos/${repo}/releases/${r.id}`, { method: 'DELETE' });
+  }
+
+  async tags(repo: string, perPage = 30): Promise<Tag[]> {
+    const list = await this.get<Json[]>(`/repos/${repo}/tags?per_page=${perPage}`);
+    return list.map((t) => ({
+      name: String(t.name),
+      sha: String(((t.commit ?? {}) as Json).sha ?? ''),
+    }));
+  }
+
+  async createTag(repo: string, name: string, ref: string, message?: string): Promise<Tag> {
+    let sha = await this.shaOf(repo, ref);
+    if (message) {
+      // An annotated tag is an object of its own, which the ref then points at.
+      const tag = await this.get<Json>(`/repos/${repo}/git/tags`, {
+        method: 'POST',
+        body: { tag: name, message, object: sha, type: 'commit' },
+      });
+      sha = String(tag.sha ?? sha);
+    }
+    await this.get<Json>(`/repos/${repo}/git/refs`, {
+      method: 'POST',
+      body: { ref: `refs/tags/${name}`, sha },
+    });
+    return { name, sha };
+  }
+
+  async deleteTag(repo: string, name: string): Promise<void> {
+    await this.get(`/repos/${repo}/git/refs/tags/${name}`, { method: 'DELETE' });
+  }
+
+  private toLabel(l: Json): Label {
+    return { name: String(l.name), ...(hex(l.color) ? { colour: hex(l.color) as string } : {}) };
+  }
+
+  async createLabel(repo: string, label: LabelEdit & { name: string }): Promise<Label> {
+    return this.toLabel(
+      await this.get<Json>(`/repos/${repo}/labels`, {
+        method: 'POST',
+        body: {
+          name: label.name,
+          color: (label.colour ?? '#ededed').replace('#', ''),
+          ...(label.description ? { description: label.description } : {}),
+        },
+      }),
+    );
+  }
+
+  async editLabel(repo: string, name: string, edit: LabelEdit): Promise<Label> {
+    return this.toLabel(
+      await this.get<Json>(`/repos/${repo}/labels/${encodeURIComponent(name)}`, {
+        method: 'PATCH',
+        body: {
+          ...(edit.name ? { new_name: edit.name } : {}),
+          ...(edit.colour ? { color: edit.colour.replace('#', '') } : {}),
+          ...(edit.description !== undefined ? { description: edit.description } : {}),
+        },
+      }),
+    );
+  }
+
+  async deleteLabel(repo: string, name: string): Promise<void> {
+    await this.get(`/repos/${repo}/labels/${encodeURIComponent(name)}`, { method: 'DELETE' });
+  }
+
+  private toInfo(r: Json): RepoInfo {
+    return {
+      repo: String(r.full_name),
+      ...(r.description ? { description: String(r.description) } : {}),
+      private: Boolean(r.private),
+      defaultBranch: String(r.default_branch ?? 'main'),
+      stars: Number(r.stargazers_count ?? 0),
+      forks: Number(r.forks_count ?? 0),
+      openIssues: Number(r.open_issues_count ?? 0),
+      url: String(r.html_url ?? ''),
+    };
+  }
+
+  async info(repo: string): Promise<RepoInfo> {
+    return this.toInfo(await this.get<Json>(`/repos/${repo}`));
+  }
+
+  async createRepo(r: {
+    name: string;
+    description?: string;
+    private?: boolean;
+  }): Promise<RepoInfo> {
+    // "org/name" makes it in the organisation; a bare name, the user's own.
+    const [owner, name] = r.name.includes('/') ? r.name.split('/', 2) : [undefined, r.name];
+    return this.toInfo(
+      await this.get<Json>(owner ? `/orgs/${owner}/repos` : '/user/repos', {
+        method: 'POST',
+        body: {
+          name,
+          ...(r.description ? { description: r.description } : {}),
+          private: Boolean(r.private),
+        },
+      }),
+    );
+  }
+
+  async fork(repo: string): Promise<RepoInfo> {
+    return this.toInfo(await this.get<Json>(`/repos/${repo}/forks`, { method: 'POST', body: {} }));
+  }
+
+  async star(repo: string, on: boolean): Promise<void> {
+    await this.get(`/user/starred/${repo}`, { method: on ? 'PUT' : 'DELETE' });
+  }
+
+  async deleteRepo(repo: string): Promise<void> {
+    await this.get(`/repos/${repo}`, { method: 'DELETE' });
+  }
+
+  async file(repo: string, path: string, ref?: string): Promise<FileText> {
+    const f = await this.get<Json>(
+      `/repos/${repo}/contents/${path}${ref ? `?ref=${encodeURIComponent(ref)}` : ''}`,
+    );
+    if (Array.isArray(f)) throw new RemoteError(400, `${path} is a folder`);
+    return {
+      path: String(f.path ?? path),
+      text: Buffer.from(String(f.content ?? ''), 'base64').toString('utf8'),
+      size: Number(f.size ?? 0),
+      url: String(f.html_url ?? ''),
+    };
+  }
+
+  async searchCode(repo: string, q: string): Promise<CodeHit[]> {
+    const found = await this.get<{ items?: Json[] }>(
+      `/search/code?q=${encodeURIComponent(`${q} repo:${repo}`)}&per_page=20`,
+    );
+    return (found.items ?? []).map((i) => ({
+      path: String(i.path ?? ''),
+      repo: String(((i.repository ?? {}) as Json).full_name ?? repo),
+      url: String(i.html_url ?? ''),
+    }));
+  }
+
+  async members(repo: string): Promise<Person[]> {
+    // Collaborators need push access to list; anyone can see who contributed.
+    const list = await this.get<Json[]>(`/repos/${repo}/collaborators?per_page=100`).catch(() =>
+      this.get<Json[]>(`/repos/${repo}/contributors?per_page=100`),
+    );
+    return people(list);
+  }
+
+  async notices(): Promise<Notice[]> {
+    const list = await this.get<Json[]>('/notifications?per_page=50');
+    return list.map((n) => {
+      const subject = (n.subject ?? {}) as Json;
+      return {
+        id: String(n.id),
+        title: String(subject.title ?? ''),
+        repo: String(((n.repository ?? {}) as Json).full_name ?? ''),
+        kind: String(subject.type ?? ''),
+        unread: Boolean(n.unread),
+        ...(n.updated_at ? { at: String(n.updated_at) } : {}),
+      };
+    });
+  }
+
+  async readNotices(): Promise<void> {
+    await this.get('/notifications', { method: 'PUT', body: {} });
   }
 }
