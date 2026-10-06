@@ -57,7 +57,7 @@ describe('the login door', () => {
     expect(right.status).toBe(303);
     const cookie = right.headers.get('set-cookie') ?? '';
     expect(cookie).toContain('HttpOnly');
-    const inside = await fetch(`${base}/slash`, {
+    const inside = await fetch(`${base}/api/today`, {
       headers: { cookie: cookie.split(';')[0] ?? '' },
     });
     expect(inside.status).toBe(200);

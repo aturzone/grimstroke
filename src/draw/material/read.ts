@@ -11,7 +11,7 @@
 import { remoteText } from '~/draw/doc/remote/text.ts';
 import type { Block } from '~/draw/material/model.ts';
 import type { Profile } from '~/draw/material/profile/model.ts';
-import { summarize } from '~/draw/shape/render.ts';
+import { summarize } from '~/draw/shape/card.ts';
 
 /** Every run of text a block shows, in reading order. */
 export function textOf(block: Block): string[] {

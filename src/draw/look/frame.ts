@@ -19,16 +19,9 @@
 import { tapeStrip, tornClipPath } from '~/draw/look/paper.ts';
 import { Rng } from '~/draw/look/rng.ts';
 
-export type FrameKind = 'none' | 'keyline' | 'polaroid' | 'taped' | 'torn' | 'pinned';
+import type { FrameKind } from '~/draw/look/vocab.ts';
 
-export const FRAMES: readonly FrameKind[] = [
-  'none',
-  'keyline',
-  'polaroid',
-  'taped',
-  'torn',
-  'pinned',
-];
+export { FRAMES, type FrameKind } from '~/draw/look/vocab.ts';
 
 /**
  * Tape on a mount.

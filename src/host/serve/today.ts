@@ -10,7 +10,7 @@
 import { bookTitle, boundLeaves } from '~/draw/doc/book/model.ts';
 import { upgradeLeaf } from '~/draw/doc/legacy.ts';
 import { NOTE_HEIGHT, NOTE_WIDTH } from '~/draw/material/note/model.ts';
-import type { ShapeBlock } from '~/draw/shape/render.ts';
+import type { ShapeBlock } from '~/draw/shape/card.ts';
 import {
   calendarMonth,
   dayKey,

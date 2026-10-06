@@ -48,6 +48,7 @@ describe('light or dark, and the owner’s colours', () => {
       palettes: { night: { paper: '#101820', ink: 'nope' }, invented: { paper: '#000000' } },
     });
     expect(Object.keys(l.palettes)).toEqual(['night']);
-    expect(l.palettes.night).toEqual({ paper: '#101820', ink: '#e9ebf0', accent: '#6d8bff' });
+    // Only the colours given, as hex; the rest is the face's palette (the core has no colours).
+    expect(l.palettes.night).toEqual({ paper: '#101820' });
   });
 });

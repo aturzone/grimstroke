@@ -22,9 +22,9 @@
 
 import { rgb } from '~/draw/look/colour.ts';
 
-export type PaperKind = 'blank' | 'ruled' | 'squared' | 'graph' | 'dotted';
+import type { PaperKind } from '~/draw/look/vocab.ts';
 
-export const PAPERS: readonly PaperKind[] = ['blank', 'ruled', 'squared', 'graph', 'dotted'];
+export { PAPERS, type PaperKind } from '~/draw/look/vocab.ts';
 
 export interface RulingOptions {
   /** Line spacing in px. The default of each kind is the one that looks right. */

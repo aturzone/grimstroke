@@ -33,7 +33,8 @@ import {
 } from '~/draw/shape/commands.ts';
 import { activeIntent, decide, force, type Memory, promote, START } from '~/draw/shape/decide.ts';
 import { type Fields, readShape } from '~/draw/shape/fields.ts';
-import { INTENTS, iconSvg, SHAPE_INTENTS, type ShapeIntent } from '~/draw/shape/intents.ts';
+import { iconSvg } from '~/draw/shape/glyphs.ts';
+import { INTENTS, SHAPE_INTENTS, type ShapeIntent } from '~/draw/shape/intents.ts';
 import { formatClock } from '~/draw/shape/parse.ts';
 import { renderShape, type ShapeBlock, type ShapeState } from '~/draw/shape/render.ts';
 import { isPersian, langOf } from '~/draw/shape/text.ts';

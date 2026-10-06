@@ -6,7 +6,7 @@
  * which is what lets one exporter capture any of them.
  */
 
-export type Direction = 'ltr' | 'rtl';
+export type { Direction } from '~/draw/look/vocab.ts';
 
 /** What a renderer produces, before anything has touched a browser. */
 export interface RenderedPage {

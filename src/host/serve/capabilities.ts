@@ -11,13 +11,10 @@
 import { MATERIALS, PAGE_SIZES, SHAPES } from '~/draw/doc/book/model.ts';
 import { PROVIDERS } from '~/draw/doc/remote/model.ts';
 import { BACKS, WOODS } from '~/draw/doc/shelf/model.ts';
-import { PAPERS as RULINGS } from '~/draw/look/grid.ts';
-import { PALETTES } from '~/draw/look/palette.ts';
-import { DEFAULT_COLUMNS, TEMPLATES } from '~/draw/look/template.ts';
+import { DEFAULT_COLUMNS, PALETTE_IDS, PAPERS as RULINGS, TEMPLATES } from '~/draw/look/vocab.ts';
 import { DECOR } from '~/draw/material/decor/kinds.ts';
 import { COATS } from '~/draw/material/pet/coats.ts';
 import { ACCENTS, PAPERS as PHOTO_PAPERS } from '~/draw/material/profile/model.ts';
-import { MARKS } from '~/draw/material/sticker/marks.ts';
 import { PACKS } from '~/draw/material/sticker/packs.ts';
 import { SHAPE_INTENTS } from '~/draw/shape/intents.ts';
 import { face } from '~/host/serve/face.ts';
@@ -158,13 +155,12 @@ export function capabilities(): Record<string, unknown> {
       ],
       shapeKinds: SHAPE_INTENTS,
       inkTools: ['pen', 'pencil', 'marker', 'highlighter'],
-      palettes: PALETTES.map((p) => ({ id: p.id, label: p.label, dark: p.dark })),
+      palettes: Object.entries(PALETTE_IDS).map(([id, p]) => ({ id, dark: p.dark })),
       rulings: RULINGS,
       templates: TEMPLATES,
       trackerColumns: DEFAULT_COLUMNS,
       pageSizes: PAGE_SIZES,
       cover: { materials: MATERIALS, stickerShapes: SHAPES },
-      stickerMarks: Object.keys(MARKS),
       stickerPacks: PACKS.map((p) => ({ id: p.id, label: p.label, count: p.items.length })),
       bookcase: {
         woods: WOODS,
@@ -189,6 +185,8 @@ export function capabilities(): Record<string, unknown> {
       },
       providers: PROVIDERS,
     },
+    // The face's own words for what it draws, when there is a face.
+    ...(face()?.vocabulary ? { faceVocabulary: face()?.vocabulary } : {}),
     // What is kept only in a browser, and so is not on the API: nothing an agent needs.
     browserOnly: {
       'gs-remote-trust:<notebook>':

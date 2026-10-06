@@ -8,31 +8,16 @@
  */
 
 import { icon } from '~/draw/chrome/icons.ts';
+import { summarize } from '~/draw/shape/card.ts';
 import { INTENTS, type ShapeIntent } from '~/draw/shape/intents.ts';
-import { renderShape, type ShapeBlock, summarize } from '~/draw/shape/render.ts';
+import { renderShape } from '~/draw/shape/render.ts';
+import { isDone, type SlashEntry, slashKey } from '~/draw/slash/entry.ts';
+
+export { isDone, type SlashEntry, slashKey };
+
 import { escapeHtml } from '~/draw/type/text.ts';
 
 const esc = escapeHtml;
-
-/** One card, and where it lives. */
-export interface SlashEntry {
-  /** The board, or the page of a notebook (book:<id>:<page>), the card is on. */
-  address: string;
-  id: string;
-  block: ShapeBlock;
-  where: { title: string; href: string };
-}
-
-/** The key a card is found by on this page: its address and its id. */
-export const slashKey = (e: Pick<SlashEntry, 'address' | 'id'>): string => `${e.address}|${e.id}`;
-
-/** Done is a thing marked done, or a list with every line ticked. */
-export function isDone(block: ShapeBlock): boolean {
-  if (block.state?.closed) return true;
-  if (block.intent !== 'todo') return false;
-  const lines = block.text.split('\n').filter((l) => l.trim()).length;
-  return lines > 0 && (block.state?.done?.length ?? 0) >= lines;
-}
 
 function card(e: SlashEntry, now: Date): string {
   const key = slashKey(e);

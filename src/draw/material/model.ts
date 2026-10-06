@@ -11,10 +11,10 @@
  */
 
 import type { Issue, Merge, RemoteQuery, RemoteRef, Seen } from '~/draw/doc/remote/model.ts';
-import type { FrameKind } from '~/draw/look/frame.ts';
+import type { FrameKind } from '~/draw/look/vocab.ts';
 import type { NoteStyle } from '~/draw/material/note/model.ts';
 import type { Profile } from '~/draw/material/profile/model.ts';
-import type { ShapeBlock } from '~/draw/shape/render.ts';
+import type { ShapeBlock } from '~/draw/shape/card.ts';
 
 /**
  * Where a rectangle's numbers live.

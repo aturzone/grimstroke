@@ -12,7 +12,8 @@
  * and the font variables, for a document that does not name its own faces.
  */
 
-import { customPalette, PALETTES } from '~/draw/look/palette.ts';
+import { PALETTE_IDS } from '~/draw/look/vocab.ts';
+import { face as drawing } from '~/host/serve/face.ts';
 import type { Store } from '~/host/store/store.ts';
 
 export const SECTIONS = ['board', 'notebook', 'settings'] as const;
@@ -58,7 +59,8 @@ export const DEFAULT_FEEL: Readonly<Feel> = Object.freeze({
 });
 
 /** A palette's colours as the owner set them: the same id, their own paper, ink and accent. */
-export type OwnColours = { paper: string; ink: string; accent: string };
+/** The owner's colours for a palette: any of the three; the face fills the rest from its own. */
+export type OwnColours = { paper?: string; ink?: string; accent?: string };
 
 export type Look = Record<Section, SectionLook> & {
   feel: Feel;
@@ -90,20 +92,18 @@ function readPalettes(
   const from = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   const out: Record<string, OwnColours> = { ...fallback };
   for (const [id, value] of Object.entries(from)) {
-    if (!PALETTES.some((p) => p.id === id)) continue;
+    if (!Object.hasOwn(PALETTE_IDS, id)) continue;
     // null gives a palette its own colours back.
     if (value === null) {
       delete out[id];
       continue;
     }
     const v = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
-    const base = PALETTES.find((p) => p.id === id) as (typeof PALETTES)[number];
-    const colours = {
-      paper: typeof v.paper === 'string' && HEX.test(v.paper) ? v.paper.toLowerCase() : base.paper,
-      ink: typeof v.ink === 'string' && HEX.test(v.ink) ? v.ink.toLowerCase() : base.ink,
-      accent:
-        typeof v.accent === 'string' && HEX.test(v.accent) ? v.accent.toLowerCase() : base.accent,
-    };
+    const colours: OwnColours = {};
+    for (const k of ['paper', 'ink', 'accent'] as const) {
+      const c = v[k];
+      if (typeof c === 'string' && HEX.test(c)) colours[k] = c.toLowerCase();
+    }
     out[id] = colours;
   }
   return out;
@@ -204,10 +204,9 @@ export async function saveLook(store: Store, patch: Record<string, unknown>): Pr
   next.feel = readFeel(patch.feel, current.feel);
   next.theme = patch.theme === 'dark' || patch.theme === 'light' ? patch.theme : current.theme;
   next.palettes = readPalettes(patch.palettes, current.palettes);
-  // Colours nobody could read are turned away, with the reason, rather than saved.
-  for (const [id, colours] of Object.entries(next.palettes)) {
-    customPalette({ ...colours, id });
-  }
+  // Colours nobody could read are turned away, with the reason, rather than saved: the face
+  // that draws them knows what reads (a core with no face keeps what it is given).
+  drawing()?.checkLook?.(next);
   await store.writeSettings({ ...settings, look: next });
   return next;
 }

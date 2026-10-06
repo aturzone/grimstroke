@@ -12,8 +12,8 @@
  */
 
 import type { BoardItem } from '~/draw/doc/board/model.ts';
+import type { ShapeBlock, ShapeState } from '~/draw/shape/card.ts';
 import { readShape } from '~/draw/shape/fields.ts';
-import type { ShapeBlock, ShapeState } from '~/draw/shape/render.ts';
 
 /** Somewhere cards can live: a board, or one page of a notebook. */
 export interface TodaySource {

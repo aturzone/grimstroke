@@ -16,10 +16,8 @@
  * no corner to measure from.
  */
 
-import type { Direction } from '~/draw/doc/model.ts';
 import type { RemoteLink } from '~/draw/doc/remote/model.ts';
-import type { PaperKind } from '~/draw/look/grid.ts';
-import type { PageTemplate, TrackerColumn } from '~/draw/look/template.ts';
+import type { Direction, PageTemplate, PaperKind, TrackerColumn } from '~/draw/look/vocab.ts';
 import type { Block } from '~/draw/material/model.ts';
 
 export type InkTool = 'pen' | 'marker' | 'highlighter' | 'pencil';

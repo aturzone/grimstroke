@@ -1,6 +1,6 @@
 /**
- * The core on its own, with no face: every answer in data, and its one page, the / board, in a
- * frame of its own. Nothing a face draws may be needed for any of it.
+ * The core on its own, with no face: every answer in data, and no page at all. Nothing a face
+ * draws may be needed for any of it.
  */
 
 import { mkdtempSync } from 'node:fs';
@@ -33,15 +33,14 @@ afterAll(async () => {
 });
 
 describe('the core with no face', () => {
-  it('opens on the / board, in a page of its own', async () => {
+  it('has no pages: its front door says what it is and where its API is', async () => {
     const home = await ask('/');
-    expect(home.status).toBe(302);
-    expect(home.headers.get('location')).toBe('/slash');
-    const page = await (await ask('/slash')).text();
-    expect(page).toContain('data-gs="slash"');
-    expect(page).toContain('/box.js');
-    expect(page).not.toContain('/app.js');
-    expect(page).toContain('name="viewport"');
+    expect(home.status).toBe(200);
+    expect(home.headers.get('content-type')).toContain('application/json');
+    const about = (await home.json()) as { name: string; capabilities: string };
+    expect(about.name).toBe('grimstroke');
+    expect(about.capabilities).toBe('/api/capabilities');
+    expect((await ask('/slash')).status).toBe(404);
   });
 
   it('answers a change in data, with nothing drawn', async () => {

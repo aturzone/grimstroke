@@ -16,6 +16,8 @@ import type { BoardSpec } from '~/draw/doc/board/model.ts';
 import type { BookSpec } from '~/draw/doc/book/model.ts';
 import type { ShelfLayout } from '~/draw/doc/shelf/model.ts';
 import type { Pet, Profile } from '~/draw/material/profile/model.ts';
+import type { ShapeBlock } from '~/draw/shape/card.ts';
+import type { SlashEntry } from '~/draw/slash/entry.ts';
 import type { TodaySource } from '~/draw/today/gather.ts';
 import type { Ask } from '~/host/serve/http.ts';
 import type { Live } from '~/host/serve/live.ts';
@@ -54,6 +56,14 @@ export interface Face {
     pet?: Pet | undefined;
     width?: number | undefined;
   }): string;
+  /** A card the / box would make, as a preview (shown only, no controls). */
+  card?(block: ShapeBlock): string;
+  /** The / board's column, drawn again after a change made on it. */
+  slash?(entries: SlashEntry[], now: Date): string;
+  /** Before the workspace's look is kept: throws when it could not be drawn readably. */
+  checkLook?(look: Look): void;
+  /** Its own vocabulary, for GET /api/capabilities: palettes, sticker marks and the like. */
+  vocabulary?: Readonly<Record<string, unknown>>;
   /** The day page's column, drawn again after a tap on it. */
   day?(sources: TodaySource[], day: Date): string;
   /**

@@ -24,10 +24,10 @@ import {
   readProfile,
 } from '~/draw/material/profile/model.ts';
 import { PACKS } from '~/draw/material/sticker/packs.ts';
+import { type ShapeBlock, type ShapeState, summarize } from '~/draw/shape/card.ts';
 import { classify } from '~/draw/shape/classify.ts';
 import { FIELDS, readFields } from '~/draw/shape/fields.ts';
 import { INTENTS, isIntent, SHAPE_INTENTS } from '~/draw/shape/intents.ts';
-import { renderShape, type ShapeBlock, type ShapeState, summarize } from '~/draw/shape/render.ts';
 import { capabilities } from '~/host/serve/capabilities.ts';
 import { face } from '~/host/serve/face.ts';
 import { type Ask, header, readBody, readRaw, send } from '~/host/serve/http.ts';
@@ -219,7 +219,8 @@ export async function api(ask: Ask, live: Live): Promise<boolean> {
             card: chosen,
             summary: summarize(block),
             block,
-            html: renderShape(block, { interactive: false }),
+            // How it would look, from the face that draws cards; the data either way.
+            ...(face()?.card ? { html: face()?.card?.(block) } : {}),
           }
         : {}),
     });

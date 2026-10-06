@@ -6,29 +6,15 @@
  * few lines and small printed labels in the paper's ink, faint enough to write over.
  */
 
+import { DEFAULT_COLUMNS, type PageTemplate, type TrackerColumn } from '~/draw/look/vocab.ts';
 import { escapeHtml } from '~/draw/type/text.ts';
 
-export type PageTemplate = 'cornell' | 'kanban';
-
-/**
- * A tracker's column: what it is called, and which issues belong in it -- open or closed, and
- * carrying these labels -- with an optional limit on how many may be in it at once.
- */
-export interface TrackerColumn {
-  title: string;
-  state: 'open' | 'closed';
-  labels?: string[];
-  /** Work in progress allowed; more than this and the column says so. */
-  limit?: number;
-}
-
-/** The three columns a tracker starts with. */
-export const DEFAULT_COLUMNS: readonly TrackerColumn[] = [
-  { title: 'to do', state: 'open' },
-  { title: 'doing', state: 'open', labels: ['doing'], limit: 3 },
-  { title: 'done', state: 'closed' },
-];
-export const TEMPLATES: readonly PageTemplate[] = ['cornell', 'kanban'];
+export {
+  DEFAULT_COLUMNS,
+  type PageTemplate,
+  TEMPLATES,
+  type TrackerColumn,
+} from '~/draw/look/vocab.ts';
 
 /** The template as an SVG layer the size of the page, or nothing. */
 export function templateLayer(
