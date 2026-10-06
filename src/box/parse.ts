@@ -498,6 +498,11 @@ export function parseHabit(text: string): HabitData {
     ' ',
   );
   rest = rest.replace(/\b(?:in the )?(?:morning|night|evening)s?\b/gi, ' ');
+  // A time of day is when the habit is done, not part of its name: "gym mon wed fri 7am" is Gym.
+  rest = rest.replace(
+    /\b(?:at\s+)?\d{1,2}(?::\d{2})?\s*(?:am|pm)\b|\b\d{1,2}:\d{2}\b|ساعت\s*\d{1,2}(?::\d{2})?|(?<![а-я])в\s+\d{1,2}(?::\d{2})?/giu,
+    ' ',
+  );
   if (!days.length && perWeek) days = spread(perWeek);
   return { title: capitalize(tidy(rest)), days, perWeek, label };
 }

@@ -18,6 +18,7 @@ import { hashPassword, type Login, loginFromEnv } from '@core/serve/login.ts';
 import { serve } from '@core/serve/server.ts';
 import { type Archive, pack, readArchive, unpack } from '@core/store/archive.ts';
 import { Store, TRASH_DAYS } from '@core/store/store.ts';
+import { work } from '@core/work.ts';
 
 declare const __VERSION__: string;
 const VERSION = typeof __VERSION__ === 'string' ? __VERSION__ : '0.0.0-dev';
@@ -25,6 +26,23 @@ const VERSION = typeof __VERSION__ === 'string' ? __VERSION__ : '0.0.0-dev';
 const USAGE = `grimstroke ${VERSION} — a notebook for agents: the core
 
   (drawing pages -- render, html, check, redact, palettes, doctor -- is the face's)
+
+The / box, on this computer's workspace, with nothing else running (--json for an agent):
+  grimstroke read  <words>                  what the box makes of a line
+  grimstroke add   <words> [--board ID]     make it: a card on the / board
+  grimstroke cards [--kind K] [--open|--done]
+  grimstroke done|undone|rm <card>
+  grimstroke today [--date YYYY-MM-DD]
+
+Repositories:
+  grimstroke connect github|gitlab|gitea --token T [--host H]
+  grimstroke accounts | repos
+  grimstroke issue <sentence> [--image FILE]  open an issue, labels chosen from the repository's
+  grimstroke issues [repo] [--mine] [--closed]
+  grimstroke close|reopen <n> [repo]
+  grimstroke comment <n> [repo] -m <words>
+
+The workspace, served:
 
   grimstroke serve [--port N] [--board ID]  open the workspace on a port
                    with GRIMSTROKE_LOGIN_USER and GRIMSTROKE_LOGIN_HASH set, it asks for a
@@ -80,6 +98,10 @@ function parse(argv: string[]): { verb: string; file?: string; rest: string[]; o
 
 async function main(argv: string[]): Promise<number> {
   const { verb, file, rest: words, options } = parse(argv);
+
+  // The / box and the repositories, straight on the workspace's files (src/work.ts).
+  const worked = await work(verb, argv.slice(argv.indexOf(verb) + 1), options.dir);
+  if (worked !== undefined) return worked;
 
   if (verb === 'help' || verb === '--help' || verb === '-h') {
     process.stdout.write(USAGE);

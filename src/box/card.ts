@@ -7,7 +7,7 @@
 import { type Fields, readShape } from '@core/box/fields.ts';
 import { INTENTS, type ShapeIntent } from '@core/box/intents.ts';
 import { describeRandom, formatClock } from '@core/box/parse.ts';
-import { formatAmount, isPersian } from '@core/box/text.ts';
+import { formatAmount, isPersian, langOf } from '@core/box/text.ts';
 import { UNITS } from '@core/box/units.ts';
 import { daysBetween, formatWhen } from '@core/box/when.ts';
 import { formatIn, localZone } from '@core/box/zones.ts';
@@ -59,10 +59,11 @@ export function summarize(block: ShapeBlock, at?: Date): string {
   const now = at ?? (block.made ? new Date(block.made) : new Date(0));
   const made = block.made ? new Date(block.made) : now;
   const fa = isPersian(block.text);
+  const lang = langOf(block.text);
   const st = block.state ?? {};
   const whenOf = (d: Date | null, hasTime: boolean): string => {
     if (!d) return '';
-    const w = formatWhen(d, hasTime, now, fa);
+    const w = formatWhen(d, hasTime, now, lang);
     return [w.day, w.time].filter(Boolean).join(fa ? '، ' : ', ');
   };
   const join = (...parts: Array<string | null | undefined | false>): string =>

@@ -10,7 +10,7 @@
 
 import type { ShapeBlock } from '@core/box/card.ts';
 import { summarize } from '@core/box/card.ts';
-import { isDone, type SlashEntry } from '@core/box/slash.ts';
+import { isDone, SLASH_BOARD, type SlashEntry } from '@core/box/slash.ts';
 import { nextSpot } from '@core/docs/board-extent.ts';
 import { topZ } from '@core/docs/board-patch.ts';
 import { NOTE_HEIGHT, NOTE_WIDTH } from '@core/docs/note.ts';
@@ -20,8 +20,7 @@ import { type Ask, readBody, send } from '@core/serve/http.ts';
 import type { Live } from '@core/serve/live.ts';
 import { todaySources } from '@core/serve/today.ts';
 
-/** Where the box puts what it makes when nobody said where. */
-export const SLASH_BOARD = 'slash';
+export { SLASH_BOARD } from '@core/box/slash.ts';
 
 /** Every card the box made, on every board and every page in use. */
 export async function slashEntries(live: Live, home: string): Promise<SlashEntry[]> {

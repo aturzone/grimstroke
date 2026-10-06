@@ -24,3 +24,6 @@ export function isDone(block: ShapeBlock): boolean {
   const lines = block.text.split('\n').filter((l) => l.trim()).length;
   return lines > 0 && (block.state?.done?.length ?? 0) >= lines;
 }
+
+/** Where the box puts what it makes when nobody said where. */
+export const SLASH_BOARD = 'slash';
