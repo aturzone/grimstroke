@@ -6,9 +6,12 @@
  * over the box only when the line says it outright -- the line starts with what the command is
  * called -- so "dinner on the calendar friday" is still an event; a weaker likeness is only
  * offered as a chip beside the card.
+ *
+ * Git is not a command here, however it is said: "close #12", "ایشوهای من", "запушь" go to the
+ * git layer (box/git/), which reads them in any order and words. A fixed phrase for it here
+ * would answer first, and only for the phrases it knows.
  */
 
-import { GIT_WORDS } from '@core/box/lexicon.ts';
 import { norm } from '@core/box/text.ts';
 
 export type CommandId =
@@ -24,11 +27,7 @@ export type CommandId =
   | 'connect'
   | 'remind-device'
   | 'backup'
-  | 'sign-out'
-  | 'issue-list'
-  | 'issue-close'
-  | 'issue-reopen'
-  | 'issue-comment';
+  | 'sign-out';
 
 export interface Command {
   id: CommandId;
@@ -43,8 +42,6 @@ export interface Command {
   takes?: boolean;
   /** Where it goes, for the ones that go somewhere. */
   href?: string;
-  /** What its argument must have for the line to be this command: an issue's number. */
-  needs?: RegExp;
   /** Shown in the box, which stays open, rather than done and gone. */
   panel?: boolean;
 }
@@ -299,79 +296,6 @@ export const COMMANDS: readonly Command[] = [
     ],
   },
   {
-    id: 'issue-list',
-    label: 'My open issues',
-    fa: 'ایشوهای باز من',
-    ru: 'Мои открытые задачи',
-    icon: 'branch',
-    takes: true,
-    panel: true,
-    names: [
-      'my issues',
-      'open issues',
-      'issues in',
-      'list issues',
-      'issues',
-      'ایشوهای من',
-      'ایشو های من',
-      'ایشوها',
-      'ایشو های',
-      'мои задачи',
-      'открытые задачи',
-      'задачи в',
-      'мои issues',
-    ],
-  },
-  {
-    id: 'issue-close',
-    label: 'Close an issue',
-    fa: 'بستن ایشو',
-    ru: 'Закрыть задачу',
-    icon: 'check',
-    takes: true,
-    needs: /#?\d+/,
-    names: [
-      'close',
-      'close issue',
-      'ببند',
-      'ایشو رو ببند',
-      'بستن ایشو',
-      'закрой',
-      'закрыть',
-      'закрой задачу',
-    ],
-  },
-  {
-    id: 'issue-reopen',
-    label: 'Reopen an issue',
-    fa: 'باز کردن دوباره‌ی ایشو',
-    ru: 'Открыть задачу снова',
-    icon: 'restore',
-    takes: true,
-    needs: /#?\d+/,
-    names: ['reopen', 'reopen issue', 'دوباره باز کن', 'переоткрой', 'открой снова'],
-  },
-  {
-    id: 'issue-comment',
-    label: 'Comment on an issue',
-    fa: 'نظر روی ایشو',
-    ru: 'Комментарий к задаче',
-    icon: 'pencil',
-    takes: true,
-    needs: /#?\d+/,
-    names: [
-      'comment',
-      'comment on',
-      'reply to',
-      'کامنت',
-      'نظر بذار',
-      'نظر بده روی',
-      'комментарий',
-      'ответь на',
-      'прокомментируй',
-    ],
-  },
-  {
     id: 'sign-out',
     label: 'Sign out',
     fa: 'خروج از حساب',
@@ -381,18 +305,6 @@ export const COMMANDS: readonly Command[] = [
     names: ['sign out', 'log out', 'logout', 'خروج', 'خروج از حساب', 'выйти', 'выход'],
   },
 ];
-
-// The repository commands are also said in the lexicon's languages (lexicon.ts).
-const SAID_IN: Partial<Record<CommandId, 'list' | 'close' | 'reopen' | 'comment'>> = {
-  'issue-list': 'list',
-  'issue-close': 'close',
-  'issue-reopen': 'reopen',
-  'issue-comment': 'comment',
-};
-for (const c of COMMANDS) {
-  const which = SAID_IN[c.id];
-  if (which) c.names.push(...GIT_WORDS.flatMap((w) => w.commands[which]));
-}
 
 export interface CommandMatch {
   command: Command;
@@ -424,9 +336,7 @@ export function matchCommands(text: string, most = 3): CommandMatch[] {
       if (line === name) m = { command, arg: '', sure: true, score: 1, said: raw };
       else if (command.takes && line.startsWith(`${name} `)) {
         const arg = text.trim().slice(raw.length).trim();
-        // A command that needs a number is only sure of itself once it has one.
-        const ok = !command.needs || command.needs.test(arg);
-        m = { command, arg, sure: ok, score: ok ? 0.95 : 0.5, said: raw };
+        m = { command, arg, sure: true, score: 0.95, said: raw };
       }
       // A name being typed: offered, not done.
       else if (name.startsWith(line) && line.length >= 3)
@@ -454,32 +364,4 @@ export function languageOf(text: string): 'en' | 'fa' | 'ru' {
   if (/[؀-ۿ]/.test(text)) return 'fa';
   if (/[Ѐ-ӿ]/.test(text)) return 'ru';
   return 'en';
-}
-
-/**
- * An issue named in a command's words: "#12 in web", "12 aturzone/grimstroke: thanks, fixed",
- * "#7 روی ریپو api". The number, the repository if one is named, and what follows a colon.
- */
-export function issueRef(arg: string): {
-  number: string | null;
-  repo: string | null;
-  words: string;
-} {
-  const colon = arg.indexOf(':');
-  const head = colon >= 0 ? arg.slice(0, colon) : arg;
-  const words = colon >= 0 ? arg.slice(colon + 1).trim() : '';
-  const n = /#?(\d+)/.exec(head);
-  const rest = n ? `${head.slice(0, n.index)} ${head.slice(n.index + n[0].length)}` : head;
-  const repo =
-    /(?:^|\s)((?:[\w-]+\/)+[\w.-]+)(?=$|\s)/.exec(rest)?.[1] ??
-    /(?:^|\s)(?:in|on|ریپو(?:ی)?|در|روی|в|во)\s+([\w.-]+)/u.exec(rest)?.[1] ??
-    (/^\s*([\w.-]+)\s*$/.exec(rest)?.[1] || null);
-  return { number: n ? (n[1] as string) : null, repo, words };
-}
-
-/** Whether a list was asked for as one's own: "my issues", "ایشوهای من", "мои задачи", "meine issues"... */
-export function saysMine(said: string): boolean {
-  return /(?<![\p{L}])(?:my|мои|meine|mes|mis|minhas|meus|mie|miei)(?![\p{L}])|من(?![\p{L}])|lerim|larım|تذاكري|مشاكلي|我的/iu.test(
-    said,
-  );
 }

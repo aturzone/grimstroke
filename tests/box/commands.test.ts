@@ -1,4 +1,4 @@
-import { issueRef, languageOf, matchCommands } from '@core/box/commands.ts';
+import { languageOf, matchCommands } from '@core/box/commands.ts';
 import { describe, expect, it } from 'vitest';
 
 const top = (text: string) => matchCommands(text)[0];
@@ -38,21 +38,8 @@ describe('what the / box is asked to do', () => {
     expect(languageOf('привет')).toBe('ru');
   });
 
-  it('acts on an issue only once it has a number', () => {
-    expect(top('close #12 in web')).toMatchObject({ sure: true, command: { id: 'issue-close' } });
-    expect(matchCommands('close the window tonight').some((m) => m.sure)).toBe(false);
-    expect(top('закрой #7')).toMatchObject({ sure: true, command: { id: 'issue-close' } });
-    expect(top('my issues')).toMatchObject({ sure: true, command: { id: 'issue-list' } });
-    expect(top('ایشوهای من')).toMatchObject({ sure: true, command: { id: 'issue-list' } });
-  });
-
-  it('reads an issue named in a command', () => {
-    expect(issueRef('#12 in web')).toEqual({ number: '12', repo: 'web', words: '' });
-    expect(issueRef('12 aturzone/grimstroke: fixed, thanks')).toEqual({
-      number: '12',
-      repo: 'aturzone/grimstroke',
-      words: 'fixed, thanks',
-    });
-    expect(issueRef('#3: done')).toEqual({ number: '3', repo: null, words: 'done' });
+  it('leaves git to the git layer, however it is said', () => {
+    for (const said of ['close #12 in web', 'закрой #7', 'my issues', 'ایشوهای من', 'push'])
+      expect(matchCommands(said).some((m) => m.sure)).toBe(false);
   });
 });

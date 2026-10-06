@@ -1,7 +1,7 @@
 /**
  * The words for working with repositories, language by language: how an issue is asked for,
  * what a fault sounds like, what each kind of issue is called, and the words for label,
- * repository, description and type -- and the box's repository commands.
+ * repository, description and type.
  *
  * English, Persian and Russian are read with their own hand-made patterns (issue.ts, rules.ts,
  * commands.ts); every language here is added to those, so a language is one entry in this list.
@@ -33,8 +33,6 @@ export interface GitWords {
   in: string[];
   /** How a sentence says what a label stands for (labels.ts), by the concept's id: stems. */
   concepts: Record<string, string[]>;
-  /** The box's repository commands. */
-  commands: { list: string[]; close: string[]; reopen: string[]; comment: string[] };
 }
 
 export const GIT_WORDS: readonly GitWords[] = [
@@ -91,12 +89,6 @@ export const GIT_WORDS: readonly GitWords[] = [
       'priority-low': ['unwichtig', 'nicht dringend', 'irgendwann'],
       refactor: ['refaktor', 'aufräumen'],
     },
-    commands: {
-      list: ['meine issues', 'meine tickets', 'offene issues', 'issues in'],
-      close: ['schließe', 'schliesse', 'schließen'],
-      reopen: ['öffne wieder', 'wieder öffnen'],
-      comment: ['kommentiere', 'kommentar zu', 'antworte auf'],
-    },
   },
   {
     lang: 'fr',
@@ -149,12 +141,6 @@ export const GIT_WORDS: readonly GitWords[] = [
       'priority-low': ['mineur', 'pas urgent'],
       refactor: ['refactor', 'nettoyage'],
     },
-    commands: {
-      list: ['mes tickets', 'mes issues', 'tickets ouverts', 'issues dans'],
-      close: ['ferme', 'fermer', 'clôture'],
-      reopen: ['rouvre', 'rouvrir'],
-      comment: ['commente', 'commenter', 'réponds à'],
-    },
   },
   {
     lang: 'es',
@@ -200,12 +186,6 @@ export const GIT_WORDS: readonly GitWords[] = [
       'priority-high': ['urgente', 'importante', 'crítico', 'bloqueante'],
       'priority-low': ['menor', 'no urgente'],
       refactor: ['refactor', 'limpieza'],
-    },
-    commands: {
-      list: ['mis issues', 'mis incidencias', 'issues abiertos', 'issues en'],
-      close: ['cierra', 'cerrar'],
-      reopen: ['reabre', 'reabrir'],
-      comment: ['comenta', 'comentar', 'responde a'],
     },
   },
   {
@@ -253,12 +233,6 @@ export const GIT_WORDS: readonly GitWords[] = [
       'priority-low': ['menor', 'não urgente'],
       refactor: ['refator', 'limpeza'],
     },
-    commands: {
-      list: ['minhas issues', 'meus chamados', 'issues abertas', 'issues em'],
-      close: ['feche', 'fecha', 'fechar'],
-      reopen: ['reabra', 'reabrir'],
-      comment: ['comente', 'comentar', 'responda'],
-    },
   },
   {
     lang: 'it',
@@ -304,12 +278,6 @@ export const GIT_WORDS: readonly GitWords[] = [
       'priority-low': ['minore', 'non urgente'],
       refactor: ['refactor', 'pulizia'],
     },
-    commands: {
-      list: ['le mie issue', 'i miei ticket', 'issue aperte', 'issue in'],
-      close: ['chiudi', 'chiudere'],
-      reopen: ['riapri', 'riaprire'],
-      comment: ['commenta', 'commentare', 'rispondi a'],
-    },
   },
   {
     lang: 'tr',
@@ -347,12 +315,6 @@ export const GIT_WORDS: readonly GitWords[] = [
       'priority-high': ['acil', 'önemli', 'kritik'],
       'priority-low': ['önemsiz', 'acil değil'],
       refactor: ['refactor', 'temizlik'],
-    },
-    commands: {
-      list: ['issuelerim', 'kayıtlarım', 'açık issueler'],
-      close: ['kapat'],
-      reopen: ['yeniden aç', 'tekrar aç'],
-      comment: ['yorum yap', 'yorumla', 'cevap ver'],
     },
   },
   {
@@ -392,12 +354,6 @@ export const GIT_WORDS: readonly GitWords[] = [
       'priority-low': ['ثانوي', 'غير عاجل'],
       refactor: ['إعادة هيكلة', 'تنظيف'],
     },
-    commands: {
-      list: ['تذاكري', 'مشاكلي', 'التذاكر المفتوحة'],
-      close: ['أغلق', 'اغلق'],
-      reopen: ['أعد فتح', 'اعد فتح'],
-      comment: ['علق على', 'أضف تعليقا'],
-    },
   },
   {
     lang: 'zh',
@@ -435,12 +391,6 @@ export const GIT_WORDS: readonly GitWords[] = [
       'priority-high': ['紧急', '重要', '严重'],
       'priority-low': ['次要', '不急'],
       refactor: ['重构', '清理'],
-    },
-    commands: {
-      list: ['我的工单', '我的问题', '打开的工单'],
-      close: ['关闭'],
-      reopen: ['重新打开'],
-      comment: ['评论', '回复'],
     },
   },
 ];

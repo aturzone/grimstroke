@@ -1,10 +1,10 @@
 /**
  * Repositories through the box in the lexicon's languages (src/box/lexicon.ts): an issue asked
- * for, read, labelled from the repository's own, and the repository commands.
+ * for, read, labelled from the repository's own, and git asked of in their words.
  */
 
 import { classify } from '@core/box/classify.ts';
-import { matchCommands, saysMine } from '@core/box/commands.ts';
+import { understandGit } from '@core/box/git/understand.ts';
 import { parseIssue } from '@core/box/issue.ts';
 import { chooseLabels } from '@core/box/labels.ts';
 import { describe, expect, it } from 'vitest';
@@ -51,17 +51,11 @@ describe('an issue in eight more languages', () => {
     );
   });
 
-  it('knows the repository commands, and which lists are one’s own', () => {
-    expect(matchCommands('ferme #12')[0]).toMatchObject({
-      sure: true,
-      command: { id: 'issue-close' },
-    });
-    expect(matchCommands('kommentiere #3: erledigt')[0]?.command.id).toBe('issue-comment');
-    expect(matchCommands('mis issues')[0]).toMatchObject({
-      sure: true,
-      command: { id: 'issue-list' },
-    });
-    expect(saysMine('meine issues')).toBe(true);
-    expect(saysMine('issues in web')).toBe(false);
+  it('is understood by the git layer, lists of one’s own included', () => {
+    expect(understandGit('ferme #12').action?.id).toBe('issue.close');
+    expect(understandGit('kommentiere #3: erledigt').action?.id).toBe('issue.comment');
+    const mine = understandGit('mis issues');
+    expect(mine.action?.id).toBe('issue.list');
+    expect(mine.slots.mine).toBe(true);
   });
 });

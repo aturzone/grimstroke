@@ -189,6 +189,18 @@ export function describe(
   if (s.state) bits.push(s.state);
   if (s.mine) bits.push(lang === 'fa' ? 'مال من' : lang === 'ru' ? 'мои' : 'mine');
   if (s.query) bits.push(`“${s.query}”`);
+  if (s.method)
+    bits.push(
+      s.method === 'squash'
+        ? lang === 'fa'
+          ? 'اسکواش'
+          : lang === 'ru'
+            ? 'сквош'
+            : 'squashed'
+        : s.method,
+    );
+  if (s.draft) bits.push(lang === 'fa' ? 'پیش‌نویس' : lang === 'ru' ? 'черновик' : 'draft');
+  if (s.force) bits.push(lang === 'fa' ? 'به زور' : lang === 'ru' ? 'принудительно' : 'forced');
   if (s.repo)
     bits.push(lang === 'fa' ? `در ${s.repo}` : lang === 'ru' ? `в ${s.repo}` : `in ${s.repo}`);
   if (where === 'local' && action.scope === 'both')

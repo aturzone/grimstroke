@@ -262,7 +262,7 @@ const LITTLE = new Set<string>(
      again too there here up down out off back into onto over show list get give make let need
      want see tell ask do did does done have has had not no yes ok okay hey thanks thank
      everything something anything called named titled message entirely whole every isn aren don
-     doesn didn wasn won t s`.split(/\s+/),
+     doesn didn wasn won t s force forced hard soft`.split(/\s+/),
     ...`رو را به از در تو توی روی واسه برای که این اون یه یک من منو مال خودم لطفا میشه بکن کن بده
      بزن هم دیگه همه همین همون اینو اونو با و یا تا هست بود شد شده کردم کرده چی چه کی کجا کدوم
      ها های ی ای اینجا اونجا الان بعد قبل جدید آخر اخیر کلا میگم بهش روش ازش نیست است هست`.split(
@@ -1173,7 +1173,7 @@ function readRepo(s: Spans, action: GitAction, out: GitSlots, taken: Found[], he
   const end = grab(
     s,
     new RegExp(
-      `${B}(?:in|on|for|at|of|from|under|в|во|из|у|im|dans|en|no|na|nel|del|do|da|في|在)\\s+(?:the\\s+)?([A-Za-z][\\w.-]*)(?:\\s+(?:repo|repository|project))?\\s*(?:$|[,،?!.]|\\s(?:and|و|и|but)\\s)`,
+      `${B}(?:in|on|for|at|of|from|under|в|во|из|у|im|dans|en|no|na|nel|del|do|da|في|在)\\s+(?:the\\s+)?([A-Za-z][\\w.-]*)(?:\\s+(?:repo|repository|project))?\\s*(?:$|[,،?!.]|\\s(?:and|و|и|but|with|using|via|then|please|pls|as|by|from|into|to|onto|без|с|и|با|و)(?:\\s|$))`,
       'iu',
     ),
     1,
