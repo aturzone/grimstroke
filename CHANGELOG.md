@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.8.0 — 2026-10-06
+
+Git, said in words: anything a person says to a repository, understood and done.
+
+- **93 actions**, each a verb on an object: issues (open, list, show, close, reopen, comment,
+  assign, label, edit, milestone, lock), pull and merge requests (open, list, show, files,
+  close, comment, merge -- squash or rebase --, approve, ask for changes, ask for a review,
+  ready, check out), branches, commits and comparisons, CI (did it pass, runs, run again,
+  cancel), releases, tags, labels, milestones, repositories (show, make, fork, star, delete,
+  clone), files, code search, people, notifications, accounts, and the working copy (status,
+  diff, stage, commit, amend, push, pull, fetch, merge, rebase, stash, reset, discard,
+  cherry-pick, revert, blame, init, remotes). On GitHub, GitLab and Gitea alike; what a service
+  has no API for is said, not skipped.
+- **In layers.** A gate of a few kilobytes says on every keystroke whether a line is git at
+  all; only then is the git model loaded (a chunk of its own): a verb head and an object head,
+  paired over the actions that exist. Readers find the number, repository, people, labels,
+  branches, versions, commits, files and words in any order -- verb first or last, as Persian
+  and Russian say it. "merge it", "ببندش", "закрой его" mean what was just talked about.
+- **Shown, then done.** A plan says what will happen in the sentence's language; reading is done
+  at once, a change on confirmation, and what loses work only when asked twice. `POST
+  /api/git/understand`, `POST /api/git/do`, and `grimstroke git <sentence>` (which asks at the
+  prompt, or takes `--yes`); inside a working copy, local git works on it.
+- **Measured honestly.** Two corpora written by people who never saw the training data: on the
+  half that was never looked at, the gate is right 96% of the time, the action 95%, what it
+  names 90%; on the second corpus 97%, 97% and 93%. The tests hold those numbers.
+- **Every action tested end to end**: a sentence followed to the HTTP call it makes on each of
+  the three services, and a real working copy worked through in words.
+- The box's fixed phrases for issues (my issues, close #12...) are gone: the git layer reads
+  them, and everything else said about git.
+
 ## 0.7.0 — 2026-10-06
 
 The core, on its own: no appearance, a command line like git's, and repositories in eleven

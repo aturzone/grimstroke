@@ -230,9 +230,37 @@ assets (`POST /api/assets`) carried into the issue -- an upload on GitLab, an at
 Gitea, and on GitHub, which has no API for it, a file on the branch `grimstroke-uploads`. The
 card stays where it was typed, or on the / board, and says which number it became.
 
-The box also acts on issues by number: `GET /api/remote/issues?repo=&mine=&state=` lists them,
-and `POST /api/remote/issues/act { repo?, number, action: close|reopen|comment, body? }` does one
-of those on its service. A month of the calendar as data is `GET /api/calendar?year=&month=`.
+`GET /api/remote/issues?repo=&mine=&state=` and `POST /api/remote/issues/act { repo?, number,
+action: close|reopen|comment, body? }` remain for an agent that already knows what it wants. A
+month of the calendar as data is `GET /api/calendar?year=&month=`.
+
+## Git, said in words
+
+Anything said to git -- in English, Persian, Russian, or (for what is said most) German, French,
+Spanish, Portuguese, Italian, Turkish, Arabic and Chinese -- is one of 93 actions
+(src/box/git/actions.ts): issues, pull and merge requests, branches, commits, CI, releases, tags,
+labels, milestones, repositories, files, code search, people, notifications, accounts, and the
+working copy (status, diff, stage, commit, push, pull, fetch, merge, rebase, stash, reset,
+discard, cherry-pick, revert, blame, init, clone, remotes).
+
+`POST /api/git/understand { text, last? }` answers with the plan and does nothing: the action
+(`issue.close`, `pr.merge`, `local.push`...), how sure, what the sentence named (`slots`: number,
+repo, people, labels, branch, base, ref, tag, path, state, mine, author, query, milestone,
+title, body, method, draft, force...), what is still `missing`, its `weight` (`read`, `write` or
+`destructive`), whether it waits to be confirmed, the next likeliest actions, and one line
+saying what it will do, in the sentence's language. `last` is what the conversation was about
+(`{ object, number, repo, branch, ref, tag }`, as the previous answer gave it), so "merge it" and
+"ببندش" know what "it" is.
+
+`POST /api/git/do { text, last?, confirmed? }` understands the sentence again -- a plan sent by a
+page is never trusted -- and does it: a read at once, anything that changes something only with
+`confirmed: true`. It answers `{ ok, action, plan, says, items?, text?, url?, last?, data?,
+confirm?, missing? }`: `items` a list to show (issues, pull requests, runs, commits, branches),
+`text` a long answer (a diff, a file, a status), `last` what to send with the next sentence.
+What a service has no API for (Gitea re-running CI, GitLab renaming a branch) is said, never
+skipped. The working copy is the server's clone of the repository (`clone owner/name` first);
+on the command line, the folder it runs in.
+
 
 ## Moving things between surfaces
 

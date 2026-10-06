@@ -36,6 +36,9 @@ grimstroke connect github --token <token>
 grimstroke issue "bug: save is slow on the phone, label mobile in owner/name" --image shot.png
 grimstroke issues web --mine
 grimstroke close 12 web
+grimstroke git "squash-merge PR 14 in web"   # anything said to git, in eleven languages
+grimstroke git "ایشو ۱۲ رو ببند"              # shown first; asks before it changes anything
+grimstroke git "запушь"                       # inside a working copy: on that copy
 ```
 
 Every command answers in JSON with `--json`. An agent can equally use HTTP:
@@ -59,6 +62,15 @@ millisecond, in the browser or on the server, with nothing to install and nothin
 An issue's labels are chosen against the repository's own by an archive of what labels stand for
 (`src/box/labels.ts`), in eleven languages (`src/box/lexicon.ts`).
 
+Git is understood in layers, each loaded only when the one before needs it. A gate of a few
+kilobytes runs with the card model on every keystroke and says only whether a line is said to
+git; a line with no git word or shape in it never is. Then the git model -- two small heads, verb
+and object, a few hundred kilobytes, loaded the first time a git sentence arrives -- picks one of
+93 actions; readers find what the action is told in any word order; and a plan says what will be
+done and waits to be confirmed before anything changes. It is measured on sentences written by
+people who never saw what it learnt from (`pnpm eval:git`): on the half that was never looked at,
+the gate is right 96% of the time, the action 95%, and what it names 90%.
+
 ## Several people
 
 `grimstroke gateway --users FILE --dir DIR` puts several people behind one login, each with a
@@ -68,7 +80,9 @@ workspace of their own in `DIR/<name>`: a separate process, a separate store, no
 
 ```sh
 pnpm check   # typecheck, lint, test, build
-pnpm train   # teach the / box's model again, and see how it does on what it never saw
+pnpm train      # teach the / box's model again, and see how it does on what it never saw
+pnpm train:git  # teach the git gate and model again
+pnpm eval:git   # measure them on the blind corpora
 ```
 
 `AGENTS.md` maps the tree.

@@ -33,7 +33,11 @@ src/box/             THE / BOX, pure
                      (dates and times), units.ts, zones.ts, colors.ts, issue.ts (an issue)
   labels.ts          a repository's labels chosen for an issue: an archive of what labels mean
   lexicon.ts         repository words in eleven languages: one entry per language
-  commands.ts        what the box does besides cards ("settings", "close #12")
+  commands.ts        what the box does besides cards ("settings", "dark", "new notebook x")
+  git/               THE GIT LAYER, pure: actions.ts (the 93 actions, verb x object), words.ts
+                     (git in eleven languages, one entry each), gate.ts (the first layer: git or
+                     not), model.ts (verb and object heads), slots.ts (what a sentence names, in
+                     any order), understand.ts (the plan: loaded on demand, never on every key)
   card.ts            a card as data, and its summary; fields.ts (values set by hand);
                      decide.ts (the box's calm state machine); intents.ts; slash.ts (the / board)
 src/docs/            boards, notebooks, the bookcase, blocks, notes, the profile: models and
@@ -42,16 +46,19 @@ src/docs/            boards, notebooks, the bookcase, blocks, notes, the profile
 src/day/gather.ts    the day, gathered from every card
 src/vocab/           the names documents use (look.ts: paper, templates, frames, palettes,
                      quiet hours), decor kinds, pet coats, sticker packs; rng.ts (hashing)
-src/git/             GitHub, GitLab, Gitea adapters; keys (0600); sign-in; work.ts (repositories
-                     as the box works with them, for the API and the command line alike)
+src/git/             GitHub, GitLab, Gitea adapters (adapter.ts: the whole contract); keys (0600);
+                     sign-in; work.ts (issues as the box opens them); do.ts (doing a plan: the
+                     one door for the API, the command line and agents); local.ts (git itself,
+                     on a working copy)
 src/serve/           the server: server.ts (the door, then the face's routes, then the core's),
                      face.ts (the contract), api.ts, live.ts (documents held and watched),
-                     slash.ts, issue.ts, today.ts, push.ts (Web Push), gateway.ts and login.ts
+                     slash.ts, issue.ts, git.ts, today.ts, push.ts (Web Push), gateway.ts and login.ts
                      (several people behind one login), look.ts (the owner's look settings)
 src/store/           boards, notebooks, assets by content hash; the archive
 
 tests/               mirrors src/
-tools/               build.ts, train-shape.ts and shape-data.ts (the model), the TS loader
+tools/               build.ts, train-shape.ts and shape-data.ts (the model), the TS loader;
+                     train-git.ts, git-data.ts and its JSON (the git gate and model), eval-git.ts
 docs/api.md          every endpoint and operation; docs/split.md the core and the face;
 docs/roadmap.md      what is open
 ```
@@ -72,10 +79,28 @@ It types, lints, tests and builds. Commit only on a green check, gated on its ex
 that needs markup asks the face (src/serve/face.ts) and answers without it when there is none.
 Everything pure -- box, docs, day, vocab -- stays free of the clock, the network and the disk.
 
-**A language is one entry.** Repository words live in src/box/lexicon.ts, one entry per
-language; the issue reader, the rules, the label archive and the commands all read them. Add a
-language there and in tools/shape-data.ts, run `pnpm train`, and keep the held-out accuracy
-where it was. Never move the model by hand-editing weights.ts.
+**A language is one entry.** An issue's words live in src/box/lexicon.ts and git's in
+src/box/git/words.ts, one entry per language; the issue reader, the rules, the label archive and
+the git layer read them. Add a language there and in the training data, run `pnpm train` and
+`pnpm train:git`, and keep the held-out accuracy where it was. Never move a model by
+hand-editing its weights.
+
+**Git is understood in layers, and each is loaded only when needed.** The gate (box/git/gate.ts)
+is the only git code on every keystroke and in the browser; understand.ts and its weights are
+`import()`ed by the server and the command line the first time a git sentence arrives, and the
+build keeps them a chunk of their own. Do not import them statically from anything that runs on
+every request. A line with no git word and no git shape in it is never git: the gate once took
+"dinn", half of "dinner", for a command because it had learnt "push" and "lgtm".
+
+**Nothing that changes a repository is done unconfirmed.** git/do.ts answers `confirm: true` and
+waits; the face asks again for what loses work. A plan sent by a page is never trusted: the
+sentence is understood again on the server.
+
+**The git model is measured on sentences nobody taught it.** tests/box/git/corpus.json and
+corpus-2.json were written by writers who never saw tools/git-data.ts or its JSON. The first
+corpus's test half (by a hash of the text) is the score and is never looked at to fix anything:
+tune on its dev half and on corpus-2 (`pnpm eval:git --wrong`, `--corpus 2`). Never copy a
+corpus sentence into the training data. tests/box/git/understand.test.ts holds the scores.
 
 **`null` clears a field in a patch; `undefined` does not exist.** JSON drops `undefined` keys,
 so a patch that "cleared" a title with it arrived as a patch that changed nothing, and its

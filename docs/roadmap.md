@@ -4,6 +4,10 @@ The plans this repository was built from (the workspace, the notebook, repositor
 redesign, the day) are done and in its history. What is open:
 
 ## The core
+- **Git, further.** The model reads 93 actions at 95% on sentences it never saw; what it names,
+  90%. Its weakest slots are search terms, milestones and labels with spaces: each improvement
+  is measured on corpus-2 and the first corpus's dev half, never its test half. A third blind
+  corpus, when those two are worn, keeps the numbers honest.
 - **Translation in the / box.** It needs a model that writes, which the box's own model is not:
   either a service it asks (an API key, the owner's choice) or a translation model run beside
   the core on a machine that can carry it. Not yet chosen.
